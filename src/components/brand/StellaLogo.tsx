@@ -1,27 +1,34 @@
+import stellaLogo from "@/assets/stella-logo.png.asset.json";
+
 interface StellaLogoProps {
   collapsed?: boolean;
 }
 
 /**
- * Stella wordmark rendered inline. Uses a script-style feel via italic + tight
- * tracking so we don't depend on an external font file for the logotype.
+ * Stella brand logo. Uses the official wordmark image.
+ * When the sidebar is collapsed, shows a compact cropped version.
  */
 export function StellaLogo({ collapsed = false }: StellaLogoProps) {
-  return (
-    <div className="flex items-center gap-2 overflow-hidden">
-      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-foreground text-background">
-        <span className="font-display text-lg font-extrabold italic leading-none">S</span>
+  if (collapsed) {
+    return (
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden">
+        <img
+          src={stellaLogo.url}
+          alt="Stella"
+          className="h-8 w-auto max-w-none object-contain object-left"
+          style={{ objectPosition: "28% center", transform: "scale(2.2)", transformOrigin: "left center" }}
+        />
       </div>
-      {!collapsed && (
-        <div className="flex min-w-0 flex-col leading-tight">
-          <span className="font-display text-lg font-extrabold italic tracking-tight text-foreground">
-            Stella
-          </span>
-          <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Espaço dos Uniformes
-          </span>
-        </div>
-      )}
+    );
+  }
+
+  return (
+    <div className="flex items-center overflow-hidden">
+      <img
+        src={stellaLogo.url}
+        alt="Stella — Espaço dos Uniformes"
+        className="h-10 w-auto object-contain"
+      />
     </div>
   );
 }
