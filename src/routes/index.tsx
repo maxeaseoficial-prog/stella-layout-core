@@ -1,24 +1,84 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  DollarSign,
+  TrendingUp,
+  Receipt,
+  ShoppingBag,
+  Clock,
+  BarChart3,
+  ListOrdered,
+  Package,
+} from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { PageHeader } from "@/components/common/PageHeader";
+import { StatCard } from "@/components/common/StatCard";
+import { PlaceholderPanel } from "@/components/common/PlaceholderPanel";
+import { EmptyState } from "@/components/common/EmptyState";
+import { Button } from "@/components/ui/button";
+
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: DashboardPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function DashboardPage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
+    <div className="space-y-6">
+      <PageHeader
+        title="Dashboard"
+        description="Acompanhe o desempenho geral do seu negócio."
+        actions={
+          <>
+            <Button variant="outline" size="sm">
+              Este mês
+            </Button>
+            <Button size="sm">Novo pedido</Button>
+          </>
+        }
       />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Faturamento" value="—" hint="período atual" icon={DollarSign} />
+        <StatCard label="Lucro" value="—" hint="margem estimada" icon={TrendingUp} />
+        <StatCard label="Gastos" value="—" hint="custos e despesas" icon={Receipt} />
+        <StatCard label="Pedidos" value="—" hint="total no período" icon={ShoppingBag} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <PlaceholderPanel title="Faturamento" className="lg:col-span-2">
+          <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 text-sm text-muted-foreground">
+            <div className="flex flex-col items-center gap-2">
+              <BarChart3 className="h-6 w-6 text-primary/60" />
+              Espaço reservado para o gráfico
+            </div>
+          </div>
+        </PlaceholderPanel>
+
+        <PlaceholderPanel title="Pedidos pendentes">
+          <EmptyState
+            icon={Clock}
+            title="Sem pendências"
+            description="Os pedidos aguardando ação aparecerão aqui."
+          />
+        </PlaceholderPanel>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <PlaceholderPanel title="Últimos pedidos">
+          <EmptyState
+            icon={ListOrdered}
+            title="Nenhum pedido ainda"
+            description="Os pedidos mais recentes serão listados aqui."
+          />
+        </PlaceholderPanel>
+
+        <PlaceholderPanel title="Produtos mais vendidos">
+          <EmptyState
+            icon={Package}
+            title="Ranking em breve"
+            description="Os produtos com maior saída aparecerão nesta seção."
+          />
+        </PlaceholderPanel>
+      </div>
     </div>
   );
 }
