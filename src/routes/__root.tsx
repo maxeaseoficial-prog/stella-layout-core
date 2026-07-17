@@ -90,14 +90,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Stella — Espaço dos Uniformes" },
       {
         property: "og:description",
-        content: "Plataforma interna de gestão da Stella Espaço dos Uniformes.",
+        content: "Sistema interno da Stella Espaço dos Uniformes — gestão de caixa, clientes, pedidos, estoque e fornecedores.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Stella — Espaço dos Uniformes" },
+      { name: "twitter:description", content: "Sistema interno da Stella Espaço dos Uniformes — gestão de caixa, clientes, pedidos, estoque e fornecedores." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd525ee3-1527-43d0-9b03-55ec9f3f9818/id-preview-da4411e5--a0ee32fe-77e9-4f03-9486-bc5f67c553e1.lovable.app-1784302719583.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fd525ee3-1527-43d0-9b03-55ec9f3f9818/id-preview-da4411e5--a0ee32fe-77e9-4f03-9486-bc5f67c553e1.lovable.app-1784302719583.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
