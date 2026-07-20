@@ -211,6 +211,7 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
                 <PedidoArquivosUploader
                   arquivos={form.arquivos}
                   onChange={(a) => up("arquivos", a)}
+                  clienteId={form.clienteId}
                 />
               </section>
 
