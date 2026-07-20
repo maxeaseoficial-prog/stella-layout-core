@@ -41,9 +41,7 @@ export const CATEGORIAS_PRODUTO: CategoriaProduto[] = [
 export interface PersonalizacoesPermitidas {
   bordado: boolean;
   estampa: boolean;
-  silk: boolean;
   sublimacao: boolean;
-  personalizacao: boolean;
 }
 
 export interface Produto {
@@ -66,7 +64,5 @@ export type ProdutoInput = Omit<Produto, "id" | "criadoEm" | "atualizadoEm">;
 export const PERSONALIZACOES_VAZIAS: PersonalizacoesPermitidas = {
   bordado: false,
   estampa: false,
-  silk: false,
   sublimacao: false,
-  personalizacao: false,
 };
