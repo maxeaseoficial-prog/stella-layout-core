@@ -19,6 +19,11 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  ArquivoPreview,
+  LABEL_TIPO_ARQUIVO,
+  useArquivos,
+} from "@/features/arquivos";
 
 import type { Cliente } from "./types";
 import { getClienteNome } from "./types";
