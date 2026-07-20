@@ -43,6 +43,8 @@ export function ClienteViewDrawer({
   onFechar,
   onEditar,
 }: ClienteViewDrawerProps) {
+  const { porCliente } = useArquivos();
+  const arquivosDoCliente = cliente ? porCliente(cliente.id) : [];
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
       <SheetContent
