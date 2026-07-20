@@ -47,23 +47,52 @@ export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props)
     onChange(arquivos.filter((a) => a.id !== id));
   }
 
+  function adicionarDoAcervo(itens: { id: string; arquivoNome: string; mime: string; extensao: string; tamanho: number; dataUrl: string }[]) {
+    const jaIds = new Set(arquivos.map((a) => a.id));
+    const novos: ClienteArquivo[] = itens
+      .filter((i) => !jaIds.has(i.id))
+      .map((i) => ({
+        id: i.id,
+        nome: i.arquivoNome,
+        tipo: i.mime,
+        extensao: i.extensao,
+        tamanho: i.tamanho,
+        dataUrl: i.dataUrl,
+        criadoEm: new Date().toISOString(),
+      }));
+    if (novos.length) onChange([...arquivos, ...novos]);
+    setSelectorAberto(false);
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">Arquivos</p>
           <p className="text-xs text-muted-foreground">
-            Anexe artes, logos, modelos e referências (PNG, JPG, JPEG, SVG, PDF).
+            Reutilize logos e matrizes já cadastradas do cliente ou envie novos arquivos.
           </p>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="h-4 w-4" /> Enviar arquivos
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {clienteId && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectorAberto(true)}
+            >
+              <FolderOpen className="h-4 w-4" /> Selecionar arquivo existente
+            </Button>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+          >
+            <Upload className="h-4 w-4" /> Enviar arquivos
+          </Button>
+        </div>
         <input
           ref={inputRef}
           type="file"
@@ -73,6 +102,16 @@ export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props)
           onChange={(e) => handleFiles(e.target.files)}
         />
       </div>
+
+      {clienteId && (
+        <SelecionarArquivoDialog
+          aberto={selectorAberto}
+          onFechar={() => setSelectorAberto(false)}
+          clienteId={clienteId}
+          jaSelecionadosIds={arquivos.map((a) => a.id)}
+          onConfirmar={adicionarDoAcervo}
+        />
+      )}
 
       {arquivos.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-surface-muted/50 p-6 text-center">
