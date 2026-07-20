@@ -36,6 +36,7 @@ interface Rascunho {
 
 export function ItensPedidoTable({ itens, onChange }: Props) {
   const { ativos: produtosAtivos } = useProdutos();
+  const { ativos: adicionaisAtivos } = useAdicionais();
   const [editandoPersonalizacao, setEditandoPersonalizacao] = useState<
     ItemPedido | null
   >(null);
@@ -77,6 +78,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
       quantidade: 1,
       valorUnitario: 0,
       personalizacoes: [],
+      adicionais: [],
     };
     onChange([...itens, novo]);
     setRascunhos((r) => ({
@@ -99,6 +101,36 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
 
   function salvarPersonalizacoes(id: string, p: Personalizacao[]) {
     atualizarItem(id, "personalizacoes", p);
+  }
+
+  function adicionarAdicional(itemId: string, adicionalId: string) {
+    const a = adicionaisAtivos.find((x) => x.id === adicionalId);
+    if (!a) return;
+    onChange(
+      itens.map((i) => {
+        if (i.id !== itemId) return i;
+        const atuais = i.adicionais ?? [];
+        // Não duplicar o mesmo adicional no item.
+        if (atuais.some((x) => x.adicionalId === a.id)) return i;
+        const novo: ItemAdicional = {
+          id: novoId(),
+          adicionalId: a.id,
+          nome: a.nome,
+          valor: a.valor,
+        };
+        return { ...i, adicionais: [...atuais, novo] };
+      }),
+    );
+  }
+
+  function removerAdicional(itemId: string, adicionalItemId: string) {
+    onChange(
+      itens.map((i) =>
+        i.id !== itemId
+          ? i
+          : { ...i, adicionais: (i.adicionais ?? []).filter((a) => a.id !== adicionalItemId) },
+      ),
+    );
   }
 
   return (
