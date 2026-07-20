@@ -35,6 +35,7 @@ const mainNav = [
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Pedidos", url: "/pedidos", icon: ShoppingBag },
   { title: "Produtos", url: "/produtos", icon: Package },
+  { title: "Estoque", url: "/estoque", icon: Boxes },
   { title: "Fornecedores", url: "/fornecedores", icon: Truck },
   { title: "Matrizes & Logos", url: "/matrizes-logos", icon: Sparkles },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
