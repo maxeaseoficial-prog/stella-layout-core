@@ -18,8 +18,9 @@ interface Props {
   clienteId?: string;
 }
 
-export function PedidoArquivosUploader({ arquivos, onChange }: Props) {
+export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectorAberto, setSelectorAberto] = useState(false);
 
   async function handleFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
