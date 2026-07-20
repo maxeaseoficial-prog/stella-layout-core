@@ -266,6 +266,91 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                     </Badge>
                   )}
                 </div>
+
+                {/* Adicionais — cart-like */}
+                <div className="space-y-2 rounded-lg border border-dashed border-border/70 bg-surface p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Adicionais
+                    </p>
+                    <div className="min-w-[220px]">
+                      <Select
+                        value=""
+                        onValueChange={(v) => adicionarAdicional(item.id, v)}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="+ Adicionar adicional" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {adicionaisAtivos.length === 0 ? (
+                            <div className="px-2 py-3 text-xs text-muted-foreground">
+                              Nenhum adicional ativo cadastrado.
+                            </div>
+                          ) : (
+                            adicionaisAtivos.map((a) => {
+                              const jaUsado = (item.adicionais ?? []).some(
+                                (x) => x.adicionalId === a.id,
+                              );
+                              return (
+                                <SelectItem key={a.id} value={a.id} disabled={jaUsado}>
+                                  {a.nome}
+                                  {a.valor > 0
+                                    ? ` — +${formatarMoeda(a.valor)}`
+                                    : ""}
+                                  <span className="ml-1 text-[10px] text-muted-foreground">
+                                    ({LABEL_TIPO_ADICIONAL[a.tipo]})
+                                  </span>
+                                </SelectItem>
+                              );
+                            })
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {(item.adicionais ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      Nenhum adicional aplicado.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {(item.adicionais ?? []).map((a) => (
+                        <li
+                          key={a.id}
+                          className="flex items-center justify-between gap-2 rounded-md bg-surface-muted/40 px-2 py-1 text-sm"
+                        >
+                          <span className="truncate">{a.nome}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="tabular-nums text-muted-foreground">
+                              + {formatarMoeda(a.valor)}
+                            </span>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                              onClick={() => removerAdicional(item.id, a.id)}
+                              aria-label={`Remover adicional ${a.nome}`}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {somaAdicionaisItem(item) > 0 && (
+                    <p className="text-right text-xs text-muted-foreground">
+                      Adicionais por unidade:{" "}
+                      <span className="font-semibold text-foreground">
+                        {formatarMoeda(somaAdicionaisItem(item))}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
               </li>
             );
           })}
