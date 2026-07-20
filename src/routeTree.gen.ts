@@ -13,6 +13,7 @@ import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MatrizesLogosRouteImport } from './routes/matrizes-logos'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
+import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CaixaRouteImport } from './routes/caixa'
@@ -36,6 +37,11 @@ const MatrizesLogosRoute = MatrizesLogosRouteImport.update({
 const FornecedoresRoute = FornecedoresRouteImport.update({
   id: '/fornecedores',
   path: '/fornecedores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EstoqueRoute = EstoqueRouteImport.update({
+  id: '/estoque',
+  path: '/estoque',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/caixa': typeof CaixaRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/caixa': typeof CaixaRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/caixa': typeof CaixaRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
+  '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/caixa'
     | '/clientes'
     | '/configuracoes'
+    | '/estoque'
     | '/fornecedores'
     | '/matrizes-logos'
     | '/pedidos'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/caixa'
     | '/clientes'
     | '/configuracoes'
+    | '/estoque'
     | '/fornecedores'
     | '/matrizes-logos'
     | '/pedidos'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/caixa'
     | '/clientes'
     | '/configuracoes'
+    | '/estoque'
     | '/fornecedores'
     | '/matrizes-logos'
     | '/pedidos'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   CaixaRoute: typeof CaixaRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
+  EstoqueRoute: typeof EstoqueRoute
   FornecedoresRoute: typeof FornecedoresRoute
   MatrizesLogosRoute: typeof MatrizesLogosRoute
   PedidosRoute: typeof PedidosRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/fornecedores'
       fullPath: '/fornecedores'
       preLoaderRoute: typeof FornecedoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/estoque': {
+      id: '/estoque'
+      path: '/estoque'
+      fullPath: '/estoque'
+      preLoaderRoute: typeof EstoqueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   CaixaRoute: CaixaRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
+  EstoqueRoute: EstoqueRoute,
   FornecedoresRoute: FornecedoresRoute,
   MatrizesLogosRoute: MatrizesLogosRoute,
   PedidosRoute: PedidosRoute,
