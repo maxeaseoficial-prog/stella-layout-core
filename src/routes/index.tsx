@@ -15,12 +15,16 @@ import { StatCard } from "@/components/common/StatCard";
 import { PlaceholderPanel } from "@/components/common/PlaceholderPanel";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
+import { useCaixa } from "@/features/caixa";
+import { formatarMoeda } from "@/features/caixa/utils";
 
 export const Route = createFileRoute("/")({
   component: DashboardPage,
 });
 
 function DashboardPage() {
+  const { totais, movimentacoes } = useCaixa();
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -37,10 +41,30 @@ function DashboardPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Faturamento" value="—" hint="período atual" icon={DollarSign} />
-        <StatCard label="Lucro" value="—" hint="margem estimada" icon={TrendingUp} />
-        <StatCard label="Gastos" value="—" hint="custos e despesas" icon={Receipt} />
-        <StatCard label="Pedidos" value="—" hint="total no período" icon={ShoppingBag} />
+        <StatCard
+          label="Faturamento"
+          value={formatarMoeda(totais.entradas)}
+          hint="entradas registradas"
+          icon={DollarSign}
+        />
+        <StatCard
+          label="Lucro"
+          value={formatarMoeda(totais.resultado)}
+          hint="entradas − saídas"
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="Gastos"
+          value={formatarMoeda(totais.saidas)}
+          hint="saídas registradas"
+          icon={Receipt}
+        />
+        <StatCard
+          label="Pedidos"
+          value="—"
+          hint="total no período"
+          icon={ShoppingBag}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -48,7 +72,9 @@ function DashboardPage() {
           <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-border bg-surface-muted/40 text-sm text-muted-foreground">
             <div className="flex flex-col items-center gap-2">
               <BarChart3 className="h-6 w-6 text-primary/60" />
-              Espaço reservado para o gráfico
+              {movimentacoes.length === 0
+                ? "Espaço reservado para o gráfico"
+                : `${movimentacoes.length} movimentações registradas`}
             </div>
           </div>
         </PlaceholderPanel>
