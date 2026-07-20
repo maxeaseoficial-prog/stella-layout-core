@@ -89,11 +89,9 @@ function parsePreco(v: string): number {
 }
 
 const CHECKS: { key: keyof PersonalizacoesPermitidas; label: string }[] = [
-  { key: "bordado", label: "Permite Bordado" },
-  { key: "estampa", label: "Permite Estampa" },
-  { key: "silk", label: "Permite Silk" },
-  { key: "sublimacao", label: "Permite Sublimação" },
-  { key: "personalizacao", label: "Permite Personalização" },
+  { key: "bordado", label: "Bordado" },
+  { key: "estampa", label: "Estampa" },
+  { key: "sublimacao", label: "Sublimação" },
 ];
 
 const IMG_ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
