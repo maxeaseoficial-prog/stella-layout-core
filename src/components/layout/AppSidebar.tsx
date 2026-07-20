@@ -5,6 +5,7 @@ import {
   Users,
   ShoppingBag,
   Package,
+  Boxes,
   Truck,
   Sparkles,
   Settings,
