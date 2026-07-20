@@ -27,7 +27,11 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
   const [duplicado, setDuplicado] = useState<Cliente | null>(null);
 
   const lista = useMemo(() => filtrar(termo).slice(0, 8), [filtrar, termo]);
-  const selecionado = clientes.find((c) => c.id === clienteId);
+
+  function handleSelecionar(id: string) {
+    // Selecionar referencia somente o ID existente; nunca altera a base de clientes.
+    onSelecionar(id);
+  }
 
   function handleCriar(dados: ClienteInput) {
     const resultado = criar(dados);
@@ -43,7 +47,7 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
 
   function selecionarDuplicado() {
     if (!duplicado) return;
-    onSelecionar(duplicado.id);
+    handleSelecionar(duplicado.id);
     setDuplicado(null);
     setFormAberto(false);
   }
@@ -69,30 +73,6 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
           <UserPlus className="h-4 w-4" /> Cadastrar novo
         </Button>
       </div>
-
-      {selecionado && (
-        <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-primary-soft/40 p-3">
-          <ClienteAvatar
-            nome={getClienteNome(selecionado)}
-            imagem={selecionado.imagem}
-            size="md"
-          />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {getClienteNome(selecionado)}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">
-              {selecionado.telefone}
-              {selecionado.tipo === "empresa" &&
-                selecionado.responsavel &&
-                ` • Resp.: ${selecionado.responsavel}`}
-            </p>
-          </div>
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground">
-            <Check className="h-4 w-4" />
-          </span>
-        </div>
-      )}
 
       {duplicado && (
         <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
@@ -131,10 +111,11 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
               <li key={c.id}>
                 <button
                   type="button"
-                  onClick={() => onSelecionar(c.id)}
+                  onClick={() => handleSelecionar(c.id)}
+                  aria-pressed={c.id === clienteId}
                   className={cn(
                     "flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-surface",
-                    c.id === clienteId && "bg-primary-soft/60",
+                    c.id === clienteId && "bg-primary-soft/60 ring-1 ring-inset ring-primary/30",
                   )}
                 >
                   <ClienteAvatar
@@ -151,6 +132,11 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
                       {c.tipo === "empresa" && ` • Empresa`}
                     </p>
                   </div>
+                  {c.id === clienteId && (
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="h-4 w-4" />
+                    </span>
+                  )}
                 </button>
               </li>
             ))}
