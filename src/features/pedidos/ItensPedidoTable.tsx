@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Palette, Plus, Trash2 } from "lucide-react";
+import { Palette, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProdutos } from "@/features/produtos";
+import { useAdicionais, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
 
-import type { ItemPedido, Personalizacao } from "./types";
-import { calcularSubtotalItem, formatarMoeda, novoId, parseValorInput } from "./utils";
+import type { ItemAdicional, ItemPedido, Personalizacao } from "./types";
+import {
+  calcularSubtotalItem,
+  formatarMoeda,
+  novoId,
+  parseValorInput,
+  somaAdicionaisItem,
+} from "./utils";
 import { PersonalizacaoModal } from "./PersonalizacaoModal";
 
 interface Props {
