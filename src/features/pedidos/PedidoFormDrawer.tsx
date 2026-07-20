@@ -1,0 +1,282 @@
+import { useEffect, useMemo, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+
+import type { ClienteArquivo } from "@/features/clientes";
+
+import type { ItemPedido, Pedido, PedidoInput } from "./types";
+import { ClienteSelector } from "./ClienteSelector";
+import { ItensPedidoTable } from "./ItensPedidoTable";
+import { PedidoArquivosUploader } from "./PedidoArquivosUploader";
+import { ResumoFinanceiro } from "./ResumoFinanceiro";
+import { calcularSubtotal, parseValorInput } from "./utils";
+
+interface Props {
+  aberto: boolean;
+  onFechar: () => void;
+  pedido?: Pedido | null;
+  onSalvar: (dados: PedidoInput, id?: string) => void;
+}
+
+interface FormState {
+  clienteId: string;
+  itens: ItemPedido[];
+  arquivos: ClienteArquivo[];
+  descontoStr: string;
+  freteStr: string;
+  previsaoEntrega: string;
+  observacoes: string;
+}
+
+function estadoInicial(pedido?: Pedido | null): FormState {
+  if (!pedido) {
+    return {
+      clienteId: "",
+      itens: [],
+      arquivos: [],
+      descontoStr: "",
+      freteStr: "",
+      previsaoEntrega: "",
+      observacoes: "",
+    };
+  }
+  return {
+    clienteId: pedido.clienteId,
+    itens: pedido.itens,
+    arquivos: pedido.arquivos,
+    descontoStr:
+      pedido.desconto > 0 ? pedido.desconto.toFixed(2).replace(".", ",") : "",
+    freteStr: pedido.frete > 0 ? pedido.frete.toFixed(2).replace(".", ",") : "",
+    previsaoEntrega: pedido.previsaoEntrega ?? "",
+    observacoes: pedido.observacoes ?? "",
+  };
+}
+
+const ETAPAS = [
+  { id: 1, label: "Cliente" },
+  { id: 2, label: "Produtos" },
+  { id: 3, label: "Arquivos e valores" },
+];
+
+export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) {
+  const [form, setForm] = useState<FormState>(() => estadoInicial(pedido));
+  const [etapa, setEtapa] = useState(1);
+  const [erro, setErro] = useState<string>();
+
+  useEffect(() => {
+    if (aberto) {
+      setForm(estadoInicial(pedido));
+      setEtapa(1);
+      setErro(undefined);
+    }
+  }, [aberto, pedido]);
+
+  const subtotal = useMemo(() => calcularSubtotal(form.itens), [form.itens]);
+
+  function up<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  function podeAvancar(): boolean {
+    if (etapa === 1 && !form.clienteId) {
+      setErro("Selecione um cliente para continuar.");
+      return false;
+    }
+    if (etapa === 2) {
+      if (form.itens.length === 0) {
+        setErro("Adicione pelo menos um produto.");
+        return false;
+      }
+      const invalido = form.itens.find(
+        (i) => !i.produto.trim() || i.quantidade <= 0 || i.valorUnitario < 0,
+      );
+      if (invalido) {
+        setErro("Preencha produto, quantidade e valor de cada item.");
+        return false;
+      }
+    }
+    setErro(undefined);
+    return true;
+  }
+
+  function avancar() {
+    if (!podeAvancar()) return;
+    setEtapa((e) => Math.min(3, e + 1));
+  }
+
+  function voltar() {
+    setErro(undefined);
+    setEtapa((e) => Math.max(1, e - 1));
+  }
+
+  function handleSalvar() {
+    if (!podeAvancar()) return;
+    const dados: PedidoInput = {
+      clienteId: form.clienteId,
+      itens: form.itens,
+      arquivos: form.arquivos,
+      desconto: parseValorInput(form.descontoStr),
+      frete: parseValorInput(form.freteStr),
+      previsaoEntrega: form.previsaoEntrega || undefined,
+      observacoes: form.observacoes.trim() || undefined,
+    };
+    onSalvar(dados, pedido?.id);
+    onFechar();
+  }
+
+  return (
+    <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl"
+      >
+        <SheetHeader className="border-b border-border bg-surface px-6 py-4">
+          <SheetTitle className="text-xl font-bold">
+            {pedido ? `Editar pedido ${pedido.numero}` : "Novo pedido"}
+          </SheetTitle>
+          <SheetDescription>
+            Preencha as etapas para {pedido ? "atualizar" : "criar"} o pedido.
+          </SheetDescription>
+
+          <div className="mt-3 flex items-center gap-2">
+            {ETAPAS.map((e, idx) => (
+              <div key={e.id} className="flex flex-1 items-center gap-2">
+                <div
+                  className={cn(
+                    "grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-semibold",
+                    etapa === e.id
+                      ? "bg-primary text-primary-foreground"
+                      : etapa > e.id
+                        ? "bg-success text-white"
+                        : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {e.id}
+                </div>
+                <span
+                  className={cn(
+                    "text-xs font-medium",
+                    etapa === e.id ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  {e.label}
+                </span>
+                {idx < ETAPAS.length - 1 && (
+                  <div className="h-px flex-1 bg-border" />
+                )}
+              </div>
+            ))}
+          </div>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto bg-surface-muted/40 px-6 py-6">
+          {etapa === 1 && (
+            <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Selecionar cliente
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Pesquise um cliente cadastrado ou cadastre um novo agora.
+                </p>
+              </div>
+              <ClienteSelector
+                clienteId={form.clienteId}
+                onSelecionar={(id) => up("clienteId", id)}
+              />
+            </section>
+          )}
+
+          {etapa === 2 && (
+            <ItensPedidoTable
+              itens={form.itens}
+              onChange={(i) => up("itens", i)}
+            />
+          )}
+
+          {etapa === 3 && (
+            <div className="space-y-4">
+              <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+                <PedidoArquivosUploader
+                  arquivos={form.arquivos}
+                  onChange={(a) => up("arquivos", a)}
+                />
+              </section>
+
+              <ResumoFinanceiro
+                subtotal={subtotal}
+                desconto={form.descontoStr}
+                frete={form.freteStr}
+                onDesconto={(v) => up("descontoStr", v)}
+                onFrete={(v) => up("freteStr", v)}
+              />
+
+              <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Previsão de entrega</Label>
+                    <Input
+                      type="date"
+                      value={form.previsaoEntrega}
+                      onChange={(e) => up("previsaoEntrega", e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Observações gerais</Label>
+                  <Textarea
+                    rows={3}
+                    value={form.observacoes}
+                    onChange={(e) => up("observacoes", e.target.value)}
+                    placeholder="Anotações internas, prazos, condições especiais..."
+                  />
+                </div>
+              </section>
+            </div>
+          )}
+
+          {erro && (
+            <p className="mt-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm font-medium text-destructive">
+              {erro}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 border-t border-border bg-surface px-6 py-4">
+          <div>
+            {etapa > 1 && (
+              <Button type="button" variant="outline" onClick={voltar}>
+                Voltar
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="ghost" onClick={onFechar}>
+              Cancelar
+            </Button>
+            {etapa < 3 ? (
+              <Button type="button" onClick={avancar}>
+                Avançar
+              </Button>
+            ) : (
+              <Button type="button" onClick={handleSalvar}>
+                {pedido ? "Salvar alterações" : "Criar pedido"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
