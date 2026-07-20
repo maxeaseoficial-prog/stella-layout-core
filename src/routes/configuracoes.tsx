@@ -27,7 +27,7 @@ function ConfiguracoesPage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {sections.map((s) => (
-          <PlaceholderPanel key={s.title}>
+          <PlaceholderPanel key={s.title} contentClassName="p-5">
             <div className="flex items-start gap-4">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
                 <s.icon className="h-5 w-5" />
