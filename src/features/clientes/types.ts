@@ -45,10 +45,34 @@ export interface ClienteEmpresa extends ClienteBase {
 
 export type Cliente = ClientePessoaFisica | ClienteEmpresa;
 
-export type ClienteInput = Omit<Cliente, "id" | "criadoEm" | "atualizadoEm" | "arquivos" | "status"> & {
+type BaseInput = {
+  telefone: string;
+  email?: string;
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  observacoes?: string;
   status?: StatusCliente;
+  dataCadastro: string;
+  imagem?: string;
   arquivos?: ClienteArquivo[];
 };
+
+export type ClientePessoaFisicaInput = BaseInput & {
+  tipo: "pessoa_fisica";
+  nome: string;
+  cpf?: string;
+};
+
+export type ClienteEmpresaInput = BaseInput & {
+  tipo: "empresa";
+  nomeEmpresa: string;
+  responsavel: string;
+  cnpj?: string;
+  inscricaoEstadual?: string;
+};
+
+export type ClienteInput = ClientePessoaFisicaInput | ClienteEmpresaInput;
 
 export function getClienteNome(cliente: Cliente): string {
   return cliente.tipo === "empresa" ? cliente.nomeEmpresa : cliente.nome;
