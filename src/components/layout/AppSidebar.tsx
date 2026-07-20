@@ -33,7 +33,7 @@ const mainNav = [
   { title: "Caixa", url: "/caixa", icon: Wallet },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Pedidos", url: "/pedidos", icon: ShoppingBag },
-  { title: "Estoque", url: "/estoque", icon: Package },
+  { title: "Produtos", url: "/produtos", icon: Package },
   { title: "Fornecedores", url: "/fornecedores", icon: Truck },
   { title: "Matrizes & Logos", url: "/matrizes-logos", icon: Sparkles },
   { title: "Configurações", url: "/configuracoes", icon: Settings },

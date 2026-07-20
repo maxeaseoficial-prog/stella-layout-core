@@ -4,6 +4,14 @@ import { Palette, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useProdutos } from "@/features/produtos";
 
 import type { ItemPedido, Personalizacao } from "./types";
 import { calcularSubtotalItem, formatarMoeda, novoId, parseValorInput } from "./utils";
@@ -20,10 +28,40 @@ interface Rascunho {
 }
 
 export function ItensPedidoTable({ itens, onChange }: Props) {
+  const { ativos: produtosAtivos } = useProdutos();
   const [editandoPersonalizacao, setEditandoPersonalizacao] = useState<
     ItemPedido | null
   >(null);
   const [rascunhos, setRascunhos] = useState<Record<string, Rascunho>>({});
+
+  function selecionarProduto(itemId: string, produtoId: string) {
+    const p = produtosAtivos.find((x) => x.id === produtoId);
+    if (!p) return;
+    onChange(
+      itens.map((i) =>
+        i.id === itemId
+          ? {
+              ...i,
+              produtoId: p.id,
+              produto: p.nome,
+              valorUnitario: i.valorUnitario > 0 ? i.valorUnitario : p.precoBase,
+            }
+          : i,
+      ),
+    );
+    setRascunhos((r) => ({
+      ...r,
+      [itemId]: {
+        quantidadeStr: r[itemId]?.quantidadeStr ?? String(itens.find((i) => i.id === itemId)?.quantidade ?? 1),
+        valorStr:
+          r[itemId]?.valorStr && r[itemId]!.valorStr.length > 0
+            ? r[itemId]!.valorStr
+            : p.precoBase > 0
+              ? p.precoBase.toFixed(2).replace(".", ",")
+              : "",
+      },
+    }));
+  }
 
   function adicionarItem() {
     const novo: ItemPedido = {
@@ -85,11 +123,53 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                 className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3"
               >
                 <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_90px_120px_120px_auto]">
-                  <Input
-                    value={item.produto}
-                    onChange={(e) => atualizarItem(item.id, "produto", e.target.value)}
-                    placeholder="Produto / descrição"
-                  />
+                  {item.produtoId || produtosAtivos.some((p) => p.nome === item.produto) ? (
+                    <Select
+                      value={item.produtoId ?? ""}
+                      onValueChange={(v) => selecionarProduto(item.id, v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o produto">
+                          {item.produto || "Selecione o produto"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {produtosAtivos.length === 0 ? (
+                          <div className="px-2 py-3 text-xs text-muted-foreground">
+                            Nenhum produto ativo cadastrado.
+                          </div>
+                        ) : (
+                          produtosAtivos.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.nome}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select
+                      value=""
+                      onValueChange={(v) => selecionarProduto(item.id, v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o produto" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {produtosAtivos.length === 0 ? (
+                          <div className="px-2 py-3 text-xs text-muted-foreground">
+                            Nenhum produto ativo cadastrado.
+                          </div>
+                        ) : (
+                          produtosAtivos.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.nome}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
                   <Input
                     value={rascunho.quantidadeStr}
                     inputMode="numeric"

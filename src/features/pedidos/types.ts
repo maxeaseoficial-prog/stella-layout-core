@@ -25,6 +25,9 @@ export interface Personalizacao {
 
 export interface ItemPedido {
   id: string;
+  /** ID do produto no catálogo (undefined em pedidos legados). */
+  produtoId?: string;
+  /** Snapshot do nome do produto no momento do pedido. */
   produto: string;
   quantidade: number;
   valorUnitario: number;

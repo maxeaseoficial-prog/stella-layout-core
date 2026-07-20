@@ -9,15 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MatrizesLogosRouteImport } from './routes/matrizes-logos'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
-import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as CaixaRouteImport } from './routes/caixa'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PedidosRoute = PedidosRouteImport.update({
   id: '/pedidos',
   path: '/pedidos',
@@ -31,11 +36,6 @@ const MatrizesLogosRoute = MatrizesLogosRouteImport.update({
 const FornecedoresRoute = FornecedoresRouteImport.update({
   id: '/fornecedores',
   path: '/fornecedores',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EstoqueRoute = EstoqueRouteImport.update({
-  id: '/estoque',
-  path: '/estoque',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
@@ -64,20 +64,20 @@ export interface FileRoutesByFullPath {
   '/caixa': typeof CaixaRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
+  '/produtos': typeof ProdutosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/caixa': typeof CaixaRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
+  '/produtos': typeof ProdutosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -85,10 +85,10 @@ export interface FileRoutesById {
   '/caixa': typeof CaixaRoute
   '/clientes': typeof ClientesRoute
   '/configuracoes': typeof ConfiguracoesRoute
-  '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
+  '/produtos': typeof ProdutosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,30 +97,30 @@ export interface FileRouteTypes {
     | '/caixa'
     | '/clientes'
     | '/configuracoes'
-    | '/estoque'
     | '/fornecedores'
     | '/matrizes-logos'
     | '/pedidos'
+    | '/produtos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/caixa'
     | '/clientes'
     | '/configuracoes'
-    | '/estoque'
     | '/fornecedores'
     | '/matrizes-logos'
     | '/pedidos'
+    | '/produtos'
   id:
     | '__root__'
     | '/'
     | '/caixa'
     | '/clientes'
     | '/configuracoes'
-    | '/estoque'
     | '/fornecedores'
     | '/matrizes-logos'
     | '/pedidos'
+    | '/produtos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -128,14 +128,21 @@ export interface RootRouteChildren {
   CaixaRoute: typeof CaixaRoute
   ClientesRoute: typeof ClientesRoute
   ConfiguracoesRoute: typeof ConfiguracoesRoute
-  EstoqueRoute: typeof EstoqueRoute
   FornecedoresRoute: typeof FornecedoresRoute
   MatrizesLogosRoute: typeof MatrizesLogosRoute
   PedidosRoute: typeof PedidosRoute
+  ProdutosRoute: typeof ProdutosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pedidos': {
       id: '/pedidos'
       path: '/pedidos'
@@ -155,13 +162,6 @@ declare module '@tanstack/react-router' {
       path: '/fornecedores'
       fullPath: '/fornecedores'
       preLoaderRoute: typeof FornecedoresRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/estoque': {
-      id: '/estoque'
-      path: '/estoque'
-      fullPath: '/estoque'
-      preLoaderRoute: typeof EstoqueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/configuracoes': {
@@ -200,10 +200,10 @@ const rootRouteChildren: RootRouteChildren = {
   CaixaRoute: CaixaRoute,
   ClientesRoute: ClientesRoute,
   ConfiguracoesRoute: ConfiguracoesRoute,
-  EstoqueRoute: EstoqueRoute,
   FornecedoresRoute: FornecedoresRoute,
   MatrizesLogosRoute: MatrizesLogosRoute,
   PedidosRoute: PedidosRoute,
+  ProdutosRoute: ProdutosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
