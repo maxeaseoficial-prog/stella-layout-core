@@ -1,0 +1,115 @@
+import { useRef } from "react";
+import { FileText, ImageIcon, Paperclip, Trash2, Upload } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
+import type { ClienteArquivo } from "./types";
+import { fileToDataUrl, formatarDataBR, formatarTamanho, novoId } from "./utils";
+
+const ACCEPT = ".png,.jpg,.jpeg,.svg,.pdf,image/png,image/jpeg,image/svg+xml,application/pdf";
+const EXTS = ["png", "jpg", "jpeg", "svg", "pdf"];
+
+interface ClienteFilesUploaderProps {
+  arquivos: ClienteArquivo[];
+  onChange: (arquivos: ClienteArquivo[]) => void;
+}
+
+export function ClienteFilesUploader({ arquivos, onChange }: ClienteFilesUploaderProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    const novos: ClienteArquivo[] = [];
+    for (const file of Array.from(fileList)) {
+      const ext = (file.name.split(".").pop() ?? "").toLowerCase();
+      if (!EXTS.includes(ext)) continue;
+      const dataUrl = await fileToDataUrl(file);
+      novos.push({
+        id: novoId(),
+        nome: file.name,
+        tipo: file.type || `application/${ext}`,
+        extensao: ext,
+        tamanho: file.size,
+        dataUrl,
+        criadoEm: new Date().toISOString(),
+      });
+    }
+    if (novos.length) onChange([...arquivos, ...novos]);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function excluir(id: string) {
+    onChange(arquivos.filter((a) => a.id !== id));
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-foreground">Arquivos</p>
+          <p className="text-xs text-muted-foreground">
+            Anexe logos, artes, documentos e referências (PNG, JPG, JPEG, SVG, PDF).
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => inputRef.current?.click()}
+        >
+          <Upload className="h-4 w-4" />
+          Enviar arquivos
+        </Button>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept={ACCEPT}
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+      </div>
+
+      {arquivos.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-surface-muted/50 p-6 text-center">
+          <Paperclip className="h-5 w-5 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Nenhum arquivo anexado.</p>
+        </div>
+      ) : (
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {arquivos.map((arq) => {
+            const isImg = ["png", "jpg", "jpeg", "svg"].includes(arq.extensao);
+            const Icon = isImg ? ImageIcon : FileText;
+            return (
+              <li
+                key={arq.id}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[var(--shadow-soft)]"
+              >
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">{arq.nome}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {arq.extensao.toUpperCase()} • {formatarTamanho(arq.tamanho)} •{" "}
+                    {formatarDataBR(arq.criadoEm)}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  onClick={() => excluir(arq.id)}
+                  aria-label="Excluir arquivo"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
