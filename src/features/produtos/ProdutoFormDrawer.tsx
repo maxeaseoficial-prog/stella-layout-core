@@ -258,7 +258,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
 
             {/* Personalizações */}
             <div className="space-y-3 rounded-xl border border-border bg-surface-muted/40 p-4">
-              <p className="text-sm font-semibold text-foreground">Personalizações permitidas</p>
+              <p className="text-sm font-semibold text-foreground">Personalizações Disponíveis</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {CHECKS.map(({ key, label }) => (
                   <label
