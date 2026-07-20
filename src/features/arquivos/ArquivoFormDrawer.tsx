@@ -1,0 +1,373 @@
+import { useEffect, useRef, useState } from "react";
+import { Upload } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { fileToDataUrl, formatarTamanho, hojeISO } from "@/features/clientes/utils";
+
+import type {
+  Arquivo,
+  ArquivoInput,
+  FinalidadeArquivo,
+  StatusArquivo,
+  TipoArquivo,
+} from "./types";
+import {
+  EXTENSOES_ACEITAS,
+  LABEL_FINALIDADE,
+  LABEL_TIPO_ARQUIVO,
+} from "./types";
+import { ArquivoPreview } from "./ArquivoPreview";
+import { ArquivoClienteSelector } from "./ArquivoClienteSelector";
+import { extensaoDoNome } from "./utils";
+
+interface Props {
+  aberto: boolean;
+  onFechar: () => void;
+  arquivo?: Arquivo | null;
+  clienteIdInicial?: string;
+  onSalvar: (dados: ArquivoInput, id?: string) => void;
+}
+
+interface FormState {
+  clienteId: string;
+  tipo: TipoArquivo;
+  finalidade: FinalidadeArquivo | "";
+  nome: string;
+  descricao: string;
+  status: StatusArquivo;
+  arquivoNome: string;
+  extensao: string;
+  mime: string;
+  tamanho: number;
+  dataUrl: string;
+}
+
+function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState {
+  if (!a) {
+    return {
+      clienteId: clienteIdInicial ?? "",
+      tipo: "logo",
+      finalidade: "",
+      nome: "",
+      descricao: "",
+      status: "ativo",
+      arquivoNome: "",
+      extensao: "",
+      mime: "",
+      tamanho: 0,
+      dataUrl: "",
+    };
+  }
+  return {
+    clienteId: a.clienteId,
+    tipo: a.tipo,
+    finalidade: a.finalidade ?? "",
+    nome: a.nome,
+    descricao: a.descricao ?? "",
+    status: a.status,
+    arquivoNome: a.arquivoNome,
+    extensao: a.extensao,
+    mime: a.mime,
+    tamanho: a.tamanho,
+    dataUrl: a.dataUrl,
+  };
+}
+
+const ACCEPT = EXTENSOES_ACEITAS.map((e) => `.${e}`).join(",");
+
+export function ArquivoFormDrawer({
+  aberto,
+  onFechar,
+  arquivo,
+  clienteIdInicial,
+  onSalvar,
+}: Props) {
+  const [form, setForm] = useState<FormState>(() =>
+    estadoInicial(arquivo, clienteIdInicial),
+  );
+  const [erros, setErros] = useState<Record<string, string>>({});
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (aberto) {
+      setForm(estadoInicial(arquivo, clienteIdInicial));
+      setErros({});
+    }
+  }, [aberto, arquivo, clienteIdInicial]);
+
+  function up<K extends keyof FormState>(k: K, v: FormState[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  async function handleArquivo(file: File | undefined) {
+    if (!file) return;
+    const ext = extensaoDoNome(file.name);
+    if (!EXTENSOES_ACEITAS.includes(ext as (typeof EXTENSOES_ACEITAS)[number])) {
+      setErros((e) => ({
+        ...e,
+        arquivo: `Extensão .${ext} não aceita.`,
+      }));
+      return;
+    }
+    const dataUrl = await fileToDataUrl(file);
+    setForm((f) => ({
+      ...f,
+      arquivoNome: file.name,
+      extensao: ext,
+      mime: file.type || `application/${ext}`,
+      tamanho: file.size,
+      dataUrl,
+      nome: f.nome || file.name.replace(/\.[^.]+$/, ""),
+    }));
+    setErros((e) => ({ ...e, arquivo: "" }));
+  }
+
+  function validar(): boolean {
+    const e: Record<string, string> = {};
+    if (!form.clienteId) e.clienteId = "Selecione um cliente.";
+    if (!form.nome.trim()) e.nome = "Informe o nome do arquivo.";
+    if (!form.dataUrl) e.arquivo = "Envie o arquivo.";
+    setErros(e);
+    return Object.keys(e).length === 0;
+  }
+
+  function handleSalvar() {
+    if (!validar()) return;
+    const dados: ArquivoInput = {
+      clienteId: form.clienteId,
+      tipo: form.tipo,
+      finalidade: form.finalidade || undefined,
+      nome: form.nome.trim(),
+      descricao: form.descricao.trim() || undefined,
+      status: form.status,
+      arquivoNome: form.arquivoNome,
+      extensao: form.extensao,
+      mime: form.mime,
+      tamanho: form.tamanho,
+      dataUrl: form.dataUrl,
+    };
+    onSalvar(dados, arquivo?.id);
+  }
+
+  return (
+    <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-xl"
+      >
+        <SheetHeader className="border-b border-border bg-surface px-6 py-4">
+          <SheetTitle className="text-xl font-bold">
+            {arquivo ? "Editar arquivo" : "Novo arquivo"}
+          </SheetTitle>
+          <SheetDescription>
+            Vincule logos, matrizes e artes ao cliente correto. Data de cadastro:{" "}
+            {hojeISO().split("-").reverse().join("/")}.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto bg-surface-muted/40 px-6 py-6">
+          <div className="space-y-6">
+            {/* Cliente */}
+            <section className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">Cliente</h4>
+                <p className="text-xs text-muted-foreground">
+                  Cada arquivo pertence a um cliente da base única.
+                </p>
+              </div>
+              <ArquivoClienteSelector
+                clienteId={form.clienteId}
+                onSelecionar={(id) => up("clienteId", id)}
+              />
+              {erros.clienteId && (
+                <p className="text-xs font-medium text-destructive">
+                  {erros.clienteId}
+                </p>
+              )}
+            </section>
+
+            {/* Tipo & finalidade */}
+            <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <h4 className="text-sm font-semibold text-foreground">
+                Tipo & finalidade
+              </h4>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Campo label="Tipo do arquivo" obrigatorio>
+                  <select
+                    value={form.tipo}
+                    onChange={(e) => up("tipo", e.target.value as TipoArquivo)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    {(Object.keys(LABEL_TIPO_ARQUIVO) as TipoArquivo[]).map((t) => (
+                      <option key={t} value={t}>
+                        {LABEL_TIPO_ARQUIVO[t]}
+                      </option>
+                    ))}
+                  </select>
+                </Campo>
+                <Campo label="Finalidade (opcional)">
+                  <select
+                    value={form.finalidade}
+                    onChange={(e) =>
+                      up("finalidade", e.target.value as FinalidadeArquivo | "")
+                    }
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="">— Não definido —</option>
+                    {(Object.keys(LABEL_FINALIDADE) as FinalidadeArquivo[]).map(
+                      (f) => (
+                        <option key={f} value={f}>
+                          {LABEL_FINALIDADE[f]}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </Campo>
+                <Campo
+                  label="Nome do arquivo"
+                  obrigatorio
+                  erro={erros.nome}
+                  className="sm:col-span-2"
+                >
+                  <Input
+                    value={form.nome}
+                    onChange={(e) => up("nome", e.target.value)}
+                    placeholder="Ex.: Logo principal, Matriz frente"
+                  />
+                </Campo>
+              </div>
+            </section>
+
+            {/* Upload */}
+            <section className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Arquivo
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Aceito: {EXTENSOES_ACEITAS.map((e) => e.toUpperCase()).join(", ")}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => inputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" /> Escolher arquivo
+                </Button>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept={ACCEPT}
+                  className="hidden"
+                  onChange={(e) => handleArquivo(e.target.files?.[0])}
+                />
+              </div>
+
+              {form.dataUrl ? (
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/60 p-3">
+                  <ArquivoPreview
+                    extensao={form.extensao}
+                    dataUrl={form.dataUrl}
+                    nome={form.arquivoNome}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {form.arquivoNome}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {form.extensao.toUpperCase()} •{" "}
+                      {formatarTamanho(form.tamanho)}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-surface-muted/50 p-6 text-center">
+                  <Upload className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum arquivo selecionado.
+                  </p>
+                </div>
+              )}
+              {erros.arquivo && (
+                <p className="text-xs font-medium text-destructive">
+                  {erros.arquivo}
+                </p>
+              )}
+            </section>
+
+            {/* Descrição & status */}
+            <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <Campo label="Descrição">
+                <Textarea
+                  rows={3}
+                  value={form.descricao}
+                  onChange={(e) => up("descricao", e.target.value)}
+                  placeholder="Ex.: Matriz para bordado do peito esquerdo."
+                />
+              </Campo>
+              <Campo label="Status">
+                <select
+                  value={form.status}
+                  onChange={(e) => up("status", e.target.value as StatusArquivo)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="ativo">Ativo</option>
+                  <option value="arquivado">Arquivado</option>
+                </select>
+              </Campo>
+            </section>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-border bg-surface px-6 py-4">
+          <Button type="button" variant="outline" onClick={onFechar}>
+            Cancelar
+          </Button>
+          <Button type="button" onClick={handleSalvar}>
+            {arquivo ? "Salvar alterações" : "Cadastrar arquivo"}
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function Campo({
+  label,
+  obrigatorio,
+  erro,
+  className,
+  children,
+}: {
+  label: string;
+  obrigatorio?: boolean;
+  erro?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label className="text-xs font-medium text-foreground">
+        {label}
+        {obrigatorio && <span className="ml-1 text-primary">*</span>}
+      </Label>
+      {children}
+      {erro && <p className="text-xs font-medium text-destructive">{erro}</p>}
+    </div>
+  );
+}

@@ -19,6 +19,11 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  ArquivoPreview,
+  LABEL_TIPO_ARQUIVO,
+  useArquivos,
+} from "@/features/arquivos";
 
 import type { Cliente } from "./types";
 import { getClienteNome } from "./types";
@@ -38,6 +43,8 @@ export function ClienteViewDrawer({
   onFechar,
   onEditar,
 }: ClienteViewDrawerProps) {
+  const { porCliente } = useArquivos();
+  const arquivosDoCliente = cliente ? porCliente(cliente.id) : [];
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
       <SheetContent
@@ -179,10 +186,52 @@ export function ClienteViewDrawer({
                   )}
                 </Bloco>
 
+                <Bloco titulo={`Matrizes & Logos (${arquivosDoCliente.length})`}>
+                  {arquivosDoCliente.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum arquivo cadastrado para este cliente. Acesse Matrizes
+                      & Logos para adicionar.
+                    </p>
+                  ) : (
+                    <ul className="grid gap-2 sm:grid-cols-2">
+                      {arquivosDoCliente.map((a) => (
+                        <li
+                          key={a.id}
+                          className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/60 p-3"
+                        >
+                          <ArquivoPreview
+                            extensao={a.extensao}
+                            dataUrl={a.dataUrl}
+                            nome={a.arquivoNome}
+                            size="sm"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {a.nome}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {LABEL_TIPO_ARQUIVO[a.tipo]} •{" "}
+                              {a.extensao.toUpperCase()}
+                            </p>
+                          </div>
+                          <a
+                            href={a.dataUrl}
+                            download={a.arquivoNome}
+                            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                            aria-label="Baixar arquivo"
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Bloco>
+
                 <Bloco titulo="Histórico">
                   <p className="text-sm text-muted-foreground">
-                    Pedidos, orçamentos, notas fiscais, matrizes e logos vinculados a este
-                    cliente aparecerão aqui.
+                    Pedidos, orçamentos e notas fiscais vinculados a este cliente
+                    aparecerão aqui.
                   </p>
                 </Bloco>
               </div>
