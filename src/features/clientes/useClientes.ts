@@ -66,8 +66,9 @@ export function encontrarDuplicado(
   ignorarId?: string,
 ): Cliente | undefined {
   if (entrada.tipo === "pessoa_fisica") {
-    const nome = normalizar(entrada.nome);
-    const tel = digitos(entrada.telefone);
+    const e = entrada as Extract<ClienteInput, { tipo: "pessoa_fisica" }>;
+    const nome = normalizar(e.nome);
+    const tel = digitos(e.telefone);
     return lista.find(
       (c) =>
         c.id !== ignorarId &&
@@ -76,8 +77,9 @@ export function encontrarDuplicado(
         digitos(c.telefone) === tel,
     );
   }
-  const nomeEmp = normalizar(entrada.nomeEmpresa);
-  const resp = normalizar(entrada.responsavel);
+  const e = entrada as Extract<ClienteInput, { tipo: "empresa" }>;
+  const nomeEmp = normalizar(e.nomeEmpresa);
+  const resp = normalizar(e.responsavel);
   return lista.find(
     (c) =>
       c.id !== ignorarId &&
