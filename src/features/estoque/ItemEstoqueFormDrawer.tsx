@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fileToDataUrl } from "@/features/clientes";
+import { useFornecedores } from "@/features/fornecedores";
 
 import type {
   CategoriaEstoque,
@@ -103,6 +104,7 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
   const [form, setForm] = useState<FormState>(() => estadoInicial(item));
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const { ativos: fornecedoresAtivos } = useFornecedores();
 
   useEffect(() => {
     if (aberto) {
@@ -254,13 +256,28 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
               </div>
 
               <div className="sm:col-span-2 space-y-1.5">
-                <Label htmlFor="fornecedor">Fornecedor</Label>
-                <Input
-                  id="fornecedor"
-                  value={form.fornecedor}
-                  onChange={(e) => upd("fornecedor", e.target.value)}
-                  placeholder="Nome do fornecedor (opcional)"
-                />
+                <Label>Fornecedor</Label>
+                <Select
+                  value={form.fornecedor || "__nenhum"}
+                  onValueChange={(v) => upd("fornecedor", v === "__nenhum" ? "" : v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um fornecedor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__nenhum">Sem fornecedor</SelectItem>
+                    {fornecedoresAtivos.map((f) => (
+                      <SelectItem key={f.id} value={f.empresa}>
+                        {f.empresa}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {fornecedoresAtivos.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Nenhum fornecedor ativo cadastrado. Cadastre em Fornecedores.
+                  </p>
+                )}
               </div>
 
               <div className="sm:col-span-2 space-y-1.5">
