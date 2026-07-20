@@ -23,6 +23,17 @@ export interface Personalizacao {
   observacoes?: string;
 }
 
+export interface ItemAdicional {
+  /** ID da instância dentro do item de pedido. */
+  id: string;
+  /** ID do adicional no catálogo (undefined em pedidos legados). */
+  adicionalId?: string;
+  /** Snapshot do nome do adicional no momento do pedido. */
+  nome: string;
+  /** Snapshot do valor unitário do adicional (somado ao produto). */
+  valor: number;
+}
+
 export interface ItemPedido {
   id: string;
   /** ID do produto no catálogo (undefined em pedidos legados). */
@@ -32,6 +43,8 @@ export interface ItemPedido {
   quantidade: number;
   valorUnitario: number;
   personalizacoes: Personalizacao[];
+  /** Adicionais aplicados ao item (opcional em pedidos legados). */
+  adicionais?: ItemAdicional[];
 }
 
 export type FormaPagamentoPedido =

@@ -50,8 +50,12 @@ export function parseValorInput(valor: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+export function somaAdicionaisItem(item: ItemPedido): number {
+  return (item.adicionais ?? []).reduce((s, a) => s + (a.valor || 0), 0);
+}
+
 export function calcularSubtotalItem(item: ItemPedido): number {
-  return item.quantidade * item.valorUnitario;
+  return item.quantidade * (item.valorUnitario + somaAdicionaisItem(item));
 }
 
 export function calcularSubtotal(itens: ItemPedido[]): number {
