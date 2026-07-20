@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fileToDataUrl } from "@/features/clientes";
+import { useFornecedores } from "@/features/fornecedores";
 
 import type {
   CategoriaEstoque,
