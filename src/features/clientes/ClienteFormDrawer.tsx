@@ -178,7 +178,8 @@ export function ClienteFormDrawer({
             ...base,
           } as ClienteInput);
     onSalvar(dados, cliente?.id);
-    onFechar();
+    // O fechamento é responsabilidade do componente pai (para permitir
+    // validações como duplicidade antes de fechar).
   }
 
   const nomeParaAvatar =

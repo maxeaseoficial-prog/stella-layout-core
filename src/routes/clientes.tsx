@@ -57,10 +57,16 @@ function ClientesPage() {
     if (id) {
       atualizar(id, dados);
       toast.success("Cliente atualizado com sucesso.");
-    } else {
-      criar(dados);
-      toast.success("Cliente cadastrado com sucesso.");
+      setFormAberto(false);
+      return;
     }
+    const resultado = criar(dados);
+    if (!resultado.ok) {
+      toast.error("Este cliente já está cadastrado.");
+      return;
+    }
+    toast.success("Cliente cadastrado com sucesso.");
+    setFormAberto(false);
   }
 
   function handleConfirmarExclusao() {

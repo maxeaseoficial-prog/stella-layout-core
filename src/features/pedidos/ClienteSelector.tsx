@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Check, Search, UserPlus } from "lucide-react";
+import { AlertCircle, Check, Search, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import {
   ClienteFormDrawer,
   useClientes,
   getClienteNome,
+  type Cliente,
   type ClienteInput,
 } from "@/features/clientes";
 
@@ -22,13 +24,28 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
   const { clientes, filtrar, criar } = useClientes();
   const [termo, setTermo] = useState("");
   const [formAberto, setFormAberto] = useState(false);
+  const [duplicado, setDuplicado] = useState<Cliente | null>(null);
 
   const lista = useMemo(() => filtrar(termo).slice(0, 8), [filtrar, termo]);
   const selecionado = clientes.find((c) => c.id === clienteId);
 
   function handleCriar(dados: ClienteInput) {
-    const novo = criar(dados);
-    onSelecionar(novo.id);
+    const resultado = criar(dados);
+    if (!resultado.ok) {
+      setDuplicado(resultado.cliente);
+      toast.error("Este cliente já está cadastrado.");
+      return;
+    }
+    onSelecionar(resultado.cliente.id);
+    toast.success("Cliente cadastrado e selecionado.");
+    setFormAberto(false);
+  }
+
+  function selecionarDuplicado() {
+    if (!duplicado) return;
+    onSelecionar(duplicado.id);
+    setDuplicado(null);
+    setFormAberto(false);
   }
 
   return (
@@ -74,6 +91,28 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
           <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-primary-foreground">
             <Check className="h-4 w-4" />
           </span>
+        </div>
+      )}
+
+      {duplicado && (
+        <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-3">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-foreground">
+              Este cliente já está cadastrado.
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {getClienteNome(duplicado)} • {duplicado.telefone}
+            </p>
+          </div>
+          <div className="flex shrink-0 gap-2">
+            <Button type="button" size="sm" variant="ghost" onClick={() => setDuplicado(null)}>
+              Fechar
+            </Button>
+            <Button type="button" size="sm" onClick={selecionarDuplicado}>
+              Selecionar existente
+            </Button>
+          </div>
         </div>
       )}
 
