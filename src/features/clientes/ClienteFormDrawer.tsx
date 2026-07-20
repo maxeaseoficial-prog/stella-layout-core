@@ -163,20 +163,20 @@ export function ClienteFormDrawer({
     };
     const dados: ClienteInput =
       form.tipo === "pessoa_fisica"
-        ? {
+        ? ({
             tipo: "pessoa_fisica",
             nome: form.nome.trim(),
             cpf: form.cpf.trim() || undefined,
             ...base,
-          }
-        : {
+          } as ClienteInput)
+        : ({
             tipo: "empresa",
             nomeEmpresa: form.nomeEmpresa.trim(),
             responsavel: form.responsavel.trim(),
             cnpj: form.cnpj.trim() || undefined,
             inscricaoEstadual: form.inscricaoEstadual.trim() || undefined,
             ...base,
-          };
+          } as ClienteInput);
     onSalvar(dados, cliente?.id);
     onFechar();
   }
