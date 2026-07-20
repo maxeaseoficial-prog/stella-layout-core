@@ -19,6 +19,13 @@ export function hojeISO(): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+export function inicioMesISO(base = new Date()): string {
+  const d = new Date(base.getFullYear(), base.getMonth(), 1);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 export function formatarMoeda(valor: number): string {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
