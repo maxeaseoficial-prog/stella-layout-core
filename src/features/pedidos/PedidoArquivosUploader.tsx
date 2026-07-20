@@ -1,10 +1,11 @@
-import { useRef } from "react";
-import { FileText, ImageIcon, Paperclip, Trash2, Upload } from "lucide-react";
+import { useRef, useState } from "react";
+import { FileText, FolderOpen, ImageIcon, Paperclip, Trash2, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 import type { ClienteArquivo } from "@/features/clientes";
 import { fileToDataUrl, formatarTamanho } from "@/features/clientes/utils";
+import { SelecionarArquivoDialog } from "@/features/arquivos";
 import { formatarDataBR, novoId } from "./utils";
 
 const ACCEPT =
@@ -14,6 +15,7 @@ const EXTS = ["png", "jpg", "jpeg", "svg", "pdf"];
 interface Props {
   arquivos: ClienteArquivo[];
   onChange: (arquivos: ClienteArquivo[]) => void;
+  clienteId?: string;
 }
 
 export function PedidoArquivosUploader({ arquivos, onChange }: Props) {
