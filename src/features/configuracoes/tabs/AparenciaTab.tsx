@@ -62,8 +62,10 @@ export function AparenciaTab() {
             type="button"
             onClick={() => setTema("escuro")}
             className={cn(
-              "flex items-center gap-3 rounded-xl border-2 border-dashed p-4 text-left opacity-70 transition-colors",
-              "border-border bg-muted/30 hover:border-primary/40",
+              "flex items-center gap-3 rounded-xl border-2 p-4 text-left transition-colors",
+              a.tema === "escuro"
+                ? "border-primary bg-primary-soft/50"
+                : "border-border bg-background/50 hover:border-primary/40",
             )}
           >
             <div className="grid h-10 w-10 place-items-center rounded-lg bg-foreground/90 shadow-sm">
@@ -71,7 +73,7 @@ export function AparenciaTab() {
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">Tema Escuro</p>
-              <p className="text-xs text-muted-foreground">Em breve</p>
+              <p className="text-xs text-muted-foreground">Visual escuro</p>
             </div>
           </button>
         </div>
@@ -103,7 +105,7 @@ export function AparenciaTab() {
           })}
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
-          A cor será aplicada globalmente nos botões e destaques em uma próxima atualização.
+          A cor é aplicada em tempo real nos botões, destaques e elementos ativos.
         </p>
       </div>
     </SectionCard>
