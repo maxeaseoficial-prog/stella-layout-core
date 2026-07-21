@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { useClientes, getClienteNome } from "@/features/clientes";
+import { useAuth } from "@/features/auth/useAuth";
 import {
   PagamentoModal,
   PedidoFiltros,
