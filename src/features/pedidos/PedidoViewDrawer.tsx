@@ -1,4 +1,5 @@
 import { Download, FileText, ImageIcon, Palette, Printer, Wallet } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   Sheet,
@@ -10,12 +11,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import { formatarTamanho } from "@/features/clientes/utils";
 import { useClientes, getClienteNome, ClienteAvatar } from "@/features/clientes";
+import { useAuth } from "@/features/auth/useAuth";
+import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
+import { usePedidos } from "./usePedidos";
 
-import type { Pedido } from "./types";
+import type { Pedido, StatusProducao } from "./types";
 import {
   LABEL_FORMA_PAGAMENTO_PEDIDO,
   LABEL_POSICAO_PERSONALIZACAO,
@@ -51,7 +62,16 @@ export function PedidoViewDrawer({
   onReceberPagamento,
 }: Props) {
   const { clientes } = useClientes();
+  const { capacidades, papel } = useAuth();
+  const cap = capacidades.pedidos;
+  const { atualizar } = usePedidos();
   const cliente = pedido ? clientes.find((c) => c.id === pedido.clienteId) : null;
+
+  function alterarStatus(novo: StatusProducao) {
+    if (!pedido) return;
+    atualizar(pedido.id, { statusProducao: novo });
+    toast.success("Status atualizado.");
+  }
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
