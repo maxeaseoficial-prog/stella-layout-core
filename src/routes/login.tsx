@@ -14,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import stellaLogo from "@/assets/stella-logo.png.asset.json";
 import { login, useAuth } from "@/features/auth/useAuth";
 import fachada from "@/assets/stella-fachada.png.asset.json";
 
