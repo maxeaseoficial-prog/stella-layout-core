@@ -44,7 +44,7 @@ export function StellaLogo({ collapsed = false }: StellaLogoProps) {
       <img
         src={stellaLogoWhite.url}
         alt={commonAlt}
-        className="hidden h-20 w-auto -my-5 object-contain dark:block"
+        className="hidden h-14 w-auto -my-2 object-contain dark:block"
       />
     </div>
   );
