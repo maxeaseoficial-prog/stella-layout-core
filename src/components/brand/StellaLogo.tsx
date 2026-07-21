@@ -28,7 +28,7 @@ export function StellaLogo({ collapsed = false }: StellaLogoProps) {
           src={stellaLogoWhite.url}
           alt="Stella"
           className="hidden h-8 w-auto max-w-none object-contain object-left dark:block"
-          style={{ objectPosition: "28% center", transform: "scale(3.6)", transformOrigin: "left center" }}
+          style={{ objectPosition: "28% center", transform: "scale(2.8)", transformOrigin: "left center" }}
         />
       </div>
     );
