@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MatrizesLogosRouteImport } from './routes/matrizes-logos'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -32,6 +33,11 @@ const PedidosRoute = PedidosRouteImport.update({
 const MatrizesLogosRoute = MatrizesLogosRouteImport.update({
   id: '/matrizes-logos',
   path: '/matrizes-logos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FornecedoresRoute = FornecedoresRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
+  '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
   '/produtos': typeof ProdutosRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
+  '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
   '/produtos': typeof ProdutosRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/estoque': typeof EstoqueRoute
   '/fornecedores': typeof FornecedoresRoute
+  '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
   '/produtos': typeof ProdutosRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/fornecedores'
+    | '/login'
     | '/matrizes-logos'
     | '/pedidos'
     | '/produtos'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/fornecedores'
+    | '/login'
     | '/matrizes-logos'
     | '/pedidos'
     | '/produtos'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/estoque'
     | '/fornecedores'
+    | '/login'
     | '/matrizes-logos'
     | '/pedidos'
     | '/produtos'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   EstoqueRoute: typeof EstoqueRoute
   FornecedoresRoute: typeof FornecedoresRoute
+  LoginRoute: typeof LoginRoute
   MatrizesLogosRoute: typeof MatrizesLogosRoute
   PedidosRoute: typeof PedidosRoute
   ProdutosRoute: typeof ProdutosRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/matrizes-logos'
       fullPath: '/matrizes-logos'
       preLoaderRoute: typeof MatrizesLogosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fornecedores': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   EstoqueRoute: EstoqueRoute,
   FornecedoresRoute: FornecedoresRoute,
+  LoginRoute: LoginRoute,
   MatrizesLogosRoute: MatrizesLogosRoute,
   PedidosRoute: PedidosRoute,
   ProdutosRoute: ProdutosRoute,
