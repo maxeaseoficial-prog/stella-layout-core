@@ -133,22 +133,23 @@ export function usePedidos() {
   const alterarStatusProducao = useCallback(
     (id: string, status: StatusProducao) => {
       setPedidos((atual) =>
-        atual.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                statusProducao: status,
-                atualizadoEm: new Date().toISOString(),
-                historico: [
-                  novaEntradaHistorico(
-                    "status_producao",
-                    `Status de produção alterado para ${status}.`,
-                  ),
-                  ...p.historico,
-                ],
-              }
-            : p,
-        ),
+        atual.map((p) => {
+          if (p.id !== id) return p;
+          const { LABEL_STATUS_PRODUCAO } =
+            require("./types") as typeof import("./types");
+          return {
+            ...p,
+            statusProducao: status,
+            atualizadoEm: new Date().toISOString(),
+            historico: [
+              novaEntradaHistorico(
+                "status_producao",
+                `Status alterado para "${LABEL_STATUS_PRODUCAO[status]}".`,
+              ),
+              ...p.historico,
+            ],
+          };
+        }),
       );
       notificarPedidosAtualizado();
     },
