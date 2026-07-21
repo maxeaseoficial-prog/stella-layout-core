@@ -9,6 +9,8 @@ interface StellaLogoProps {
  * Stella brand logo. Uses the official wordmark image.
  * When the sidebar is collapsed, shows a compact cropped version.
  * Swaps to the white variant automatically under the dark theme.
+ * The white asset has extra transparent padding, so it is rendered
+ * larger to visually match the black wordmark.
  */
 export function StellaLogo({ collapsed = false }: StellaLogoProps) {
   const commonAlt = "Stella — Espaço dos Uniformes";
@@ -26,7 +28,7 @@ export function StellaLogo({ collapsed = false }: StellaLogoProps) {
           src={stellaLogoWhite.url}
           alt="Stella"
           className="hidden h-8 w-auto max-w-none object-contain object-left dark:block"
-          style={{ objectPosition: "28% center", transform: "scale(2.2)", transformOrigin: "left center" }}
+          style={{ objectPosition: "28% center", transform: "scale(3.6)", transformOrigin: "left center" }}
         />
       </div>
     );
@@ -42,7 +44,7 @@ export function StellaLogo({ collapsed = false }: StellaLogoProps) {
       <img
         src={stellaLogoWhite.url}
         alt={commonAlt}
-        className="hidden h-10 w-auto object-contain dark:block"
+        className="hidden h-20 w-auto -my-5 object-contain dark:block"
       />
     </div>
   );
