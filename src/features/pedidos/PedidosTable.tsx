@@ -128,22 +128,32 @@ export function PedidosTable({
                       <DropdownMenuItem onClick={() => onVisualizar(p)}>
                         <Eye className="h-4 w-4" /> Visualizar
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEditar(p)}>
-                        <Pencil className="h-4 w-4" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onReceberPagamento(p)}>
-                        <Wallet className="h-4 w-4" /> Receber pagamento
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onImprimir(p)}>
-                        <Printer className="h-4 w-4" /> Imprimir
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => onExcluir(p)}
-                      >
-                        <Trash2 className="h-4 w-4" /> Excluir
-                      </DropdownMenuItem>
+                      {cap.editar && (
+                        <DropdownMenuItem onClick={() => onEditar(p)}>
+                          <Pencil className="h-4 w-4" /> Editar
+                        </DropdownMenuItem>
+                      )}
+                      {cap.registrarPagamento && (
+                        <DropdownMenuItem onClick={() => onReceberPagamento(p)}>
+                          <Wallet className="h-4 w-4" /> Receber pagamento
+                        </DropdownMenuItem>
+                      )}
+                      {cap.imprimir && (
+                        <DropdownMenuItem onClick={() => onImprimir(p)}>
+                          <Printer className="h-4 w-4" /> Imprimir
+                        </DropdownMenuItem>
+                      )}
+                      {cap.excluir && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => onExcluir(p)}
+                          >
+                            <Trash2 className="h-4 w-4" /> Excluir
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
