@@ -64,12 +64,12 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { atualizar } = usePedidos();
+  const { alterarStatusProducao } = usePedidos();
   const cliente = pedido ? clientes.find((c) => c.id === pedido.clienteId) : null;
 
   function alterarStatus(novo: StatusProducao) {
     if (!pedido) return;
-    atualizar(pedido.id, { statusProducao: novo });
+    alterarStatusProducao(pedido.id, novo);
     toast.success("Status atualizado.");
   }
 
