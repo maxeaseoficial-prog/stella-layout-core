@@ -17,6 +17,7 @@ import { AppShell } from "@/layouts/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/features/auth/useAuth";
+import { ThemeApplier } from "@/features/configuracoes/ThemeApplier";
 
 function NotFoundComponent() {
   return (
@@ -138,6 +139,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={200}>
+        <ThemeApplier />
         <AuthGate />
         <Toaster />
       </TooltipProvider>
