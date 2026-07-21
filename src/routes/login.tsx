@@ -90,14 +90,14 @@ function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">Usuário ou e-mail</Label>
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="voce@stella.com.br"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="seu usuário ou e-mail"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="h-11 pl-9"
