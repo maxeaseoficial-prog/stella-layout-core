@@ -139,6 +139,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={200}>
+        <ThemeApplier />
         <AuthGate />
         <Toaster />
       </TooltipProvider>
