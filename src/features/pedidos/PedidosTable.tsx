@@ -49,6 +49,8 @@ export function PedidosTable({
   onReceberPagamento,
 }: Props) {
   const { clientes } = useClientes();
+  const { capacidades } = useAuth();
+  const cap = capacidades.pedidos;
 
   function nomeCliente(id: string) {
     const c = clientes.find((c) => c.id === id);
