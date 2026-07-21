@@ -84,8 +84,9 @@ function getSnapshot(): Usuario[] {
   }
   return cache;
 }
+const EMPTY: Usuario[] = [];
 function getServerSnapshot(): Usuario[] {
-  return [];
+  return EMPTY;
 }
 
 function commit(lista: Usuario[]) {
