@@ -21,11 +21,8 @@ export function AparenciaTab() {
   const a = state.aparencia;
 
   function setTema(tema: Tema) {
-    if (tema === "escuro") {
-      toast.info("Tema escuro será liberado em breve.");
-      return;
-    }
     salvarAparencia({ ...a, tema });
+    toast.success(tema === "escuro" ? "Tema escuro ativado." : "Tema claro ativado.");
   }
 
   function setCor(cor: string) {
