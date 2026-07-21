@@ -9,6 +9,7 @@ import type {
   PedidoInput,
   StatusProducao,
 } from "./types";
+import { LABEL_STATUS_PRODUCAO } from "./types";
 import {
   carregarPedidos,
   notificarPedidosAtualizado,
@@ -135,8 +136,6 @@ export function usePedidos() {
       setPedidos((atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;
-          const { LABEL_STATUS_PRODUCAO } =
-            require("./types") as typeof import("./types");
           return {
             ...p,
             statusProducao: status,
