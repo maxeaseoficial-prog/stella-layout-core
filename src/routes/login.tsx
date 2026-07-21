@@ -64,31 +64,18 @@ function LoginPage() {
       className="relative min-h-screen w-full bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${fachada.url})` }}
     >
-      {/* Degradê rosa por cima da foto */}
+      {/* Degradê preto suave por cima da foto */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, oklch(0.66 0.19 6 / 0.15) 0%, oklch(0.66 0.19 6 / 0.35) 45%, oklch(0.55 0.22 6 / 0.85) 85%, oklch(0.42 0.2 6 / 0.95) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.75) 85%, rgba(0,0,0,0.9) 100%)",
         }}
       />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
         <div className="w-full max-w-md">
-          {/* Cabeçalho com logo */}
-          <div className="mb-6 flex flex-col items-center text-center">
-            <div className="rounded-2xl bg-white/95 px-6 py-4 shadow-elevated backdrop-blur">
-              <img
-                src={stellaLogo.url}
-                alt="Stella — Espaço dos Uniformes"
-                className="h-12 w-auto object-contain"
-              />
-            </div>
-            <p className="mt-4 text-sm font-medium text-white/95 drop-shadow-sm">
-              Sistema interno · Acesso restrito
-            </p>
-          </div>
 
           {/* Cartão de login */}
           <div className="rounded-3xl border border-white/40 bg-white/95 p-6 shadow-elevated backdrop-blur-xl sm:p-8">
