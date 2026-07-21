@@ -9,6 +9,7 @@ import {
   Settings2,
   ShieldCheck,
   Tag,
+  UserCircle2,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/common/PageHeader";
@@ -22,35 +23,50 @@ import { BackupTab } from "@/features/configuracoes/tabs/BackupTab";
 import { UsuariosTab } from "@/features/configuracoes/tabs/UsuariosTab";
 import { AparenciaTab } from "@/features/configuracoes/tabs/AparenciaTab";
 import { SobreTab } from "@/features/configuracoes/tabs/SobreTab";
+import { PerfilTab } from "@/features/configuracoes/tabs/PerfilTab";
+import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/configuracoes")({
   component: ConfiguracoesPage,
 });
 
-const TABS = [
-  { value: "empresa", label: "Empresa", icon: Building2 },
-  { value: "preferencias", label: "Preferências", icon: Settings2 },
-  { value: "numeracao", label: "Numeração", icon: Hash },
-  { value: "categorias", label: "Categorias", icon: Tag },
-  { value: "pagamentos", label: "Pagamentos", icon: CreditCard },
-  { value: "backup", label: "Backup", icon: Database },
-  { value: "usuarios", label: "Usuários", icon: ShieldCheck },
-  { value: "aparencia", label: "Aparência", icon: Palette },
-  { value: "sobre", label: "Sobre", icon: Info },
+const TABS_ADMIN = [
+  { value: "empresa", label: "Empresa", icon: Building2, render: () => <EmpresaTab /> },
+  { value: "preferencias", label: "Preferências", icon: Settings2, render: () => <PreferenciasTab /> },
+  { value: "numeracao", label: "Numeração", icon: Hash, render: () => <NumeracaoTab /> },
+  { value: "categorias", label: "Categorias", icon: Tag, render: () => <CategoriasTab /> },
+  { value: "pagamentos", label: "Pagamentos", icon: CreditCard, render: () => <PagamentosTab /> },
+  { value: "backup", label: "Backup", icon: Database, render: () => <BackupTab /> },
+  { value: "usuarios", label: "Usuários", icon: ShieldCheck, render: () => <UsuariosTab /> },
+  { value: "aparencia", label: "Aparência", icon: Palette, render: () => <AparenciaTab /> },
+  { value: "sobre", label: "Sobre", icon: Info, render: () => <SobreTab /> },
+] as const;
+
+const TABS_OPERADOR = [
+  { value: "perfil", label: "Perfil", icon: UserCircle2, render: () => <PerfilTab /> },
+  { value: "aparencia", label: "Aparência", icon: Palette, render: () => <AparenciaTab /> },
+  { value: "sobre", label: "Sobre", icon: Info, render: () => <SobreTab /> },
 ] as const;
 
 function ConfiguracoesPage() {
+  const { capacidades } = useAuth();
+  const tabs = capacidades.configuracoes.admin ? TABS_ADMIN : TABS_OPERADOR;
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Configurações"
-        description="Gerencie as configurações gerais do sistema."
+        description={
+          capacidades.configuracoes.admin
+            ? "Gerencie as configurações gerais do sistema."
+            : "Gerencie seu perfil e preferências pessoais."
+        }
       />
 
-      <Tabs defaultValue="empresa" className="w-full">
+      <Tabs defaultValue={tabs[0].value} className="w-full">
         <div className="-mx-1 overflow-x-auto pb-1">
           <TabsList className="inline-flex h-auto flex-nowrap gap-1 rounded-xl bg-muted/60 p-1">
-            {TABS.map((t) => (
+            {tabs.map((t) => (
               <TabsTrigger
                 key={t.value}
                 value={t.value}
@@ -63,16 +79,13 @@ function ConfiguracoesPage() {
           </TabsList>
         </div>
 
-        <TabsContent value="empresa" className="mt-6"><EmpresaTab /></TabsContent>
-        <TabsContent value="preferencias" className="mt-6"><PreferenciasTab /></TabsContent>
-        <TabsContent value="numeracao" className="mt-6"><NumeracaoTab /></TabsContent>
-        <TabsContent value="categorias" className="mt-6"><CategoriasTab /></TabsContent>
-        <TabsContent value="pagamentos" className="mt-6"><PagamentosTab /></TabsContent>
-        <TabsContent value="backup" className="mt-6"><BackupTab /></TabsContent>
-        <TabsContent value="usuarios" className="mt-6"><UsuariosTab /></TabsContent>
-        <TabsContent value="aparencia" className="mt-6"><AparenciaTab /></TabsContent>
-        <TabsContent value="sobre" className="mt-6"><SobreTab /></TabsContent>
+        {tabs.map((t) => (
+          <TabsContent key={t.value} value={t.value} className="mt-6">
+            {t.render()}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );
 }
+
