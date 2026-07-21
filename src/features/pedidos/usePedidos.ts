@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { usuarioAtual } from "@/features/auth/useAuth";
+
 import type {
   HistoricoEntrada,
   Pagamento,
@@ -31,6 +33,7 @@ function novaEntradaHistorico(
     data: new Date().toISOString(),
     tipo,
     descricao,
+    usuario: usuarioAtual()?.nome,
   };
 }
 
@@ -227,12 +230,17 @@ export function usePedidos() {
     return {
       totalPedidos: pedidos.length,
       pendentes: ativos.filter((p) =>
-        ["em_orcamento", "aguardando_orcamento_matriz", "aguardando_aprovacao"].includes(
-          p.statusProducao,
-        ),
+        [
+          "em_orcamento",
+          "aguardando_orcamento_matriz",
+          "orcamento_matriz_realizado",
+          "aguardando_aprovacao",
+        ].includes(p.statusProducao),
       ).length,
       producao: ativos.filter((p) =>
-        ["producao", "bordado", "costura"].includes(p.statusProducao),
+        ["producao_matriz", "producao", "bordado", "costura"].includes(
+          p.statusProducao,
+        ),
       ).length,
       entregues: ativos.filter((p) => p.statusProducao === "entregue").length,
       pagos: ativos.filter((p) => p.statusFinanceiro === "pago").length,
