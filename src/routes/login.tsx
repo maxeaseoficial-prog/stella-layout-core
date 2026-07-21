@@ -14,7 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { StellaLogo } from "@/components/brand/StellaLogo";
+import stellaLogo from "@/assets/stella-logo.png.asset.json";
 import { login, useAuth } from "@/features/auth/useAuth";
 import fachada from "@/assets/stella-fachada.png.asset.json";
 
@@ -80,7 +80,11 @@ function LoginPage() {
           {/* Cabeçalho com logo */}
           <div className="mb-6 flex flex-col items-center text-center">
             <div className="rounded-2xl bg-white/95 px-6 py-4 shadow-elevated backdrop-blur">
-              <StellaLogo className="h-12 w-auto" />
+              <img
+                src={stellaLogo.url}
+                alt="Stella — Espaço dos Uniformes"
+                className="h-12 w-auto object-contain"
+              />
             </div>
             <p className="mt-4 text-sm font-medium text-white/95 drop-shadow-sm">
               Sistema interno · Acesso restrito
