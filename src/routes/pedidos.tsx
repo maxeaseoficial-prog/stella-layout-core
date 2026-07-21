@@ -53,6 +53,8 @@ function PedidosPage() {
   const { pedidos, hidratado, criar, atualizar, excluir, registrarPagamento } =
     usePedidos();
   const { clientes } = useClientes();
+  const { capacidades } = useAuth();
+  const capPedidos = capacidades.pedidos;
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Pedido | null>(null);
