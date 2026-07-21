@@ -67,7 +67,10 @@ export interface Pagamento {
 export type StatusProducao =
   | "em_orcamento"
   | "aguardando_orcamento_matriz"
+  | "orcamento_matriz_realizado"
   | "aguardando_aprovacao"
+  | "producao_matriz"
+  | "matriz_concluida"
   | "producao"
   | "bordado"
   | "costura"
