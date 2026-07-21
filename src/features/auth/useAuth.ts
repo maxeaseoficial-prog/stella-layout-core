@@ -2,45 +2,23 @@ import { useSyncExternalStore } from "react";
 
 import type { Capacidades, Papel } from "./permissions";
 import { capacidadesDe } from "./permissions";
+import {
+  encontrarPorCredencial,
+  listarUsuarios,
+  registrarAcesso,
+  trocarPropriaSenha,
+} from "@/features/usuarios/useUsuarios";
 
 /**
- * Autenticação mock (localStorage) para fase de testes.
- *
- * Contas padrão:
- *  - Administrador:  administrador@gmail.com / adm123
+ * Autenticação mock (localStorage). As contas ficam agora armazenadas no
+ * módulo Usuários (`stella.usuarios.v1`) e podem ser gerenciadas pelo
+ * Administrador. Contas padrão semeadas:
+ *  - Administrador:  administrador@gmail.com / adm123 (usuário: administrador)
  *  - Operador Matriz: matriz / matriz123
  */
 
 const STORAGE_KEY = "stella:auth";
 const EVENT_NAME = "stella:auth:updated";
-
-interface ContaMock {
-  identificadores: string[]; // e-mails ou usernames aceitos (lowercase)
-  senha: string;
-  nome: string;
-  email: string;
-  papel: Papel;
-  papelLabel: string;
-}
-
-const CONTAS: ContaMock[] = [
-  {
-    identificadores: ["administrador@gmail.com", "administrador"],
-    senha: "adm123",
-    nome: "Administrador",
-    email: "administrador@gmail.com",
-    papel: "administrador",
-    papelLabel: "Administrador",
-  },
-  {
-    identificadores: ["matriz", "matriz@stella.com.br"],
-    senha: "matriz123",
-    nome: "Operador Matriz",
-    email: "matriz@stella.com.br",
-    papel: "operador_matriz",
-    papelLabel: "Operador Matriz",
-  },
-];
 
 export const CONTA_TESTE = {
   email: "administrador@gmail.com",
@@ -49,12 +27,19 @@ export const CONTA_TESTE = {
   senhaMatriz: "matriz123",
 } as const;
 
+const PAPEL_LABEL: Record<Papel, string> = {
+  administrador: "Administrador",
+  operador_matriz: "Operador Matriz",
+};
+
 export interface AuthUser {
+  id: string;
   email: string;
   nome: string;
   papel: Papel;
   papelLabel: string;
   logadoEm: string;
+  precisaTrocarSenha: boolean;
 }
 
 interface AuthState {
@@ -121,7 +106,6 @@ export function useAuth(): {
   };
 }
 
-/** Lê o usuário atual fora de componentes React (helpers/store). */
 export function usuarioAtual(): AuthUser | null {
   return ler().user;
 }
@@ -129,26 +113,41 @@ export function usuarioAtual(): AuthUser | null {
 export function login(
   identificador: string,
   senha: string,
-): { ok: boolean; erro?: string } {
-  const idLimpo = identificador.trim().toLowerCase();
-  const conta = CONTAS.find(
-    (c) => c.identificadores.includes(idLimpo) && c.senha === senha,
-  );
-  if (!conta) {
-    return { ok: false, erro: "Usuário ou senha incorretos." };
+): { ok: boolean; erro?: string; precisaTrocarSenha?: boolean } {
+  const conta = encontrarPorCredencial(identificador, senha);
+  if (!conta) return { ok: false, erro: "Usuário ou senha incorretos." };
+  if (conta.status === "inativo") {
+    return { ok: false, erro: "Este usuário está inativo. Contate o administrador." };
   }
-  escrever({
-    user: {
-      email: conta.email,
-      nome: conta.nome,
-      papel: conta.papel,
-      papelLabel: conta.papelLabel,
-      logadoEm: new Date().toISOString(),
-    },
-  });
-  return { ok: true };
+  const authUser: AuthUser = {
+    id: conta.id,
+    email: conta.email,
+    nome: conta.nome,
+    papel: conta.papel,
+    papelLabel: PAPEL_LABEL[conta.papel],
+    logadoEm: new Date().toISOString(),
+    precisaTrocarSenha: conta.precisaTrocarSenha,
+  };
+  escrever({ user: authUser });
+  registrarAcesso(conta.id);
+  return { ok: true, precisaTrocarSenha: conta.precisaTrocarSenha };
 }
 
 export function logout() {
   escrever({ user: null });
+}
+
+/** Troca de senha durante o primeiro acesso. */
+export function trocarSenhaObrigatoria(novaSenha: string): { ok: boolean; erro?: string } {
+  const atual = usuarioAtual();
+  if (!atual) return { ok: false, erro: "Sessão inválida." };
+  const res = trocarPropriaSenha(atual.id, novaSenha);
+  if (!res.ok) return res;
+  escrever({ user: { ...atual, precisaTrocarSenha: false } });
+  return { ok: true };
+}
+
+/** Utilitário exportado (evita import direto do módulo de usuários). */
+export function _debugListarUsuarios() {
+  return listarUsuarios();
 }
