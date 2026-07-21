@@ -141,8 +141,11 @@ export type PedidoInput = Omit<
 
 export const LABEL_STATUS_PRODUCAO: Record<StatusProducao, string> = {
   em_orcamento: "Em orçamento",
-  aguardando_orcamento_matriz: "Aguardando orçamento matriz",
+  aguardando_orcamento_matriz: "Aguardando orçamento da matriz",
+  orcamento_matriz_realizado: "Orçamento da matriz realizado",
   aguardando_aprovacao: "Aguardando aprovação",
+  producao_matriz: "Produção da matriz",
+  matriz_concluida: "Matriz concluída",
   producao: "Em produção",
   bordado: "Bordado",
   costura: "Costura",
@@ -187,7 +190,10 @@ export const LABEL_FORMA_PAGAMENTO_PEDIDO: Record<FormaPagamentoPedido, string> 
 export const STATUS_PRODUCAO_LISTA: StatusProducao[] = [
   "em_orcamento",
   "aguardando_orcamento_matriz",
+  "orcamento_matriz_realizado",
   "aguardando_aprovacao",
+  "producao_matriz",
+  "matriz_concluida",
   "producao",
   "bordado",
   "costura",
