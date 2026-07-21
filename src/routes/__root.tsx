@@ -17,6 +17,7 @@ import { AppShell } from "@/layouts/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/features/auth/useAuth";
+import { ThemeApplier } from "@/features/configuracoes/ThemeApplier";
 
 function NotFoundComponent() {
   return (
