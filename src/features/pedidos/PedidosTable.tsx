@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { useClientes, getClienteNome } from "@/features/clientes";
+import { useAuth } from "@/features/auth/useAuth";
 
 import type { Pedido } from "./types";
 import { LABEL_STATUS_FINANCEIRO, LABEL_STATUS_PRODUCAO } from "./types";
