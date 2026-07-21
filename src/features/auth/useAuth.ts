@@ -86,8 +86,9 @@ function getSnapshot(): AuthState {
   }
   return cache;
 }
+const EMPTY_AUTH: AuthState = { user: null };
 function getServerSnapshot(): AuthState {
-  return { user: null };
+  return EMPTY_AUTH;
 }
 
 export function useAuth(): {
