@@ -116,8 +116,14 @@ export function corStatusProducao(status: StatusProducao): string {
       return "border-border bg-muted text-muted-foreground";
     case "aguardando_orcamento_matriz":
       return "border-orange-300 bg-orange-100 text-orange-800";
+    case "orcamento_matriz_realizado":
+      return "border-orange-300 bg-orange-50 text-orange-700";
     case "aguardando_aprovacao":
       return "border-amber-300 bg-amber-100 text-amber-800";
+    case "producao_matriz":
+      return "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-800";
+    case "matriz_concluida":
+      return "border-emerald-300 bg-emerald-100 text-emerald-800";
     case "producao":
       return "border-blue-300 bg-blue-100 text-blue-800";
     case "bordado":

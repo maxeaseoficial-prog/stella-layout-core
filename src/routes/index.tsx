@@ -18,11 +18,22 @@ import { Button } from "@/components/ui/button";
 import { useCaixa } from "@/features/caixa";
 import { formatarMoeda } from "@/features/caixa/utils";
 
+import { useAuth } from "@/features/auth/useAuth";
+import { MatrizDashboard } from "@/features/dashboard/MatrizDashboard";
+
 export const Route = createFileRoute("/")({
   component: DashboardPage,
 });
 
 function DashboardPage() {
+  const { papel } = useAuth();
+  if (papel === "operador_matriz") {
+    return <MatrizDashboard />;
+  }
+  return <AdminDashboard />;
+}
+
+function AdminDashboard() {
   const { totais, movimentacoes } = useCaixa();
 
   return (

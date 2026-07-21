@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { useClientes, getClienteNome } from "@/features/clientes";
+import { useAuth } from "@/features/auth/useAuth";
 import {
   PagamentoModal,
   PedidoFiltros,
@@ -52,6 +53,8 @@ function PedidosPage() {
   const { pedidos, hidratado, criar, atualizar, excluir, registrarPagamento } =
     usePedidos();
   const { clientes } = useClientes();
+  const { capacidades } = useAuth();
+  const capPedidos = capacidades.pedidos;
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Pedido | null>(null);
@@ -160,10 +163,12 @@ function PedidosPage() {
         title="Pedidos"
         description="Gerencie todos os pedidos da empresa."
         actions={
-          <Button size="sm" onClick={abrirNovo}>
-            <Plus className="h-4 w-4" />
-            Novo pedido
-          </Button>
+          capPedidos.criar ? (
+            <Button size="sm" onClick={abrirNovo}>
+              <Plus className="h-4 w-4" />
+              Novo pedido
+            </Button>
+          ) : null
         }
       />
 
@@ -184,11 +189,17 @@ function PedidosPage() {
         <EmptyState
           icon={ShoppingBag}
           title="Nenhum pedido registrado"
-          description="Crie o primeiro pedido para começar a controlar produção, financeiro e entregas."
+          description={
+            capPedidos.criar
+              ? "Crie o primeiro pedido para começar a controlar produção, financeiro e entregas."
+              : "Ainda não há pedidos registrados no sistema."
+          }
           action={
-            <Button onClick={abrirNovo}>
-              <Plus className="h-4 w-4" /> Novo pedido
-            </Button>
+            capPedidos.criar ? (
+              <Button onClick={abrirNovo}>
+                <Plus className="h-4 w-4" /> Novo pedido
+              </Button>
+            ) : undefined
           }
         />
       ) : semResultado ? (

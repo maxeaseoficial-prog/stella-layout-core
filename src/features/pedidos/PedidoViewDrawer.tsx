@@ -1,4 +1,5 @@
 import { Download, FileText, ImageIcon, Palette, Printer, Wallet } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   Sheet,
@@ -10,12 +11,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 import { formatarTamanho } from "@/features/clientes/utils";
 import { useClientes, getClienteNome, ClienteAvatar } from "@/features/clientes";
+import { useAuth } from "@/features/auth/useAuth";
+import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
+import { usePedidos } from "./usePedidos";
 
-import type { Pedido } from "./types";
+import type { Pedido, StatusProducao } from "./types";
 import {
   LABEL_FORMA_PAGAMENTO_PEDIDO,
   LABEL_POSICAO_PERSONALIZACAO,
@@ -51,7 +62,16 @@ export function PedidoViewDrawer({
   onReceberPagamento,
 }: Props) {
   const { clientes } = useClientes();
+  const { capacidades, papel } = useAuth();
+  const cap = capacidades.pedidos;
+  const { alterarStatusProducao } = usePedidos();
   const cliente = pedido ? clientes.find((c) => c.id === pedido.clienteId) : null;
+
+  function alterarStatus(novo: StatusProducao) {
+    if (!pedido) return;
+    alterarStatusProducao(pedido.id, novo);
+    toast.success("Status atualizado.");
+  }
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
@@ -349,16 +369,48 @@ export function PedidoViewDrawer({
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface px-6 py-4">
+              {papel === "operador_matriz" && (
+                <div className="mr-auto flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Status matriz:
+                  </span>
+                  <Select
+                    value={
+                      STATUS_PERMITIDOS_MATRIZ.includes(pedido.statusProducao)
+                        ? pedido.statusProducao
+                        : ""
+                    }
+                    onValueChange={(v) => alterarStatus(v as StatusProducao)}
+                  >
+                    <SelectTrigger className="h-9 w-[220px]">
+                      <SelectValue placeholder="Alterar status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_PERMITIDOS_MATRIZ.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {LABEL_STATUS_PRODUCAO[s]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <Button variant="outline" onClick={onFechar}>
                 Fechar
               </Button>
-              <Button variant="outline" onClick={() => onImprimir(pedido)}>
-                <Printer className="h-4 w-4" /> Imprimir
-              </Button>
-              <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
-                <Wallet className="h-4 w-4" /> Receber pagamento
-              </Button>
-              <Button onClick={() => onEditar(pedido)}>Editar pedido</Button>
+              {cap.imprimir && (
+                <Button variant="outline" onClick={() => onImprimir(pedido)}>
+                  <Printer className="h-4 w-4" /> Imprimir
+                </Button>
+              )}
+              {cap.registrarPagamento && (
+                <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
+                  <Wallet className="h-4 w-4" /> Receber pagamento
+                </Button>
+              )}
+              {cap.editar && (
+                <Button onClick={() => onEditar(pedido)}>Editar pedido</Button>
+              )}
             </div>
           </>
         )}

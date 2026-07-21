@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { usuarioAtual } from "@/features/auth/useAuth";
+
 import type {
   HistoricoEntrada,
   Pagamento,
@@ -7,6 +9,7 @@ import type {
   PedidoInput,
   StatusProducao,
 } from "./types";
+import { LABEL_STATUS_PRODUCAO } from "./types";
 import {
   carregarPedidos,
   notificarPedidosAtualizado,
@@ -31,6 +34,7 @@ function novaEntradaHistorico(
     data: new Date().toISOString(),
     tipo,
     descricao,
+    usuario: usuarioAtual()?.nome,
   };
 }
 
@@ -130,22 +134,21 @@ export function usePedidos() {
   const alterarStatusProducao = useCallback(
     (id: string, status: StatusProducao) => {
       setPedidos((atual) =>
-        atual.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                statusProducao: status,
-                atualizadoEm: new Date().toISOString(),
-                historico: [
-                  novaEntradaHistorico(
-                    "status_producao",
-                    `Status de produção alterado para ${status}.`,
-                  ),
-                  ...p.historico,
-                ],
-              }
-            : p,
-        ),
+        atual.map((p) => {
+          if (p.id !== id) return p;
+          return {
+            ...p,
+            statusProducao: status,
+            atualizadoEm: new Date().toISOString(),
+            historico: [
+              novaEntradaHistorico(
+                "status_producao",
+                `Status alterado para "${LABEL_STATUS_PRODUCAO[status]}".`,
+              ),
+              ...p.historico,
+            ],
+          };
+        }),
       );
       notificarPedidosAtualizado();
     },
@@ -227,12 +230,17 @@ export function usePedidos() {
     return {
       totalPedidos: pedidos.length,
       pendentes: ativos.filter((p) =>
-        ["em_orcamento", "aguardando_orcamento_matriz", "aguardando_aprovacao"].includes(
-          p.statusProducao,
-        ),
+        [
+          "em_orcamento",
+          "aguardando_orcamento_matriz",
+          "orcamento_matriz_realizado",
+          "aguardando_aprovacao",
+        ].includes(p.statusProducao),
       ).length,
       producao: ativos.filter((p) =>
-        ["producao", "bordado", "costura"].includes(p.statusProducao),
+        ["producao_matriz", "producao", "bordado", "costura"].includes(
+          p.statusProducao,
+        ),
       ).length,
       entregues: ativos.filter((p) => p.statusProducao === "entregue").length,
       pagos: ativos.filter((p) => p.statusFinanceiro === "pago").length,

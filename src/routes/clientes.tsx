@@ -26,6 +26,7 @@ import {
   type Cliente,
   type ClienteInput,
 } from "@/features/clientes";
+import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/clientes")({
   component: ClientesPage,
@@ -33,6 +34,8 @@ export const Route = createFileRoute("/clientes")({
 
 function ClientesPage() {
   const { clientes, hidratado, criar, atualizar, excluir, filtrar } = useClientes();
+  const { capacidades } = useAuth();
+  const cap = capacidades.clientes;
 
   const [termo, setTermo] = useState("");
   const [formAberto, setFormAberto] = useState(false);
@@ -86,10 +89,12 @@ function ClientesPage() {
         title="Clientes"
         description="Gerencie a base de clientes da Stella."
         actions={
-          <Button size="sm" onClick={abrirNovo}>
-            <UserPlus className="h-4 w-4" />
-            Novo cliente
-          </Button>
+          cap.criar ? (
+            <Button size="sm" onClick={abrirNovo}>
+              <UserPlus className="h-4 w-4" />
+              Novo cliente
+            </Button>
+          ) : null
         }
       />
 
@@ -113,12 +118,18 @@ function ClientesPage() {
         <EmptyState
           icon={Users}
           title="Nenhum cliente cadastrado"
-          description="Cadastre o primeiro cliente da Stella para começar a organizar sua base."
+          description={
+            cap.criar
+              ? "Cadastre o primeiro cliente da Stella para começar a organizar sua base."
+              : "Ainda não há clientes cadastrados na base."
+          }
           action={
-            <Button onClick={abrirNovo}>
-              <UserPlus className="h-4 w-4" />
-              Cadastrar cliente
-            </Button>
+            cap.criar ? (
+              <Button onClick={abrirNovo}>
+                <UserPlus className="h-4 w-4" />
+                Cadastrar cliente
+              </Button>
+            ) : undefined
           }
         />
       ) : semResultado ? (
