@@ -116,26 +116,10 @@ export function UsuariosManager() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Usuários ativos"
-          value={String(stats.ativos)}
-          icon={<UserCheck className="h-4 w-4" />}
-        />
-        <StatCard
-          label="Usuários inativos"
-          value={String(stats.inativos)}
-          icon={<UserX className="h-4 w-4" />}
-        />
-        <StatCard
-          label="Administradores"
-          value={String(stats.administradores)}
-          icon={<ShieldCheck className="h-4 w-4" />}
-        />
-        <StatCard
-          label="Operadores Matriz"
-          value={String(stats.operadores)}
-          icon={<UserCog className="h-4 w-4" />}
-        />
+        <StatCard label="Usuários ativos" value={String(stats.ativos)} icon={UserCheck} />
+        <StatCard label="Usuários inativos" value={String(stats.inativos)} icon={UserX} />
+        <StatCard label="Administradores" value={String(stats.administradores)} icon={ShieldCheck} />
+        <StatCard label="Operadores Matriz" value={String(stats.operadores)} icon={UserCog} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
