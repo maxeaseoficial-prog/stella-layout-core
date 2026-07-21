@@ -4,6 +4,8 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -14,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "@/layouts/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/features/auth/useAuth";
 
 function NotFoundComponent() {
   return (
@@ -135,11 +138,41 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={200}>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <AuthGate />
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function AuthGate() {
+  const { isAuthenticated } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const isLoginRoute = pathname === "/login";
+
+  useEffect(() => {
+    if (!isAuthenticated && !isLoginRoute) {
+      navigate({
+        to: "/login",
+        replace: true,
+        search: { redirect: pathname },
+      });
+    }
+  }, [isAuthenticated, isLoginRoute, navigate, pathname]);
+
+  if (isLoginRoute) {
+    return <Outlet />;
+  }
+
+  if (!isAuthenticated) {
+    // aguardando redirecionamento
+    return null;
+  }
+
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
   );
 }
