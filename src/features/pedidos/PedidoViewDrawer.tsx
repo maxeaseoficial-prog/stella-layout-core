@@ -369,16 +369,48 @@ export function PedidoViewDrawer({
             </div>
 
             <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border bg-surface px-6 py-4">
+              {papel === "operador_matriz" && (
+                <div className="mr-auto flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Status matriz:
+                  </span>
+                  <Select
+                    value={
+                      STATUS_PERMITIDOS_MATRIZ.includes(pedido.statusProducao)
+                        ? pedido.statusProducao
+                        : ""
+                    }
+                    onValueChange={(v) => alterarStatus(v as StatusProducao)}
+                  >
+                    <SelectTrigger className="h-9 w-[220px]">
+                      <SelectValue placeholder="Alterar status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_PERMITIDOS_MATRIZ.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {LABEL_STATUS_PRODUCAO[s]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <Button variant="outline" onClick={onFechar}>
                 Fechar
               </Button>
-              <Button variant="outline" onClick={() => onImprimir(pedido)}>
-                <Printer className="h-4 w-4" /> Imprimir
-              </Button>
-              <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
-                <Wallet className="h-4 w-4" /> Receber pagamento
-              </Button>
-              <Button onClick={() => onEditar(pedido)}>Editar pedido</Button>
+              {cap.imprimir && (
+                <Button variant="outline" onClick={() => onImprimir(pedido)}>
+                  <Printer className="h-4 w-4" /> Imprimir
+                </Button>
+              )}
+              {cap.registrarPagamento && (
+                <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
+                  <Wallet className="h-4 w-4" /> Receber pagamento
+                </Button>
+              )}
+              {cap.editar && (
+                <Button onClick={() => onEditar(pedido)}>Editar pedido</Button>
+              )}
             </div>
           </>
         )}
