@@ -39,7 +39,7 @@ export function PerfilTab() {
   return (
     <div className="space-y-4">
       <SectionCard
-        icon={UserCircle2}
+        icon={<UserCircle2 className="h-5 w-5" />}
         title="Dados pessoais"
         description="Atualize suas informações de acesso."
       >
@@ -69,7 +69,7 @@ export function PerfilTab() {
       </SectionCard>
 
       <SectionCard
-        icon={KeyRound}
+        icon={<KeyRound className="h-5 w-5" />}
         title="Alterar senha"
         description="Defina uma nova senha de acesso."
       >
