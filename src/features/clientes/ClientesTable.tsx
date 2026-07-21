@@ -22,6 +22,7 @@ import type { Cliente } from "./types";
 import { getClienteNome } from "./types";
 import { ClienteAvatar } from "./ClienteAvatar";
 import { formatarDataBR } from "./utils";
+import { useAuth } from "@/features/auth/useAuth";
 
 interface ClientesTableProps {
   clientes: Cliente[];
@@ -36,6 +37,8 @@ export function ClientesTable({
   onEditar,
   onExcluir,
 }: ClientesTableProps) {
+  const { capacidades } = useAuth();
+  const cap = capacidades.clientes;
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
@@ -116,16 +119,22 @@ export function ClientesTable({
                         <DropdownMenuItem onClick={() => onVisualizar(cliente)}>
                           <Eye className="h-4 w-4" /> Visualizar
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEditar(cliente)}>
-                          <Pencil className="h-4 w-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => onExcluir(cliente)}
-                        >
-                          <Trash2 className="h-4 w-4" /> Excluir
-                        </DropdownMenuItem>
+                        {cap.editar && (
+                          <DropdownMenuItem onClick={() => onEditar(cliente)}>
+                            <Pencil className="h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                        )}
+                        {cap.excluir && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => onExcluir(cliente)}
+                            >
+                              <Trash2 className="h-4 w-4" /> Excluir
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
