@@ -17,6 +17,7 @@ import {
   salvarPedidos,
 } from "./storage";
 import {
+  calcularEtapa,
   calcularSubtotal,
   calcularTotal,
   gerarNumeroPedido,
