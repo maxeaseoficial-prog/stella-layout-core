@@ -1,4 +1,4 @@
-import { ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
+import { CheckCircle2, ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -8,6 +8,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -83,11 +93,12 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
+  const { alterarStatusProducao, aprovarPedido, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
   const [enviando, setEnviando] = useState(false);
   const [gerandoOP, setGerandoOP] = useState(false);
+  const [confirmarAprovacao, setConfirmarAprovacao] = useState(false);
 
   // Sempre deriva a versão atual do pedido do store para refletir mudanças
   // (ex.: preencher orçamento pendente) sem precisar fechar/reabrir o drawer.
@@ -465,6 +476,15 @@ export function PedidoViewDrawer({
                   {enviando ? "Gerando..." : "Enviar Orçamento"}
                 </Button>
               )}
+              {cap.editar && pedido.statusProducao === "aguardando_aprovacao" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmarAprovacao(true)}
+                  className="border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Aprovar Pedido
+                </Button>
+              )}
               {cap.registrarPagamento && (
                 <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
                   <Wallet className="h-4 w-4" /> Receber pagamento
@@ -477,6 +497,31 @@ export function PedidoViewDrawer({
           </>
         )}
       </SheetContent>
+      <AlertDialog open={confirmarAprovacao} onOpenChange={setConfirmarAprovacao}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar aprovação do pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja aprovar este pedido? Após a aprovação, o
+              pedido será liberado para seguir o fluxo interno de produção.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() => {
+                if (!pedido) return;
+                aprovarPedido(pedido.id);
+                setConfirmarAprovacao(false);
+                toast.success("Pedido aprovado com sucesso.");
+              }}
+            >
+              Confirmar Aprovação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
