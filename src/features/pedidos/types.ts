@@ -81,6 +81,7 @@ export type StatusProducao =
   | "aguardando_orcamento_matriz"
   | "orcamento_matriz_realizado"
   | "aguardando_aprovacao"
+  | "orcamento_aprovado"
   | "producao_matriz"
   | "matriz_concluida"
   | "producao"
