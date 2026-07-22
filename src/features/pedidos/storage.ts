@@ -1,4 +1,5 @@
 import type { Pedido } from "./types";
+import { hidratarPedido } from "./utils";
 
 const KEY = "stella.pedidos.v1";
 
@@ -12,7 +13,8 @@ export function carregarPedidos(): Pedido[] {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Pedido[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    return (parsed as Pedido[]).map(hidratarPedido);
   } catch {
     return [];
   }
