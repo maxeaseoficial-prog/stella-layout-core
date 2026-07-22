@@ -57,8 +57,10 @@ import {
   formatarDataHoraBR,
   formatarMoeda,
   parseValorInput,
+  pedidoTemPendencia,
   totalItensPedido,
 } from "./utils";
+
 
 interface Props {
   pedido: Pedido | null;
