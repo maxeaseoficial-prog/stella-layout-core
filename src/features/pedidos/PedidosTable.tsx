@@ -74,10 +74,20 @@ export function PedidosTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pedidos.map((p) => (
+            {pedidos.map((p) => {
+              const pendente = [
+                "pendente_orcamento",
+                "pendente_orcamento_estampa",
+                "pendente_orcamento_matriz",
+              ].includes(p.statusProducao);
+              return (
               <TableRow
                 key={p.id}
-                className="cursor-pointer"
+                className={cn(
+                  "cursor-pointer",
+                  pendente &&
+                    "bg-amber-50/60 hover:bg-amber-100/60 border-l-4 border-l-amber-400",
+                )}
                 onClick={() => onVisualizar(p)}
               >
                 <TableCell className="font-mono text-xs font-semibold text-foreground">
