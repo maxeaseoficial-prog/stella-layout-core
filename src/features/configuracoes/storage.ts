@@ -21,7 +21,7 @@ export function carregar(): ConfiguracoesState {
       preferencias: { ...base.preferencias, ...(parsed.preferencias ?? {}) },
       numeracao: { ...base.numeracao, ...(parsed.numeracao ?? {}) },
       aparencia: { ...base.aparencia, ...(parsed.aparencia ?? {}) },
-      categorias: parsed.categorias ?? base.categorias,
+      categorias: mesclarCategorias(base.categorias, parsed.categorias),
       formasPagamento: parsed.formasPagamento ?? base.formasPagamento,
       usuarios: parsed.usuarios ?? base.usuarios,
     };
