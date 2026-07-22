@@ -326,15 +326,9 @@ export function mensagemPadraoOrcamento(
   return [
     `Olá, ${nome}!`,
     "",
-    `Seu orçamento referente ao pedido ${pedido.numero} foi concluído.`,
-    "",
-    "Segue em anexo o PDF com todos os detalhes dos produtos, personalizações e valores para sua análise.",
-    "",
-    "Assim que aprovar, daremos continuidade ao processo de produção.",
+    "Segue o orçamento do seu pedido.",
     "",
     "Qualquer dúvida, estamos à disposição.",
-    "",
-    "Equipe Stella.",
   ].join("\n");
 }
 
