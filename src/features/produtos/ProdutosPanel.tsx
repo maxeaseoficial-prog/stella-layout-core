@@ -36,6 +36,8 @@ import { useConfiguracoes } from "@/features/configuracoes";
 
 export function ProdutosPanel() {
   const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar } = useProdutos();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasProduto = categoriasPorEscopo("produto");
 
   const [termo, setTermo] = useState("");
   const [categoria, setCategoria] = useState<CategoriaProduto | "todas">("todas");
