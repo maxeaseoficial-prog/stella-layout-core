@@ -60,7 +60,7 @@ interface Props {
 }
 
 export function PedidoViewDrawer({
-  pedido,
+  pedido: pedidoProp,
   aberto,
   onFechar,
   onEditar,
@@ -70,8 +70,11 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao } = usePedidos();
+  const { alterarStatusProducao, buscarPorId } = usePedidos();
   const [tabAtiva, setTabAtiva] = useState("geral");
+  // Sempre deriva a versão atual do pedido do store para refletir mudanças
+  // (ex.: preencher orçamento pendente) sem precisar fechar/reabrir o drawer.
+  const pedido = pedidoProp ? buscarPorId(pedidoProp.id) ?? pedidoProp : null;
   const cliente = pedido ? clientes.find((c) => c.id === pedido.clienteId) : null;
 
   function alterarStatus(novo: StatusProducao) {
