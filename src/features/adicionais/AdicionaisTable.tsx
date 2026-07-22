@@ -20,7 +20,7 @@ import { formatarDataBR } from "@/features/clientes";
 import { formatarMoeda } from "@/features/pedidos";
 
 import type { Adicional } from "./types";
-import { LABEL_CATEGORIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "./types";
+import { LABEL_CATEGORIA_ADICIONAL, LABEL_PENDENCIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "./types";
 
 interface Props {
   adicionais: Adicional[];
