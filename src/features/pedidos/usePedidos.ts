@@ -126,11 +126,16 @@ export function usePedidos() {
         const pendenciaStatus = statusPendenciaAgregado(
           pendenciasDoPedido(entrada.itens),
         );
-        const statusProducao =
-          p.statusFinanceiro === "cancelado"
-            ? p.statusProducao
-            : pendenciaStatus ?? p.statusProducao;
-        return {
+        // Editar um pedido devolve para Em Elaboração (exceto se já estiver
+        // finalizado/entregue/cancelado). Pendências, se houver, têm prioridade.
+        const preservar =
+          p.statusFinanceiro === "cancelado" ||
+          p.statusProducao === "finalizado" ||
+          p.statusProducao === "entregue";
+        const statusProducao = preservar
+          ? p.statusProducao
+          : pendenciaStatus ?? "em_orcamento";
+        const atualizado: Pedido = {
           ...p,
           clienteId: entrada.clienteId,
           itens: entrada.itens,
@@ -149,6 +154,8 @@ export function usePedidos() {
             ...p.historico,
           ],
         };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
       }),
     );
   }, []);
