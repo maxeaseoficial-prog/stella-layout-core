@@ -444,6 +444,16 @@ export function PedidoViewDrawer({
                   <Printer className="h-4 w-4" /> Imprimir
                 </Button>
               )}
+              {cap.imprimir && (
+                <Button
+                  variant="outline"
+                  onClick={handleImprimirProducao}
+                  disabled={gerandoOP}
+                >
+                  <ClipboardList className="h-4 w-4" />{" "}
+                  {gerandoOP ? "Gerando..." : "Imprimir para Produção"}
+                </Button>
+              )}
               {podeEnviarOrcamento && (
                 <Button
                   variant="outline"
