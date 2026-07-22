@@ -150,19 +150,113 @@ export async function gerarOrdemProducaoPDF(
     });
   }
 
+  async function rasterizarSvg(
+    dataUrl: string,
+  ): Promise<{ dataUrl: string; w: number; h: number } | null> {
+    try {
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error("svg load error"));
+        el.src = dataUrl;
+      });
+      const alvo = 1200;
+      const wNat = img.naturalWidth || 600;
+      const hNat = img.naturalHeight || 600;
+      const escala = Math.min(alvo / wNat, alvo / hNat, 3);
+      const w = Math.max(1, Math.round(wNat * escala));
+      const h = Math.max(1, Math.round(hNat * escala));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      return { dataUrl: canvas.toDataURL("image/png"), w, h };
+    } catch {
+      return null;
+    }
+  }
+
+  async function renderizarPdfPrimeiraPagina(
+    dataUrl: string,
+  ): Promise<{ dataUrl: string; w: number; h: number } | null> {
+    try {
+      const pdfjs = await import("pdfjs-dist");
+      const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url")).default;
+      (pdfjs as unknown as { GlobalWorkerOptions: { workerSrc: string } }).GlobalWorkerOptions.workerSrc =
+        workerUrl;
+      const base64 = dataUrl.split(",")[1] ?? "";
+      const bin = atob(base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const loadingTask = pdfjs.getDocument({ data: bytes });
+      const pdf = await loadingTask.promise;
+      const page = await pdf.getPage(1);
+      const baseViewport = page.getViewport({ scale: 1 });
+      const alvo = 1400;
+      const scale = Math.min(alvo / baseViewport.width, alvo / baseViewport.height, 3);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return null;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+      return {
+        dataUrl: canvas.toDataURL("image/png"),
+        w: canvas.width,
+        h: canvas.height,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  interface PreviewItem {
+    nome: string;
+    dataUrl: string;
+    w: number;
+    h: number;
+  }
+
   for (const item of pedido.itens) {
     const personalizacoes = personalizacoesDoItem(item);
     const arquivos = pedido.arquivos;
-    const imagens = arquivos.filter((a) => EXT_IMG_RASTER.includes(a.extensao.toLowerCase()));
-    const vetoriais = arquivos.filter((a) => !EXT_IMG_RASTER.includes(a.extensao.toLowerCase()));
+
+    // Preparar previews (raster, svg, pdf renderizado)
+    const previews: PreviewItem[] = [];
+    const semPreview: { nome: string; motivo: string }[] = [];
+
+    for (const arq of arquivos) {
+      const ext = arq.extensao.toLowerCase();
+      if (EXT_IMG_RASTER.includes(ext)) {
+        const { w, h } = await dimensoesImagem(arq.dataUrl);
+        previews.push({ nome: arq.nome, dataUrl: arq.dataUrl, w, h });
+      } else if (ext === "svg") {
+        const r = await rasterizarSvg(arq.dataUrl);
+        if (r) previews.push({ nome: arq.nome, ...r });
+        else semPreview.push({ nome: arq.nome, motivo: "Pré-visualização indisponível." });
+      } else if (ext === "pdf") {
+        const r = await renderizarPdfPrimeiraPagina(arq.dataUrl);
+        if (r) previews.push({ nome: arq.nome, ...r });
+        else semPreview.push({ nome: arq.nome, motivo: "Pré-visualização indisponível." });
+      } else {
+        semPreview.push({ nome: arq.nome, motivo: `Arquivo ${ext.toUpperCase()}` });
+      }
+    }
 
     // Estimar altura do bloco para quebra de página
-    const alturaImg = imagens.length > 0 ? 200 : 0;
+    const alturaImg = previews.length > 0 ? 220 : 0;
     const alturaEstim =
       60 +
       alturaImg +
       (personalizacoes.length ? 20 + personalizacoes.length * 16 : 0) +
-      (vetoriais.length ? 20 + vetoriais.length * 16 : 0);
+      (semPreview.length ? 20 + semPreview.length * 16 : 0);
     if (y + alturaEstim > 760) {
       doc.addPage();
       y = margem;
@@ -208,7 +302,7 @@ export async function gerarOrdemProducaoPDF(
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
 
     // Imagens (logo / arte) — pré-visualização
-    if (imagens.length > 0) {
+    if (previews.length > 0) {
       y += 8;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10);
@@ -217,35 +311,39 @@ export async function gerarOrdemProducaoPDF(
       y += 10;
 
       const maxLarg = larg - margem * 2;
-      const alturaMaxima = 180;
+      const alturaMaxima = 190;
       let cursorX = margem;
       let alturaLinha = 0;
 
-      for (const arq of imagens) {
-        const fmt = formatoJsPDF(arq.extensao);
-        if (!fmt) continue;
+      for (const pv of previews) {
         try {
-          const { w, h } = await dimensoesImagem(arq.dataUrl);
-          const ratio = w / h;
+          const ratio = pv.w / pv.h;
           let renderH = alturaMaxima;
           let renderW = renderH * ratio;
-          const maxW = Math.min(260, maxLarg);
+          const maxW = Math.min(280, maxLarg);
           if (renderW > maxW) {
             renderW = maxW;
             renderH = renderW / ratio;
           }
+          const alturaComLegenda = renderH + 14;
           if (cursorX + renderW > margem + maxLarg) {
-            y += alturaLinha + 8;
+            y += alturaLinha + 10;
             cursorX = margem;
             alturaLinha = 0;
-            if (y + renderH > 760) {
+            if (y + alturaComLegenda > 760) {
               doc.addPage();
               y = margem;
             }
           }
-          doc.addImage(arq.dataUrl, fmt, cursorX, y, renderW, renderH, undefined, "SLOW");
-          cursorX += renderW + 10;
-          alturaLinha = Math.max(alturaLinha, renderH);
+          doc.addImage(pv.dataUrl, "PNG", cursorX, y, renderW, renderH, undefined, "SLOW");
+          // Legenda com nome do arquivo
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(...CINZA);
+          const nomeTxt = doc.splitTextToSize(pv.nome, renderW)[0] ?? pv.nome;
+          doc.text(nomeTxt, cursorX, y + renderH + 10);
+          cursorX += renderW + 12;
+          alturaLinha = Math.max(alturaLinha, alturaComLegenda);
         } catch {
           /* ignora imagem inválida */
         }
@@ -278,16 +376,13 @@ export async function gerarOrdemProducaoPDF(
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
     }
 
-    // Arquivos vetoriais / não-visualizáveis
-    if (vetoriais.length > 0) {
+    // Arquivos sem pré-visualização
+    if (semPreview.length > 0) {
       autoTable(doc, {
         startY: y,
         margin: { left: margem, right: margem },
-        head: [["Arquivo", "Tipo"]],
-        body: vetoriais.map((a) => [
-          a.nome,
-          `Arquivo ${a.extensao.toUpperCase()} (vetorial — abrir no software gráfico)`,
-        ]),
+        head: [["Arquivo", "Observação"]],
+        body: semPreview.map((a) => [a.nome, a.motivo]),
         theme: "grid",
         headStyles: {
           fillColor: [255, 255, 255],
@@ -318,6 +413,7 @@ export async function gerarOrdemProducaoPDF(
     doc.line(margem, y, larg - margem, y);
     y += 14;
   }
+
 
   // Observações gerais
   if (pedido.observacoes) {
