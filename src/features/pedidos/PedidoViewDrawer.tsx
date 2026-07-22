@@ -476,6 +476,15 @@ export function PedidoViewDrawer({
                   {enviando ? "Gerando..." : "Enviar Orçamento"}
                 </Button>
               )}
+              {cap.editar && pedido.statusProducao === "aguardando_aprovacao" && (
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmarAprovacao(true)}
+                  className="border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Aprovar Pedido
+                </Button>
+              )}
               {cap.registrarPagamento && (
                 <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
                   <Wallet className="h-4 w-4" /> Receber pagamento
