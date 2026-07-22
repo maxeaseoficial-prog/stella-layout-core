@@ -70,7 +70,7 @@ function estadoInicial(item?: ItemEstoque | null): FormState {
   if (!item) {
     return {
       nome: "",
-      categoria: "tecido",
+      categoria: "",
       imagem: undefined,
       descricao: "",
       fornecedor: "",
