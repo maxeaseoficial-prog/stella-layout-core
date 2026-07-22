@@ -95,12 +95,13 @@ export async function gerarOrdemProducaoPDF(
 
   function linhaInfo(coluna: number, label: string, valor: string, cursorY: number) {
     doc.setFont("helvetica", "bold");
-    const labelTxt = `${label}:`;
+    const labelTxt = `${label}: `;
     doc.text(labelTxt, coluna, cursorY);
     doc.setFont("helvetica", "normal");
-    const larguraLabel = doc.getTextWidth(labelTxt) + 4;
-    doc.text(valor, coluna + larguraLabel, cursorY);
+    const larguraLabel = doc.getTextWidth(labelTxt) + 2;
+    doc.text(String(valor ?? "—"), coluna + larguraLabel, cursorY);
   }
+
 
   linhaInfo(colEsq, "Pedido", pedido.numero, y);
   linhaInfo(colDir, "Data", emissao, y);
