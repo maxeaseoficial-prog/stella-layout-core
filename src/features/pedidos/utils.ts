@@ -149,32 +149,28 @@ export function gerarNumeroPedido(): string {
 
 export function corStatusProducao(status: StatusProducao): string {
   switch (status) {
-    case "em_orcamento":
-      return "border-border bg-muted text-muted-foreground";
+    // 🔴 Vermelho — pendências de orçamento bloqueiam o pedido
     case "pendente_orcamento":
     case "pendente_orcamento_estampa":
     case "pendente_orcamento_matriz":
-      return "border-amber-400 bg-amber-100 text-amber-900";
+      return "border-red-300 bg-red-100 text-red-800";
+    // 🟡 Amarelo — pedidos aguardando ação/aprovação
+    case "em_orcamento":
     case "aguardando_orcamento_matriz":
-      return "border-orange-300 bg-orange-100 text-orange-800";
     case "orcamento_matriz_realizado":
-      return "border-orange-300 bg-orange-50 text-orange-700";
     case "aguardando_aprovacao":
-      return "border-amber-300 bg-amber-100 text-amber-800";
+      return "border-amber-300 bg-amber-100 text-amber-900";
+    // 🔵 Azul — em produção
     case "producao_matriz":
-      return "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-800";
-    case "matriz_concluida":
-      return "border-emerald-300 bg-emerald-100 text-emerald-800";
     case "producao":
-      return "border-blue-300 bg-blue-100 text-blue-800";
     case "bordado":
-      return "border-purple-300 bg-purple-100 text-purple-800";
     case "costura":
-      return "border-indigo-300 bg-indigo-100 text-indigo-800";
+      return "border-blue-300 bg-blue-100 text-blue-800";
+    // 🟢 Verde — concluído / entregue
+    case "matriz_concluida":
     case "finalizado":
-      return "border-teal-300 bg-teal-100 text-teal-800";
     case "entregue":
-      return "border-success/40 bg-success/10 text-success";
+      return "border-emerald-300 bg-emerald-100 text-emerald-800";
     case "cancelado":
       return "border-destructive/40 bg-destructive/10 text-destructive";
   }
