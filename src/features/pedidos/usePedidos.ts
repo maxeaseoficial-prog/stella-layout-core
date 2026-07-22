@@ -319,6 +319,30 @@ export function usePedidos() {
     [],
   );
 
+  const registrarOrdemProducao = useCallback(
+    (id: string, dados: { nomeArquivo: string }) => {
+      commit(setPedidos, (atual) =>
+        atual.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                atualizadoEm: new Date().toISOString(),
+                historico: [
+                  novaEntradaHistorico(
+                    "ordem_producao",
+                    `Ordem de Produção gerada — arquivo: ${dados.nomeArquivo}.`,
+                  ),
+                  ...p.historico,
+                ],
+              }
+            : p,
+        ),
+      );
+    },
+    [],
+  );
+
+
 
   const buscarPorId = useCallback(
     (id: string) => pedidos.find((p) => p.id === id),
@@ -360,6 +384,7 @@ export function usePedidos() {
     alterarStatusProducao,
     registrarPagamento,
     registrarEnvioOrcamento,
+    registrarOrdemProducao,
     cancelar,
     buscarPorId,
   };

@@ -104,6 +104,7 @@ export type OrigemHistorico =
   | "pagamento"
   | "orcamento_pendente"
   | "envio_orcamento"
+  | "ordem_producao"
   | "cancelamento";
 
 

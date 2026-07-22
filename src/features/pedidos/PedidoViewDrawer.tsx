@@ -1,4 +1,4 @@
-import { Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
+import { ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -37,6 +37,7 @@ import {
   mensagemPadraoOrcamento,
   telefoneParaWhatsapp,
 } from "./enviarOrcamento";
+import { abrirImpressaoPDF, gerarOrdemProducaoPDF } from "./ordemProducao";
 import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 
 
@@ -82,10 +83,11 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao, buscarPorId, registrarEnvioOrcamento } = usePedidos();
+  const { alterarStatusProducao, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
   const [enviando, setEnviando] = useState(false);
+  const [gerandoOP, setGerandoOP] = useState(false);
 
   // Sempre deriva a versão atual do pedido do store para refletir mudanças
   // (ex.: preencher orçamento pendente) sem precisar fechar/reabrir o drawer.
@@ -131,6 +133,27 @@ export function PedidoViewDrawer({
       setEnviando(false);
     }
   }
+
+  async function handleImprimirProducao() {
+    if (!pedido) return;
+    setGerandoOP(true);
+    try {
+      const { blob, nomeArquivo } = await gerarOrdemProducaoPDF(
+        pedido,
+        cliente,
+        config.empresa,
+      );
+      abrirImpressaoPDF(blob);
+      registrarOrdemProducao(pedido.id, { nomeArquivo });
+      toast.success("Ordem de Produção gerada.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar a Ordem de Produção.");
+    } finally {
+      setGerandoOP(false);
+    }
+  }
+
 
 
   return (
@@ -419,6 +442,16 @@ export function PedidoViewDrawer({
               {cap.imprimir && (
                 <Button variant="outline" onClick={() => onImprimir(pedido)}>
                   <Printer className="h-4 w-4" /> Imprimir
+                </Button>
+              )}
+              {cap.imprimir && (
+                <Button
+                  variant="outline"
+                  onClick={handleImprimirProducao}
+                  disabled={gerandoOP}
+                >
+                  <ClipboardList className="h-4 w-4" />{" "}
+                  {gerandoOP ? "Gerando..." : "Imprimir para Produção"}
                 </Button>
               )}
               {podeEnviarOrcamento && (
