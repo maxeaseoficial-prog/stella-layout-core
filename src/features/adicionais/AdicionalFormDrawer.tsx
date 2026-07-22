@@ -207,9 +207,9 @@ export function AdicionalFormDrawer({ aberto, onFechar, adicional, onSalvar }: P
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS_ADICIONAL.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {LABEL_CATEGORIA_ADICIONAL[c]}
+                    {categoriasAdicional.map((c) => (
+                      <SelectItem key={c.id} value={c.nome}>
+                        {c.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>
