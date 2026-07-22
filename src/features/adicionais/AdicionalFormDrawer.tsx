@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { fileToDataUrl } from "@/features/clientes";
 import { useConfiguracoes } from "@/features/configuracoes";
+import { cn } from "@/lib/utils";
 
 import type {
   Adicional,
