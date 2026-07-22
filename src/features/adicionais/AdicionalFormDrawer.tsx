@@ -84,6 +84,8 @@ function parseValor(v: string): number {
 const IMG_ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
 export function AdicionalFormDrawer({ aberto, onFechar, adicional, onSalvar }: Props) {
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasAdicional = categoriasPorEscopo("adicional");
   const [form, setForm] = useState<FormState>(() => estadoInicial(adicional));
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
