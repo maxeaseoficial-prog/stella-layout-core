@@ -364,33 +364,118 @@ export function ArquivoFormDrawer({
                   Especificações
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Tamanho da peça e cor utilizada no bordado/estampa.
+                  Dimensões e cores utilizadas na aplicação.
                 </p>
               </div>
-              <Campo label="Tamanho">
-                <Input
-                  value={form.tamanhoPeca}
-                  onChange={(e) => up("tamanhoPeca", e.target.value)}
-                  placeholder="Ex.: 8 cm x 8 cm, P, M, G"
-                />
-              </Campo>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Campo label="Cor">
-                  <Input
-                    value={form.cor}
-                    onChange={(e) => up("cor", e.target.value)}
-                    placeholder="Ex.: Rosa Stella"
-                  />
+
+              {/* Dimensões */}
+              <div>
+                <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Dimensões da aplicação
+                </h5>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Campo label="Largura (cm)">
+                    <Input
+                      inputMode="decimal"
+                      value={form.larguraCm}
+                      onChange={(e) => up("larguraCm", e.target.value)}
+                      placeholder="Ex.: 8"
+                    />
+                  </Campo>
+                  <Campo label="Altura (cm)">
+                    <Input
+                      inputMode="decimal"
+                      value={form.alturaCm}
+                      onChange={(e) => up("alturaCm", e.target.value)}
+                      placeholder="Ex.: 6"
+                    />
+                  </Campo>
+                </div>
+              </div>
+
+              {/* Cores */}
+              <div>
+                <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Cores da aplicação
+                </h5>
+                <Campo label="Quantidade de cores">
+                  <select
+                    value={form.cores.length}
+                    onChange={(e) => {
+                      const n = Number(e.target.value);
+                      setForm((f) => {
+                        const atual = f.cores;
+                        let next: CorAplicacao[];
+                        if (n <= atual.length) {
+                          next = atual.slice(0, n);
+                        } else {
+                          next = [
+                            ...atual,
+                            ...Array.from({ length: n - atual.length }, () => ({
+                              nome: "",
+                              numero: "",
+                            })),
+                          ];
+                        }
+                        return { ...f, cores: next };
+                      });
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value={0}>— Nenhuma —</option>
+                    {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
                 </Campo>
-                <Campo label="Número da cor">
-                  <Input
-                    value={form.numeroCor}
-                    onChange={(e) => up("numeroCor", e.target.value)}
-                    placeholder="Ex.: 1805, Pantone 213C"
-                  />
-                </Campo>
+
+                {form.cores.length > 0 && (
+                  <div className="mt-3 space-y-3">
+                    {form.cores.map((c, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-lg border border-border bg-surface-muted/40 p-3"
+                      >
+                        <p className="mb-2 text-xs font-semibold text-foreground">
+                          Cor {idx + 1}
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Campo label="Nome da cor">
+                            <Input
+                              value={c.nome}
+                              onChange={(e) =>
+                                setForm((f) => {
+                                  const cores = [...f.cores];
+                                  cores[idx] = { ...cores[idx], nome: e.target.value };
+                                  return { ...f, cores };
+                                })
+                              }
+                              placeholder="Ex.: Branco, Azul Marinho"
+                            />
+                          </Campo>
+                          <Campo label="Número da cor">
+                            <Input
+                              value={c.numero}
+                              onChange={(e) =>
+                                setForm((f) => {
+                                  const cores = [...f.cores];
+                                  cores[idx] = { ...cores[idx], numero: e.target.value };
+                                  return { ...f, cores };
+                                })
+                              }
+                              placeholder="Ex.: Pantone 213C, Madeira 152"
+                            />
+                          </Campo>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
+
 
 
             {/* Upload */}
