@@ -1,31 +1,12 @@
 export type StatusItemEstoque = "ativo" | "inativo";
 
-export type CategoriaEstoque =
-  | "tecido"
-  | "linha"
-  | "botao"
-  | "ziper"
-  | "cordao"
-  | "elastico"
-  | "etiqueta"
-  | "embalagem"
-  | "aviamento"
-  | "outro";
+/**
+ * Categoria do item de estoque — string livre.
+ * As opções são gerenciadas em Configurações → Categorias (escopo "estoque").
+ */
+export type CategoriaEstoque = string;
 
-export const CATEGORIAS_ESTOQUE: CategoriaEstoque[] = [
-  "tecido",
-  "linha",
-  "botao",
-  "ziper",
-  "cordao",
-  "elastico",
-  "etiqueta",
-  "embalagem",
-  "aviamento",
-  "outro",
-];
-
-export const LABEL_CATEGORIA_ESTOQUE: Record<CategoriaEstoque, string> = {
+export const LABEL_CATEGORIA_ESTOQUE: Record<string, string> = {
   tecido: "Tecido",
   linha: "Linha",
   botao: "Botão",
@@ -37,6 +18,10 @@ export const LABEL_CATEGORIA_ESTOQUE: Record<CategoriaEstoque, string> = {
   aviamento: "Aviamento",
   outro: "Outro",
 };
+
+export function labelCategoriaEstoque(cat: string): string {
+  return LABEL_CATEGORIA_ESTOQUE[cat] ?? cat;
+}
 
 export type UnidadeMedida =
   | "unidade"
