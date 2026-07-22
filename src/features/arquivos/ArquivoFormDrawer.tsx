@@ -155,6 +155,13 @@ export function ArquivoFormDrawer({
     if (!form.clienteId) e.clienteId = "Selecione um cliente.";
     if (!form.nome.trim()) e.nome = "Informe o nome do arquivo.";
     if (!form.dataUrl) e.arquivo = "Envie o arquivo.";
+    if (
+      form.posicaoAplicacao === "outro_local" &&
+      !form.descricaoAplicacao.trim()
+    ) {
+      e.descricaoAplicacao =
+        "Descreva a aplicação quando a posição for 'Outro local'.";
+    }
     setErros(e);
     return Object.keys(e).length === 0;
   }
@@ -164,7 +171,9 @@ export function ArquivoFormDrawer({
     const dados: ArquivoInput = {
       clienteId: form.clienteId,
       tipo: form.tipo,
-      finalidade: form.finalidade || undefined,
+      tipoAplicacao: form.tipoAplicacao || undefined,
+      posicaoAplicacao: form.posicaoAplicacao || undefined,
+      descricaoAplicacao: form.descricaoAplicacao.trim() || undefined,
       nome: form.nome.trim(),
       descricao: form.descricao.trim() || undefined,
       status: form.status,
