@@ -310,7 +310,7 @@ export function PedidoViewDrawer({
                         <Linha label="Subtotal" valor={formatarMoeda(pedido.subtotal)} />
                         <Linha
                           label="Desconto"
-                          valor={`− ${formatarMoeda(pedido.desconto)}`}
+                          valor={`- ${formatarMoeda(pedido.desconto)}`}
                         />
                         <Linha label="Frete" valor={`+ ${formatarMoeda(pedido.frete)}`} />
                         <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
