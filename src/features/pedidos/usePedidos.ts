@@ -38,6 +38,24 @@ function novaEntradaHistorico(
   };
 }
 
+/**
+ * Persiste imediatamente no localStorage e notifica os demais consumidores.
+ * IMPORTANTE: salvar precisa acontecer ANTES do dispatch do evento, senão
+ * outros hooks (ou o próprio) recarregam a versão antiga do storage e
+ * sobrescrevem a mutação em andamento.
+ */
+function commit(
+  setPedidos: React.Dispatch<React.SetStateAction<Pedido[]>>,
+  updater: (atual: Pedido[]) => Pedido[],
+) {
+  setPedidos((atual) => {
+    const proximo = updater(atual);
+    salvarPedidos(proximo);
+    notificarPedidosAtualizado();
+    return proximo;
+  });
+}
+
 export function usePedidos() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [hidratado, setHidratado] = useState(false);
@@ -51,10 +69,6 @@ export function usePedidos() {
     window.addEventListener(PEDIDOS_EVENT, onUpdate);
     return () => window.removeEventListener(PEDIDOS_EVENT, onUpdate);
   }, []);
-
-  useEffect(() => {
-    if (hidratado) salvarPedidos(pedidos);
-  }, [pedidos, hidratado]);
 
   const criar = useCallback((entrada: PedidoInput): Pedido => {
     const agora = new Date().toISOString();
@@ -87,13 +101,12 @@ export function usePedidos() {
       criadoEm: agora,
       atualizadoEm: agora,
     };
-    setPedidos((atual) => [novo, ...atual]);
-    notificarPedidosAtualizado();
+    commit(setPedidos, (atual) => [novo, ...atual]);
     return novo;
   }, []);
 
   const atualizar = useCallback((id: string, entrada: PedidoInput) => {
-    setPedidos((atual) =>
+    commit(setPedidos, (atual) =>
       atual.map((p) => {
         if (p.id !== id) return p;
         const subtotal = calcularSubtotal(entrada.itens);
@@ -123,17 +136,15 @@ export function usePedidos() {
         };
       }),
     );
-    notificarPedidosAtualizado();
   }, []);
 
   const excluir = useCallback((id: string) => {
-    setPedidos((atual) => atual.filter((p) => p.id !== id));
-    notificarPedidosAtualizado();
+    commit(setPedidos, (atual) => atual.filter((p) => p.id !== id));
   }, []);
 
   const alterarStatusProducao = useCallback(
     (id: string, status: StatusProducao) => {
-      setPedidos((atual) =>
+      commit(setPedidos, (atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;
           return {
@@ -150,14 +161,13 @@ export function usePedidos() {
           };
         }),
       );
-      notificarPedidosAtualizado();
     },
     [],
   );
 
   const registrarPagamento = useCallback(
     (id: string, dados: Omit<Pagamento, "id" | "criadoEm">) => {
-      setPedidos((atual) =>
+      commit(setPedidos, (atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;
           const pagamento: Pagamento = {
@@ -189,19 +199,16 @@ export function usePedidos() {
           };
         }),
       );
-      notificarPedidosAtualizado();
 
       // ARQUITETURA — integração futura com o Caixa:
       // Quando statusFinanceiro passar para "pago", gerar automaticamente
       // uma movimentação de entrada no módulo Caixa referenciando o pedidoId.
-      // A estrutura já está preparada em Movimentacao.origem = "pedido"
-      // e Movimentacao.referenciaId = pedido.id.
     },
     [],
   );
 
   const cancelar = useCallback((id: string) => {
-    setPedidos((atual) =>
+    commit(setPedidos, (atual) =>
       atual.map((p) =>
         p.id === id
           ? {
@@ -217,7 +224,6 @@ export function usePedidos() {
           : p,
       ),
     );
-    notificarPedidosAtualizado();
   }, []);
 
   const buscarPorId = useCallback(
