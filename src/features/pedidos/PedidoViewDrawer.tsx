@@ -71,6 +71,7 @@ export function PedidoViewDrawer({
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
   const { alterarStatusProducao } = usePedidos();
+  const [tabAtiva, setTabAtiva] = useState("geral");
   const cliente = pedido ? clientes.find((c) => c.id === pedido.clienteId) : null;
 
   function alterarStatus(novo: StatusProducao) {
