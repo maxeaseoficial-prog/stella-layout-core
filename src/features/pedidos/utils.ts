@@ -1,4 +1,7 @@
+import type { PendenciaAdicional } from "@/features/adicionais/types";
+
 import type {
+  ItemAdicional,
   ItemPedido,
   Pedido,
   StatusFinanceiro,
@@ -50,8 +53,15 @@ export function parseValorInput(valor: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+export function isAdicionalPendente(a: ItemAdicional): boolean {
+  return !!a.pendencia;
+}
+
 export function somaAdicionaisItem(item: ItemPedido): number {
-  return (item.adicionais ?? []).reduce((s, a) => s + (a.valor || 0), 0);
+  return (item.adicionais ?? []).reduce(
+    (s, a) => s + (isAdicionalPendente(a) ? 0 : a.valor || 0),
+    0,
+  );
 }
 
 export function calcularSubtotalItem(item: ItemPedido): number {
@@ -74,7 +84,34 @@ export function possuiBordado(itens: ItemPedido[]): boolean {
   return itens.some((i) => i.personalizacoes.some((p) => p.tipo === "bordado"));
 }
 
+export function pendenciasDoPedido(itens: ItemPedido[]): PendenciaAdicional[] {
+  const set = new Set<PendenciaAdicional>();
+  for (const it of itens) {
+    for (const a of it.adicionais ?? []) {
+      if (a.pendencia) set.add(a.pendencia);
+    }
+  }
+  return Array.from(set);
+}
+
+export function statusPendenciaAgregado(
+  pendencias: PendenciaAdicional[],
+): StatusProducao | null {
+  if (pendencias.length === 0) return null;
+  if (pendencias.length > 1) return "pendente_orcamento";
+  const p = pendencias[0];
+  if (p === "estampa") return "pendente_orcamento_estampa";
+  if (p === "matriz") return "pendente_orcamento_matriz";
+  return "pendente_orcamento";
+}
+
+export function pedidoTemPendencia(pedido: Pedido | { itens: ItemPedido[] }): boolean {
+  return pendenciasDoPedido(pedido.itens).length > 0;
+}
+
 export function statusProducaoInicial(itens: ItemPedido[]): StatusProducao {
+  const pendencia = statusPendenciaAgregado(pendenciasDoPedido(itens));
+  if (pendencia) return pendencia;
   return possuiBordado(itens) ? "aguardando_orcamento_matriz" : "em_orcamento";
 }
 
