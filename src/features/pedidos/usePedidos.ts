@@ -384,6 +384,7 @@ export function usePedidos() {
     alterarStatusProducao,
     registrarPagamento,
     registrarEnvioOrcamento,
+    registrarOrdemProducao,
     cancelar,
     buscarPorId,
   };
