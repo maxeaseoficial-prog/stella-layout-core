@@ -229,7 +229,7 @@ export function usePedidos() {
       commit(setPedidos, (atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;
-          return {
+          const atualizado: Pedido = {
             ...p,
             statusProducao: status,
             atualizadoEm: new Date().toISOString(),
@@ -241,6 +241,8 @@ export function usePedidos() {
               ...p.historico,
             ],
           };
+          atualizado.etapa = calcularEtapa(atualizado);
+          return atualizado;
         }),
       );
     },
@@ -252,7 +254,7 @@ export function usePedidos() {
       atual.map((p) => {
         if (p.id !== id) return p;
         if (p.statusProducao !== "aguardando_aprovacao") return p;
-        return {
+        const atualizado: Pedido = {
           ...p,
           statusProducao: "orcamento_aprovado",
           atualizadoEm: new Date().toISOString(),
@@ -261,6 +263,46 @@ export function usePedidos() {
             ...p.historico,
           ],
         };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
+      }),
+    );
+  }, []);
+
+  const finalizarProducao = useCallback((id: string) => {
+    commit(setPedidos, (atual) =>
+      atual.map((p) => {
+        if (p.id !== id) return p;
+        const atualizado: Pedido = {
+          ...p,
+          statusProducao: "finalizado",
+          atualizadoEm: new Date().toISOString(),
+          historico: [
+            novaEntradaHistorico("status_producao", "Produção finalizada."),
+            ...p.historico,
+          ],
+        };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
+      }),
+    );
+  }, []);
+
+  const marcarEntregue = useCallback((id: string) => {
+    commit(setPedidos, (atual) =>
+      atual.map((p) => {
+        if (p.id !== id) return p;
+        const atualizado: Pedido = {
+          ...p,
+          statusProducao: "entregue",
+          atualizadoEm: new Date().toISOString(),
+          historico: [
+            novaEntradaHistorico("status_producao", "Pedido marcado como entregue."),
+            ...p.historico,
+          ],
+        };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
       }),
     );
   }, []);
