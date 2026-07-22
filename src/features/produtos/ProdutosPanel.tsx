@@ -32,7 +32,7 @@ import type {
   ProdutoInput,
   StatusProduto,
 } from "./types";
-import { CATEGORIAS_PRODUTO, LABEL_CATEGORIA_PRODUTO } from "./types";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 export function ProdutosPanel() {
   const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar } = useProdutos();
