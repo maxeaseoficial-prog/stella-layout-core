@@ -249,19 +249,97 @@ export function AdicionalFormDrawer({ aberto, onFechar, adicional, onSalvar }: P
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="valor">Valor adicional (R$)</Label>
-              <Input
-                id="valor"
-                inputMode="decimal"
-                value={form.valorStr}
-                onChange={(e) => upd("valorStr", e.target.value)}
-                placeholder="0,00"
-              />
-              <p className="text-xs text-muted-foreground">
-                Este valor será somado ao produto no pedido.
-              </p>
+            <div className="space-y-3 rounded-lg border border-border bg-surface-muted/40 p-3">
+              <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                Forma de precificação
+              </Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label
+                  className={cn(
+                    "flex cursor-pointer items-start gap-2 rounded-md border p-3 text-sm transition-colors",
+                    form.modoValor === "definido"
+                      ? "border-primary bg-primary-soft/40"
+                      : "border-border bg-surface hover:bg-surface-muted/60",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="modoValor"
+                    checked={form.modoValor === "definido"}
+                    onChange={() => upd("modoValor", "definido")}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="font-medium text-foreground">Valor definido</p>
+                    <p className="text-xs text-muted-foreground">
+                      Adicional com valor fixo, somado ao produto.
+                    </p>
+                  </div>
+                </label>
+                <label
+                  className={cn(
+                    "flex cursor-pointer items-start gap-2 rounded-md border p-3 text-sm transition-colors",
+                    form.modoValor === "pendente"
+                      ? "border-primary bg-primary-soft/40"
+                      : "border-border bg-surface hover:bg-surface-muted/60",
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="modoValor"
+                    checked={form.modoValor === "pendente"}
+                    onChange={() => upd("modoValor", "pendente")}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <p className="font-medium text-foreground">Orçamento pendente</p>
+                    <p className="text-xs text-muted-foreground">
+                      Valor será informado no pedido.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {form.modoValor === "definido" ? (
+                <div className="space-y-1.5">
+                  <Label htmlFor="valor">Valor adicional (R$)</Label>
+                  <Input
+                    id="valor"
+                    inputMode="decimal"
+                    value={form.valorStr}
+                    onChange={(e) => upd("valorStr", e.target.value)}
+                    placeholder="0,00"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Este valor será somado ao produto no pedido.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <Label>Tipo de pendência</Label>
+                  <Select
+                    value={form.pendencia}
+                    onValueChange={(v) => upd("pendencia", v as PendenciaAdicional)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PENDENCIAS_ADICIONAL.map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {LABEL_PENDENCIA_ADICIONAL[p]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Ao selecionar este adicional em um pedido, ele ficará
+                    aguardando o preenchimento do valor.
+                  </p>
+                </div>
+              )}
             </div>
+
 
             <div className="space-y-1.5">
               <Label htmlFor="desc">Descrição</Label>
