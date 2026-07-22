@@ -49,7 +49,9 @@ interface FormState {
   nome: string;
   tipo: TipoAdicional;
   categoria: CategoriaAdicional;
+  modoValor: "definido" | "pendente";
   valorStr: string;
+  pendencia: PendenciaAdicional;
   descricao: string;
   imagem?: string;
   status: StatusAdicional;
@@ -61,7 +63,9 @@ function estadoInicial(a?: Adicional | null): FormState {
       nome: "",
       tipo: "acessorio",
       categoria: "botao",
+      modoValor: "definido",
       valorStr: "",
+      pendencia: "orcamento",
       descricao: "",
       imagem: undefined,
       status: "ativo",
@@ -71,7 +75,9 @@ function estadoInicial(a?: Adicional | null): FormState {
     nome: a.nome,
     tipo: a.tipo,
     categoria: a.categoria,
+    modoValor: a.pendencia ? "pendente" : "definido",
     valorStr: a.valor > 0 ? a.valor.toFixed(2).replace(".", ",") : "",
+    pendencia: a.pendencia ?? "orcamento",
     descricao: a.descricao ?? "",
     imagem: a.imagem,
     status: a.status,
