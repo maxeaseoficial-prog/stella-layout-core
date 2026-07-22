@@ -76,7 +76,15 @@ export function AdicionaisTable({ adicionais, onEditar, onExcluir, onRemover }: 
                   </span>
                 </TableCell>
                 <TableCell className="tabular-nums">
-                  {a.valor > 0 ? `+ ${formatarMoeda(a.valor)}` : "—"}
+                  {a.pendencia ? (
+                    <Badge variant="outline" className="border-amber-300 bg-amber-100 text-amber-800">
+                      {LABEL_PENDENCIA_ADICIONAL[a.pendencia]}
+                    </Badge>
+                  ) : a.valor > 0 ? (
+                    `+ ${formatarMoeda(a.valor)}`
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell>
                   {a.status === "ativo" ? (
