@@ -26,9 +26,10 @@ interface Props {
   adicionais: Adicional[];
   onEditar: (a: Adicional) => void;
   onExcluir: (a: Adicional) => void;
+  onRemover: (a: Adicional) => void;
 }
 
-export function AdicionaisTable({ adicionais, onEditar, onExcluir }: Props) {
+export function AdicionaisTable({ adicionais, onEditar, onExcluir, onRemover }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
