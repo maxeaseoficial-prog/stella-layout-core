@@ -38,10 +38,7 @@ import type {
   ItemEstoque,
   ItemEstoqueInput,
 } from "@/features/estoque";
-import {
-  CATEGORIAS_ESTOQUE,
-  LABEL_CATEGORIA_ESTOQUE,
-} from "@/features/estoque";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 export const Route = createFileRoute("/estoque")({
   component: EstoquePage,
