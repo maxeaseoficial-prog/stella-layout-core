@@ -130,11 +130,13 @@ export function AdicionalFormDrawer({ aberto, onFechar, adicional, onSalvar }: P
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0) return;
 
+    const pendente = form.modoValor === "pendente";
     const dados: AdicionalInput = {
       nome: form.nome.trim(),
       tipo: form.tipo,
       categoria: form.categoria,
-      valor: parseValor(form.valorStr),
+      valor: pendente ? 0 : parseValor(form.valorStr),
+      pendencia: pendente ? form.pendencia : undefined,
       descricao: form.descricao.trim() || undefined,
       imagem: form.imagem,
       status: form.status,
