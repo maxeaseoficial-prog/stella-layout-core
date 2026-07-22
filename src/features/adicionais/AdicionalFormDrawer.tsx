@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fileToDataUrl } from "@/features/clientes";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 import type {
   Adicional,
@@ -29,8 +30,6 @@ import type {
   TipoAdicional,
 } from "./types";
 import {
-  CATEGORIAS_ADICIONAL,
-  LABEL_CATEGORIA_ADICIONAL,
   LABEL_TIPO_ADICIONAL,
   TIPOS_ADICIONAL,
   TIPO_PADRAO_POR_CATEGORIA,
