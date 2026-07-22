@@ -59,7 +59,7 @@ function estadoInicial(produto?: Produto | null): FormState {
     return {
       nome: "",
       sku: "",
-      categoria: "camiseta",
+      categoria: "",
       precoStr: "",
       personalizacoes: { ...PERSONALIZACOES_VAZIAS },
       descricao: "",
