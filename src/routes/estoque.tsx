@@ -46,6 +46,8 @@ export const Route = createFileRoute("/estoque")({
 
 function EstoquePage() {
   const { itens, hidratado, stats, criar, atualizar, excluir, filtrar } = useEstoque();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasEstoque = categoriasPorEscopo("estoque");
 
   const [termo, setTermo] = useState("");
   const [categoria, setCategoria] = useState<CategoriaEstoque | "todas">("todas");
