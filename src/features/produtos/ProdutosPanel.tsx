@@ -115,9 +115,9 @@ export function ProdutosPanel() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as categorias</SelectItem>
-              {CATEGORIAS_PRODUTO.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {LABEL_CATEGORIA_PRODUTO[c]}
+              {categoriasProduto.map((c) => (
+                <SelectItem key={c.id} value={c.nome}>
+                  {c.nome}
                 </SelectItem>
               ))}
             </SelectContent>
