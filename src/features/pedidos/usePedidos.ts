@@ -21,7 +21,9 @@ import {
   calcularTotal,
   gerarNumeroPedido,
   novoId,
+  pendenciasDoPedido,
   statusFinanceiroCalculado,
+  statusPendenciaAgregado,
   statusProducaoInicial,
 } from "./utils";
 
