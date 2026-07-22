@@ -400,6 +400,7 @@ export function usePedidos() {
     atualizarOrcamentoPendente,
     excluir,
     alterarStatusProducao,
+    aprovarPedido,
     registrarPagamento,
     registrarEnvioOrcamento,
     registrarOrdemProducao,
