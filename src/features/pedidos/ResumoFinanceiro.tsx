@@ -48,7 +48,7 @@ export function ResumoFinanceiro({
 
       <div className="space-y-1.5 rounded-lg bg-surface-muted/60 p-3 text-sm">
         <Linha label="Subtotal" valor={formatarMoeda(subtotal)} />
-        <Linha label="Desconto" valor={`− ${formatarMoeda(d)}`} />
+        <Linha label="Desconto" valor={`- ${formatarMoeda(d)}`} />
         <Linha label="Frete" valor={`+ ${formatarMoeda(f)}`} />
         <div className="mt-1 flex items-center justify-between border-t border-border pt-2">
           <span className="text-sm font-semibold">Total</span>

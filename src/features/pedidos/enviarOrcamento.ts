@@ -218,7 +218,7 @@ export async function gerarOrcamentoPDF(
     margin: { left: larg / 2, right: margem },
     body: [
       ["Subtotal", formatarMoeda(pedido.subtotal)],
-      ["Descontos", `− ${formatarMoeda(pedido.desconto)}`],
+      ["Descontos", `- ${formatarMoeda(pedido.desconto)}`],
       ["Frete", `+ ${formatarMoeda(pedido.frete)}`],
       ["Valor total", formatarMoeda(pedido.total)],
     ],

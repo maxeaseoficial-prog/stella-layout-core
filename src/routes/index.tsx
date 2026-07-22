@@ -61,7 +61,7 @@ function AdminDashboard() {
         <StatCard
           label="Lucro"
           value={formatarMoeda(totais.resultado)}
-          hint="entradas − saídas"
+          hint="entradas - saídas"
           icon={TrendingUp}
         />
         <StatCard

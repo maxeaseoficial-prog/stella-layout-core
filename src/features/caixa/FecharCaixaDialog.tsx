@@ -89,7 +89,7 @@ export function FecharCaixaDialog({
             />
             <Linha
               label="Saídas"
-              valor={`− ${formatarMoeda(saidas)}`}
+              valor={`- ${formatarMoeda(saidas)}`}
               cor="destructive"
             />
             <div className="mt-2 flex items-center justify-between border-t border-border pt-2">

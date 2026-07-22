@@ -144,7 +144,7 @@ export function imprimirPedido(pedido: Pedido, cliente?: Cliente | null) {
 
   <div class="totais">
     <div class="row"><span>Subtotal</span><span>${esc(formatarMoeda(pedido.subtotal))}</span></div>
-    <div class="row"><span>Desconto</span><span>− ${esc(formatarMoeda(pedido.desconto))}</span></div>
+    <div class="row"><span>Desconto</span><span>- ${esc(formatarMoeda(pedido.desconto))}</span></div>
     <div class="row"><span>Frete</span><span>+ ${esc(formatarMoeda(pedido.frete))}</span></div>
     <div class="row total"><span>Total</span><span>${esc(formatarMoeda(pedido.total))}</span></div>
     <div class="row"><span>Recebido</span><span>${esc(formatarMoeda(pedido.totalPago))}</span></div>
