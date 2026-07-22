@@ -200,7 +200,16 @@ function PedidosPage() {
           description="Ajuste os filtros ou a busca para ver mais resultados."
         />
       ) : (
-        <PedidosKanban pedidos={pedidosFiltrados} onAbrir={setVisualizando} />
+        <PedidosKanban
+          pedidos={pedidosFiltrados}
+          onAbrir={setVisualizando}
+          etapasVisiveis={
+            filtro === "todos" || filtro === "cancelados"
+              ? undefined
+              : [filtro]
+          }
+        />
+
       )}
 
       <PedidoFormDrawer
