@@ -159,7 +159,7 @@ export function AdicionaisPanel() {
           description="Ajuste os filtros ou o termo de pesquisa."
         />
       ) : (
-        <AdicionaisTable adicionais={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} />
+        <AdicionaisTable adicionais={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} onRemover={setRemovendo} />
       )}
 
       <AdicionalFormDrawer
