@@ -65,7 +65,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     return {
       clienteId: clienteIdInicial ?? "",
       tipo: "logo",
-      finalidade: "",
+      tipoAplicacao: "",
+      posicaoAplicacao: "",
+      descricaoAplicacao: "",
       nome: "",
       descricao: "",
       status: "ativo",
@@ -82,7 +84,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
   return {
     clienteId: a.clienteId,
     tipo: a.tipo,
-    finalidade: a.finalidade ?? "",
+    tipoAplicacao: a.tipoAplicacao ?? "",
+    posicaoAplicacao: a.posicaoAplicacao ?? "",
+    descricaoAplicacao: a.descricaoAplicacao ?? "",
     nome: a.nome,
     descricao: a.descricao ?? "",
     status: a.status,
