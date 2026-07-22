@@ -93,7 +93,7 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao, aprovarPedido, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
+  const { alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
   const [enviando, setEnviando] = useState(false);
@@ -476,7 +476,7 @@ export function PedidoViewDrawer({
                   {enviando ? "Gerando..." : "Enviar Orçamento"}
                 </Button>
               )}
-              {cap.editar && pedido.statusProducao === "aguardando_aprovacao" && (
+              {cap.editar && pedido.etapa === "aguardando_aprovacao" && (
                 <Button
                   variant="outline"
                   onClick={() => setConfirmarAprovacao(true)}
@@ -485,9 +485,33 @@ export function PedidoViewDrawer({
                   <CheckCircle2 className="h-4 w-4" /> Aprovar Pedido
                 </Button>
               )}
+              {cap.editar && pedido.etapa === "em_producao" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    finalizarProducao(pedido.id);
+                    toast.success("Produção finalizada.");
+                  }}
+                  className="border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-200"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Finalizar Produção
+                </Button>
+              )}
+              {cap.editar && pedido.etapa === "finalizado" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    marcarEntregue(pedido.id);
+                    toast.success("Pedido marcado como entregue.");
+                  }}
+                  className="border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800/60 dark:text-zinc-100"
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Marcar como Entregue
+                </Button>
+              )}
               {cap.registrarPagamento && (
                 <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
-                  <Wallet className="h-4 w-4" /> Receber pagamento
+                  <Wallet className="h-4 w-4" /> Registrar Recebimento
                 </Button>
               )}
               {cap.editar && (

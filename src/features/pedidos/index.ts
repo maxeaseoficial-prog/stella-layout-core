@@ -3,6 +3,7 @@ export * from "./utils";
 export * from "./storage";
 export { usePedidos } from "./usePedidos";
 export { PedidosTable } from "./PedidosTable";
+export { PedidosKanban } from "./PedidosKanban";
 export { PedidoFiltros } from "./PedidoFiltros";
 export type { FiltroRapido, PeriodoFiltroPedido } from "./PedidoFiltros";
 export { PedidoFormDrawer } from "./PedidoFormDrawer";

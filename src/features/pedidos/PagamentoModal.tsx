@@ -71,9 +71,9 @@ export function PagamentoModal({ aberto, onFechar, pedido, onConfirmar }: Props)
     <Dialog open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Receber pagamento</DialogTitle>
+          <DialogTitle>Registrar Recebimento</DialogTitle>
           <DialogDescription>
-            {pedido ? `Pedido ${pedido.numero}` : "Registre um novo pagamento."}
+            {pedido ? `Pedido ${pedido.numero}` : "Registre um novo recebimento."}
           </DialogDescription>
         </DialogHeader>
 
@@ -140,7 +140,7 @@ export function PagamentoModal({ aberto, onFechar, pedido, onConfirmar }: Props)
           <Button variant="outline" onClick={onFechar}>
             Cancelar
           </Button>
-          <Button onClick={handleConfirmar}>Confirmar recebimento</Button>
+          <Button onClick={handleConfirmar}>Salvar Recebimento</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

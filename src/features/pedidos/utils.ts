@@ -1,6 +1,7 @@
 import type { PendenciaAdicional } from "@/features/adicionais/types";
 
 import type {
+  EtapaKanban,
   ItemAdicional,
   ItemPedido,
   Pedido,
@@ -192,4 +193,62 @@ export function corStatusFinanceiro(status: StatusFinanceiro): string {
 
 export function totalItensPedido(pedido: Pedido): number {
   return pedido.itens.reduce((s, i) => s + i.quantidade, 0);
+}
+
+/**
+ * Deriva a coluna do Kanban a partir do estado atual do pedido.
+ * Regras:
+ * - Cancelado → mantém (não entra no Kanban ativo).
+ * - Se existe adicional com pendência → pendencias_orcamento.
+ * - statusProducao entregue → entregue.
+ * - statusProducao finalizado → finalizado.
+ * - statusProducao em produção/matriz/costura/bordado/orçamento aprovado → em_producao.
+ * - aguardando_aprovacao → aguardando_aprovacao.
+ * - restantes → em_elaboracao.
+ */
+export function calcularEtapa(
+  pedido: Pick<Pedido, "statusProducao" | "statusFinanceiro" | "itens">,
+): EtapaKanban {
+  if (pedido.statusFinanceiro === "cancelado") return "em_elaboracao";
+  if (pendenciasDoPedido(pedido.itens).length > 0) return "pendencias_orcamento";
+  switch (pedido.statusProducao) {
+    case "entregue":
+      return "entregue";
+    case "finalizado":
+      return "finalizado";
+    case "orcamento_aprovado":
+    case "producao_matriz":
+    case "matriz_concluida":
+    case "producao":
+    case "bordado":
+    case "costura":
+      return "em_producao";
+    case "aguardando_aprovacao":
+      return "aguardando_aprovacao";
+    default:
+      return "em_elaboracao";
+  }
+}
+
+export function corEtapaKanban(etapa: EtapaKanban): string {
+  switch (etapa) {
+    case "em_elaboracao":
+      return "border-slate-300 bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-200";
+    case "pendencias_orcamento":
+      return "border-orange-300 bg-orange-100 text-orange-900 dark:bg-orange-950/40 dark:text-orange-200";
+    case "aguardando_aprovacao":
+      return "border-amber-300 bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200";
+    case "em_producao":
+      return "border-blue-300 bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-200";
+    case "finalizado":
+      return "border-emerald-300 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200";
+    case "entregue":
+      return "border-zinc-400 bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100";
+  }
+}
+
+/** Garante que um pedido carregado do storage tenha o campo `etapa`. */
+export function hidratarPedido(p: Pedido): Pedido {
+  if (p.etapa) return p;
+  return { ...p, etapa: calcularEtapa(p) };
 }

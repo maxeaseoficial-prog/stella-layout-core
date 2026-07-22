@@ -17,6 +17,7 @@ import {
   salvarPedidos,
 } from "./storage";
 import {
+  calcularEtapa,
   calcularSubtotal,
   calcularTotal,
   gerarNumeroPedido,
@@ -91,6 +92,8 @@ export function usePedidos() {
       totalPago: 0,
       statusProducao,
       statusFinanceiro: entrada.statusFinanceiro ?? "aguardando_pagamento",
+      etapa: "em_elaboracao",
+      badges: entrada.badges,
       previsaoEntrega: entrada.previsaoEntrega,
       observacoes: entrada.observacoes,
       pagamentos: [],
@@ -103,6 +106,7 @@ export function usePedidos() {
       criadoEm: agora,
       atualizadoEm: agora,
     };
+    novo.etapa = calcularEtapa(novo);
     commit(setPedidos, (atual) => [novo, ...atual]);
     return novo;
   }, []);
@@ -122,11 +126,16 @@ export function usePedidos() {
         const pendenciaStatus = statusPendenciaAgregado(
           pendenciasDoPedido(entrada.itens),
         );
-        const statusProducao =
-          p.statusFinanceiro === "cancelado"
-            ? p.statusProducao
-            : pendenciaStatus ?? p.statusProducao;
-        return {
+        // Editar um pedido devolve para Em Elaboração (exceto se já estiver
+        // finalizado/entregue/cancelado). Pendências, se houver, têm prioridade.
+        const preservar =
+          p.statusFinanceiro === "cancelado" ||
+          p.statusProducao === "finalizado" ||
+          p.statusProducao === "entregue";
+        const statusProducao = preservar
+          ? p.statusProducao
+          : pendenciaStatus ?? "em_orcamento";
+        const atualizado: Pedido = {
           ...p,
           clienteId: entrada.clienteId,
           itens: entrada.itens,
@@ -145,6 +154,8 @@ export function usePedidos() {
             ...p.historico,
           ],
         };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
       }),
     );
   }, []);
@@ -177,12 +188,14 @@ export function usePedidos() {
             p.statusFinanceiro === "cancelado",
           );
           const restante = statusPendenciaAgregado(pendenciasDoPedido(itens));
+          // Resolver pendências sozinho não avança o pedido: ele volta para
+          // Em Elaboração até que o orçamento seja efetivamente enviado.
           const statusProducao =
             p.statusFinanceiro === "cancelado"
               ? p.statusProducao
-              : restante ?? "aguardando_aprovacao";
+              : restante ?? "em_orcamento";
           const valorFmt = valor.toFixed(2).replace(".", ",");
-          return {
+          const atualizado: Pedido = {
             ...p,
             itens,
             subtotal,
@@ -198,6 +211,8 @@ export function usePedidos() {
               ...p.historico,
             ],
           };
+          atualizado.etapa = calcularEtapa(atualizado);
+          return atualizado;
         }),
       );
     },
@@ -214,7 +229,7 @@ export function usePedidos() {
       commit(setPedidos, (atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;
-          return {
+          const atualizado: Pedido = {
             ...p,
             statusProducao: status,
             atualizadoEm: new Date().toISOString(),
@@ -226,6 +241,8 @@ export function usePedidos() {
               ...p.historico,
             ],
           };
+          atualizado.etapa = calcularEtapa(atualizado);
+          return atualizado;
         }),
       );
     },
@@ -237,7 +254,7 @@ export function usePedidos() {
       atual.map((p) => {
         if (p.id !== id) return p;
         if (p.statusProducao !== "aguardando_aprovacao") return p;
-        return {
+        const atualizado: Pedido = {
           ...p,
           statusProducao: "orcamento_aprovado",
           atualizadoEm: new Date().toISOString(),
@@ -246,6 +263,46 @@ export function usePedidos() {
             ...p.historico,
           ],
         };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
+      }),
+    );
+  }, []);
+
+  const finalizarProducao = useCallback((id: string) => {
+    commit(setPedidos, (atual) =>
+      atual.map((p) => {
+        if (p.id !== id) return p;
+        const atualizado: Pedido = {
+          ...p,
+          statusProducao: "finalizado",
+          atualizadoEm: new Date().toISOString(),
+          historico: [
+            novaEntradaHistorico("status_producao", "Produção finalizada."),
+            ...p.historico,
+          ],
+        };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
+      }),
+    );
+  }, []);
+
+  const marcarEntregue = useCallback((id: string) => {
+    commit(setPedidos, (atual) =>
+      atual.map((p) => {
+        if (p.id !== id) return p;
+        const atualizado: Pedido = {
+          ...p,
+          statusProducao: "entregue",
+          atualizadoEm: new Date().toISOString(),
+          historico: [
+            novaEntradaHistorico("status_producao", "Pedido marcado como entregue."),
+            ...p.historico,
+          ],
+        };
+        atualizado.etapa = calcularEtapa(atualizado);
+        return atualizado;
       }),
     );
   }, []);
@@ -317,21 +374,32 @@ export function usePedidos() {
       dados: { nomeArquivo: string; numeroWhatsapp: string },
     ) => {
       commit(setPedidos, (atual) =>
-        atual.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                atualizadoEm: new Date().toISOString(),
-                historico: [
-                  novaEntradaHistorico(
-                    "envio_orcamento",
-                    `Orçamento enviado via WhatsApp (${dados.numeroWhatsapp}) — arquivo: ${dados.nomeArquivo}.`,
-                  ),
-                  ...p.historico,
-                ],
-              }
-            : p,
-        ),
+        atual.map((p) => {
+          if (p.id !== id) return p;
+          // Envio do orçamento move automaticamente para "aguardando aprovação"
+          // quando não há mais pendências e o pedido ainda não avançou.
+          const semPendencias = pendenciasDoPedido(p.itens).length === 0;
+          const podeAvancar =
+            semPendencias &&
+            p.statusFinanceiro !== "cancelado" &&
+            (p.statusProducao === "em_orcamento" ||
+              p.statusProducao === "aguardando_orcamento_matriz" ||
+              p.statusProducao === "orcamento_matriz_realizado");
+          const atualizado: Pedido = {
+            ...p,
+            statusProducao: podeAvancar ? "aguardando_aprovacao" : p.statusProducao,
+            atualizadoEm: new Date().toISOString(),
+            historico: [
+              novaEntradaHistorico(
+                "envio_orcamento",
+                `Orçamento enviado via WhatsApp (${dados.numeroWhatsapp}) — arquivo: ${dados.nomeArquivo}.`,
+              ),
+              ...p.historico,
+            ],
+          };
+          atualizado.etapa = calcularEtapa(atualizado);
+          return atualizado;
+        }),
       );
     },
     [],
@@ -369,25 +437,31 @@ export function usePedidos() {
 
   const totais = useMemo(() => {
     const ativos = pedidos.filter((p) => p.statusFinanceiro !== "cancelado");
+    const porEtapa = {
+      em_elaboracao: 0,
+      pendencias_orcamento: 0,
+      aguardando_aprovacao: 0,
+      em_producao: 0,
+      finalizado: 0,
+      entregue: 0,
+    };
+    for (const p of ativos) porEtapa[p.etapa] = (porEtapa[p.etapa] ?? 0) + 1;
     return {
       totalPedidos: pedidos.length,
-      pendentes: ativos.filter((p) =>
-        [
-          "em_orcamento",
-          "aguardando_orcamento_matriz",
-          "orcamento_matriz_realizado",
-          "aguardando_aprovacao",
-        ].includes(p.statusProducao),
-      ).length,
-      producao: ativos.filter((p) =>
-        ["producao_matriz", "producao", "bordado", "costura"].includes(
-          p.statusProducao,
-        ),
-      ).length,
-      entregues: ativos.filter((p) => p.statusProducao === "entregue").length,
+      porEtapa,
+      pendentes: porEtapa.em_elaboracao + porEtapa.pendencias_orcamento + porEtapa.aguardando_aprovacao,
+      producao: porEtapa.em_producao,
+      finalizados: porEtapa.finalizado,
+      entregues: porEtapa.entregue,
+      emAberto: ativos.filter((p) => p.statusFinanceiro === "aguardando_pagamento").length,
+      parcialmentePagos: ativos.filter((p) => p.statusFinanceiro === "parcialmente_pago").length,
       pagos: ativos.filter((p) => p.statusFinanceiro === "pago").length,
       faturamento: ativos.reduce((s, p) => s + p.total, 0),
       recebido: ativos.reduce((s, p) => s + p.totalPago, 0),
+      saldoReceber: ativos.reduce(
+        (s, p) => s + Math.max(0, p.total - p.totalPago),
+        0,
+      ),
     };
   }, [pedidos]);
 
@@ -401,6 +475,8 @@ export function usePedidos() {
     excluir,
     alterarStatusProducao,
     aprovarPedido,
+    finalizarProducao,
+    marcarEntregue,
     registrarPagamento,
     registrarEnvioOrcamento,
     registrarOrdemProducao,

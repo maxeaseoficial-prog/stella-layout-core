@@ -12,14 +12,12 @@ export type PeriodoFiltroPedido =
 
 export type FiltroRapido =
   | "todos"
-  | "em_orcamento"
-  | "pendentes_orcamento"
-  | "pendente_orcamento_estampa"
-  | "pendente_orcamento_matriz"
+  | "em_elaboracao"
+  | "pendencias_orcamento"
   | "aguardando_aprovacao"
-  | "producao"
-  | "finalizados"
-  | "entregues"
+  | "em_producao"
+  | "finalizado"
+  | "entregue"
   | "cancelados";
 
 interface Props {
@@ -37,14 +35,12 @@ interface Props {
 
 const FILTROS: { valor: FiltroRapido; label: string }[] = [
   { valor: "todos", label: "Todos" },
-  { valor: "em_orcamento", label: "Em orçamento" },
-  { valor: "pendentes_orcamento", label: "Pendentes de orçamento" },
-  { valor: "pendente_orcamento_estampa", label: "Pend. estampa" },
-  { valor: "pendente_orcamento_matriz", label: "Pend. matriz" },
-  { valor: "aguardando_aprovacao", label: "Aguardando aprovação" },
-  { valor: "producao", label: "Em produção" },
-  { valor: "finalizados", label: "Finalizados" },
-  { valor: "entregues", label: "Entregues" },
+  { valor: "em_elaboracao", label: "✏️ Em Elaboração" },
+  { valor: "pendencias_orcamento", label: "🟠 Pendências" },
+  { valor: "aguardando_aprovacao", label: "🟡 Aguardando Aprovação" },
+  { valor: "em_producao", label: "🔵 Em Produção" },
+  { valor: "finalizado", label: "🟢 Finalizado" },
+  { valor: "entregue", label: "⚫ Entregue" },
   { valor: "cancelados", label: "Cancelados" },
 ];
 
