@@ -134,9 +134,9 @@ function EstoquePage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todas">Todas as categorias</SelectItem>
-            {CATEGORIAS_ESTOQUE.map((c) => (
-              <SelectItem key={c} value={c}>
-                {LABEL_CATEGORIA_ESTOQUE[c]}
+            {categoriasEstoque.map((c) => (
+              <SelectItem key={c.id} value={c.nome}>
+                {c.nome}
               </SelectItem>
             ))}
           </SelectContent>
