@@ -80,6 +80,13 @@ export function ProdutosPanel() {
     setExcluindo(null);
   }
 
+  function confirmarRemocao() {
+    if (!removendo) return;
+    remover(removendo.id);
+    toast.success("Produto excluído permanentemente.");
+    setRemovendo(null);
+  }
+
   const total = produtos.length;
   const listaVazia = hidratado && total === 0;
   const semResultado = hidratado && total > 0 && lista.length === 0;
