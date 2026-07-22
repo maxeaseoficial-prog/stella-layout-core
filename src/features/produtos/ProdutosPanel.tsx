@@ -191,6 +191,29 @@ export function ProdutosPanel() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!removendo} onOpenChange={(v) => (!v ? setRemovendo(null) : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir produto permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O produto{" "}
+              <span className="font-medium text-foreground">{removendo?.nome}</span> será
+              removido definitivamente do cadastro. Esta ação não pode ser desfeita.
+              Pedidos antigos que já utilizaram este produto continuarão preservados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarRemocao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
