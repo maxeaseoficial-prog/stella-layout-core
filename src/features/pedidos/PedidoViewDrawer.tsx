@@ -25,6 +25,7 @@ import { useClientes, getClienteNome, ClienteAvatar } from "@/features/clientes"
 import { useAuth } from "@/features/auth/useAuth";
 import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
 import { usePedidos } from "./usePedidos";
+import { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 
 import type { Pedido, StatusProducao } from "./types";
 import {
@@ -126,6 +127,7 @@ export function PedidoViewDrawer({
                 </div>
 
                 <div className="space-y-4 px-6 py-4">
+                  <OrcamentosPendentesSection pedido={pedido} />
                   <TabsContent value="geral" className="mt-0 space-y-4">
                     <Bloco titulo="Cliente">
                       {cliente ? (

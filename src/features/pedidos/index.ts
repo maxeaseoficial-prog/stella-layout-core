@@ -7,6 +7,7 @@ export { PedidoFiltros } from "./PedidoFiltros";
 export type { FiltroRapido, PeriodoFiltroPedido } from "./PedidoFiltros";
 export { PedidoFormDrawer } from "./PedidoFormDrawer";
 export { PedidoViewDrawer } from "./PedidoViewDrawer";
+export { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 export { PagamentoModal } from "./PagamentoModal";
 export { PersonalizacaoModal } from "./PersonalizacaoModal";
 export { PedidoArquivosUploader } from "./PedidoArquivosUploader";
