@@ -93,7 +93,7 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao, aprovarPedido, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
+  const { alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
   const [enviando, setEnviando] = useState(false);
