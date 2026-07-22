@@ -1,4 +1,3 @@
-import { CATEGORIAS_ADICIONAL, LABEL_CATEGORIA_ADICIONAL } from "@/features/adicionais/types";
 import type { Categoria, ConfiguracoesState, FormaPagamento, Usuario } from "./types";
 
 function id(prefix: string, i: number) {
