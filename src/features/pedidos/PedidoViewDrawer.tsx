@@ -497,6 +497,31 @@ export function PedidoViewDrawer({
           </>
         )}
       </SheetContent>
+      <AlertDialog open={confirmarAprovacao} onOpenChange={setConfirmarAprovacao}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar aprovação do pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja aprovar este pedido? Após a aprovação, o
+              pedido será liberado para seguir o fluxo interno de produção.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() => {
+                if (!pedido) return;
+                aprovarPedido(pedido.id);
+                setConfirmarAprovacao(false);
+                toast.success("Pedido aprovado com sucesso.");
+              }}
+            >
+              Confirmar Aprovação
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
