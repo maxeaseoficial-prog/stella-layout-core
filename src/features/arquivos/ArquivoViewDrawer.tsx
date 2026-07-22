@@ -142,15 +142,45 @@ export function ArquivoViewDrawer({ arquivo, aberto, onFechar, onEditar }: Props
                     label="Arquivo"
                     valor={`${arquivo.extensao.toUpperCase()} • ${formatarTamanho(arquivo.tamanho)}`}
                   />
-                  {arquivo.tamanhoPeca && (
-                    <Info icon={Tag} label="Tamanho" valor={arquivo.tamanhoPeca} />
+                  {(arquivo.larguraCm != null || arquivo.alturaCm != null) && (
+                    <Info
+                      icon={Tag}
+                      label="Dimensões"
+                      valor={`${arquivo.larguraCm ?? "?"} × ${arquivo.alturaCm ?? "?"} cm`}
+                    />
                   )}
-                  {arquivo.cor && (
-                    <Info icon={Tag} label="Cor" valor={arquivo.cor} />
-                  )}
-                  {arquivo.numeroCor && (
-                    <Info icon={Tag} label="Número da cor" valor={arquivo.numeroCor} />
-                  )}
+                  {arquivo.tamanhoPeca &&
+                    arquivo.larguraCm == null &&
+                    arquivo.alturaCm == null && (
+                      <Info icon={Tag} label="Tamanho" valor={arquivo.tamanhoPeca} />
+                    )}
+                  {(() => {
+                    const cores =
+                      arquivo.cores && arquivo.cores.length
+                        ? arquivo.cores
+                        : arquivo.cor || arquivo.numeroCor
+                          ? [{ nome: arquivo.cor ?? "", numero: arquivo.numeroCor ?? "" }]
+                          : [];
+                    if (!cores.length) return null;
+                    return (
+                      <div className="flex items-start gap-2 text-sm">
+                        <Tag className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                        <div className="flex-1">
+                          <span className="text-muted-foreground">
+                            Cores utilizadas ({cores.length}):
+                          </span>
+                          <ul className="mt-1 space-y-0.5">
+                            {cores.map((c, i) => (
+                              <li key={i} className="text-foreground">
+                                • {c.nome || "Sem nome"}
+                                {c.numero ? ` — ${c.numero}` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <Info
                     icon={CalendarDays}
                     label="Cadastrado em"

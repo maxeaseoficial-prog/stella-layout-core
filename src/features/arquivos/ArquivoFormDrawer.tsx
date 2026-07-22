@@ -18,6 +18,7 @@ import { fileToDataUrl, formatarTamanho, hojeISO } from "@/features/clientes/uti
 import type {
   Arquivo,
   ArquivoInput,
+  CorAplicacao,
   StatusArquivo,
   TipoAplicacao,
   TipoArquivo,
@@ -50,9 +51,9 @@ interface FormState {
   nome: string;
   descricao: string;
   status: StatusArquivo;
-  tamanhoPeca: string;
-  cor: string;
-  numeroCor: string;
+  larguraCm: string;
+  alturaCm: string;
+  cores: CorAplicacao[];
   arquivoNome: string;
   extensao: string;
   mime: string;
@@ -71,15 +72,20 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
       nome: "",
       descricao: "",
       status: "ativo",
-      tamanhoPeca: "",
-      cor: "",
-      numeroCor: "",
+      larguraCm: "",
+      alturaCm: "",
+      cores: [],
       arquivoNome: "",
       extensao: "",
       mime: "",
       tamanho: 0,
       dataUrl: "",
     };
+  }
+  // Migração de campos legados
+  let cores: CorAplicacao[] = a.cores ?? [];
+  if (cores.length === 0 && (a.cor || a.numeroCor)) {
+    cores = [{ nome: a.cor ?? "", numero: a.numeroCor ?? "" }];
   }
   return {
     clienteId: a.clienteId,
@@ -90,9 +96,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     nome: a.nome,
     descricao: a.descricao ?? "",
     status: a.status,
-    tamanhoPeca: a.tamanhoPeca ?? "",
-    cor: a.cor ?? "",
-    numeroCor: a.numeroCor ?? "",
+    larguraCm: a.larguraCm != null ? String(a.larguraCm) : "",
+    alturaCm: a.alturaCm != null ? String(a.alturaCm) : "",
+    cores,
     arquivoNome: a.arquivoNome,
     extensao: a.extensao,
     mime: a.mime,
@@ -100,6 +106,7 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     dataUrl: a.dataUrl,
   };
 }
+
 
 const ACCEPT = EXTENSOES_ACEITAS.map((e) => `.${e}`).join(",");
 
@@ -177,9 +184,11 @@ export function ArquivoFormDrawer({
       nome: form.nome.trim(),
       descricao: form.descricao.trim() || undefined,
       status: form.status,
-      tamanhoPeca: form.tamanhoPeca.trim() || undefined,
-      cor: form.cor.trim() || undefined,
-      numeroCor: form.numeroCor.trim() || undefined,
+      larguraCm: form.larguraCm.trim() ? Number(form.larguraCm.replace(",", ".")) : undefined,
+      alturaCm: form.alturaCm.trim() ? Number(form.alturaCm.replace(",", ".")) : undefined,
+      cores: form.cores.length
+        ? form.cores.map((c) => ({ nome: c.nome.trim(), numero: c.numero.trim() }))
+        : undefined,
       arquivoNome: form.arquivoNome,
       extensao: form.extensao,
       mime: form.mime,
@@ -355,33 +364,118 @@ export function ArquivoFormDrawer({
                   Especificações
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  Tamanho da peça e cor utilizada no bordado/estampa.
+                  Dimensões e cores utilizadas na aplicação.
                 </p>
               </div>
-              <Campo label="Tamanho">
-                <Input
-                  value={form.tamanhoPeca}
-                  onChange={(e) => up("tamanhoPeca", e.target.value)}
-                  placeholder="Ex.: 8 cm x 8 cm, P, M, G"
-                />
-              </Campo>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Campo label="Cor">
-                  <Input
-                    value={form.cor}
-                    onChange={(e) => up("cor", e.target.value)}
-                    placeholder="Ex.: Rosa Stella"
-                  />
+
+              {/* Dimensões */}
+              <div>
+                <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Dimensões da aplicação
+                </h5>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Campo label="Largura (cm)">
+                    <Input
+                      inputMode="decimal"
+                      value={form.larguraCm}
+                      onChange={(e) => up("larguraCm", e.target.value)}
+                      placeholder="Ex.: 8"
+                    />
+                  </Campo>
+                  <Campo label="Altura (cm)">
+                    <Input
+                      inputMode="decimal"
+                      value={form.alturaCm}
+                      onChange={(e) => up("alturaCm", e.target.value)}
+                      placeholder="Ex.: 6"
+                    />
+                  </Campo>
+                </div>
+              </div>
+
+              {/* Cores */}
+              <div>
+                <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Cores da aplicação
+                </h5>
+                <Campo label="Quantidade de cores">
+                  <select
+                    value={form.cores.length}
+                    onChange={(e) => {
+                      const n = Number(e.target.value);
+                      setForm((f) => {
+                        const atual = f.cores;
+                        let next: CorAplicacao[];
+                        if (n <= atual.length) {
+                          next = atual.slice(0, n);
+                        } else {
+                          next = [
+                            ...atual,
+                            ...Array.from({ length: n - atual.length }, () => ({
+                              nome: "",
+                              numero: "",
+                            })),
+                          ];
+                        }
+                        return { ...f, cores: next };
+                      });
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value={0}>— Nenhuma —</option>
+                    {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
                 </Campo>
-                <Campo label="Número da cor">
-                  <Input
-                    value={form.numeroCor}
-                    onChange={(e) => up("numeroCor", e.target.value)}
-                    placeholder="Ex.: 1805, Pantone 213C"
-                  />
-                </Campo>
+
+                {form.cores.length > 0 && (
+                  <div className="mt-3 space-y-3">
+                    {form.cores.map((c, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-lg border border-border bg-surface-muted/40 p-3"
+                      >
+                        <p className="mb-2 text-xs font-semibold text-foreground">
+                          Cor {idx + 1}
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <Campo label="Nome da cor">
+                            <Input
+                              value={c.nome}
+                              onChange={(e) =>
+                                setForm((f) => {
+                                  const cores = [...f.cores];
+                                  cores[idx] = { ...cores[idx], nome: e.target.value };
+                                  return { ...f, cores };
+                                })
+                              }
+                              placeholder="Ex.: Branco, Azul Marinho"
+                            />
+                          </Campo>
+                          <Campo label="Número da cor">
+                            <Input
+                              value={c.numero}
+                              onChange={(e) =>
+                                setForm((f) => {
+                                  const cores = [...f.cores];
+                                  cores[idx] = { ...cores[idx], numero: e.target.value };
+                                  return { ...f, cores };
+                                })
+                              }
+                              placeholder="Ex.: Pantone 213C, Madeira 152"
+                            />
+                          </Campo>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
+
 
 
             {/* Upload */}
