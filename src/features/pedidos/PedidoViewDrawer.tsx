@@ -1,4 +1,4 @@
-import { Download, FileText, ImageIcon, Palette, Printer, Wallet } from "lucide-react";
+import { Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -30,6 +30,16 @@ import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
 import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
 import { usePedidos } from "./usePedidos";
 import { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
+import {
+  abrirWhatsApp,
+  baixarPDF,
+  gerarOrcamentoPDF,
+  mensagemPadraoOrcamento,
+  telefoneParaWhatsapp,
+} from "./enviarOrcamento";
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
+
+
 
 import type { Pedido, StatusProducao, ItemPedido } from "./types";
 import {
@@ -47,8 +57,10 @@ import {
   formatarDataHoraBR,
   formatarMoeda,
   parseValorInput,
+  pedidoTemPendencia,
   totalItensPedido,
 } from "./utils";
+
 
 interface Props {
   pedido: Pedido | null;
@@ -70,8 +82,11 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao, buscarPorId } = usePedidos();
+  const { alterarStatusProducao, buscarPorId, registrarEnvioOrcamento } = usePedidos();
+  const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
+  const [enviando, setEnviando] = useState(false);
+
   // Sempre deriva a versão atual do pedido do store para refletir mudanças
   // (ex.: preencher orçamento pendente) sem precisar fechar/reabrir o drawer.
   const pedido = pedidoProp ? buscarPorId(pedidoProp.id) ?? pedidoProp : null;
@@ -82,6 +97,41 @@ export function PedidoViewDrawer({
     alterarStatusProducao(pedido.id, novo);
     toast.success("Status atualizado.");
   }
+
+  const podeEnviarOrcamento =
+    !!pedido &&
+    pedido.statusProducao === "aguardando_aprovacao" &&
+    !pedidoTemPendencia(pedido);
+
+  async function handleEnviarOrcamento() {
+    if (!pedido) return;
+    const numero = telefoneParaWhatsapp(cliente?.telefone ?? "");
+    if (!numero) {
+      toast.error("Cliente sem telefone/WhatsApp cadastrado.");
+      return;
+    }
+    setEnviando(true);
+    try {
+      const { blob, nomeArquivo } = await gerarOrcamentoPDF(
+        pedido,
+        cliente,
+        config.empresa,
+      );
+      baixarPDF(blob, nomeArquivo);
+      registrarEnvioOrcamento(pedido.id, {
+        nomeArquivo,
+        numeroWhatsapp: numero,
+      });
+      abrirWhatsApp(numero, mensagemPadraoOrcamento(pedido, cliente));
+      toast.success("Orçamento gerado. Anexe o PDF baixado no WhatsApp.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar o orçamento.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
@@ -369,6 +419,17 @@ export function PedidoViewDrawer({
               {cap.imprimir && (
                 <Button variant="outline" onClick={() => onImprimir(pedido)}>
                   <Printer className="h-4 w-4" /> Imprimir
+                </Button>
+              )}
+              {podeEnviarOrcamento && (
+                <Button
+                  variant="outline"
+                  onClick={handleEnviarOrcamento}
+                  disabled={enviando}
+                  className="border-primary/40 bg-primary-soft/60 text-primary hover:bg-primary-soft"
+                >
+                  <Send className="h-4 w-4" />{" "}
+                  {enviando ? "Gerando..." : "Enviar Orçamento"}
                 </Button>
               )}
               {cap.registrarPagamento && (

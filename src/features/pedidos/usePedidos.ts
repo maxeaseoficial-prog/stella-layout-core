@@ -293,6 +293,33 @@ export function usePedidos() {
     );
   }, []);
 
+  const registrarEnvioOrcamento = useCallback(
+    (
+      id: string,
+      dados: { nomeArquivo: string; numeroWhatsapp: string },
+    ) => {
+      commit(setPedidos, (atual) =>
+        atual.map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                atualizadoEm: new Date().toISOString(),
+                historico: [
+                  novaEntradaHistorico(
+                    "envio_orcamento",
+                    `Orçamento enviado via WhatsApp (${dados.numeroWhatsapp}) — arquivo: ${dados.nomeArquivo}.`,
+                  ),
+                  ...p.historico,
+                ],
+              }
+            : p,
+        ),
+      );
+    },
+    [],
+  );
+
+
   const buscarPorId = useCallback(
     (id: string) => pedidos.find((p) => p.id === id),
     [pedidos],
@@ -332,7 +359,9 @@ export function usePedidos() {
     excluir,
     alterarStatusProducao,
     registrarPagamento,
+    registrarEnvioOrcamento,
     cancelar,
     buscarPorId,
   };
 }
+

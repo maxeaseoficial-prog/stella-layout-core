@@ -103,7 +103,9 @@ export type OrigemHistorico =
   | "status_financeiro"
   | "pagamento"
   | "orcamento_pendente"
+  | "envio_orcamento"
   | "cancelamento";
+
 
 export interface HistoricoEntrada {
   id: string;
