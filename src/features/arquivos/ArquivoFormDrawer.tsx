@@ -46,6 +46,9 @@ interface FormState {
   nome: string;
   descricao: string;
   status: StatusArquivo;
+  tamanhoPeca: string;
+  cor: string;
+  numeroCor: string;
   arquivoNome: string;
   extensao: string;
   mime: string;
@@ -62,6 +65,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
       nome: "",
       descricao: "",
       status: "ativo",
+      tamanhoPeca: "",
+      cor: "",
+      numeroCor: "",
       arquivoNome: "",
       extensao: "",
       mime: "",
@@ -76,6 +82,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     nome: a.nome,
     descricao: a.descricao ?? "",
     status: a.status,
+    tamanhoPeca: a.tamanhoPeca ?? "",
+    cor: a.cor ?? "",
+    numeroCor: a.numeroCor ?? "",
     arquivoNome: a.arquivoNome,
     extensao: a.extensao,
     mime: a.mime,
