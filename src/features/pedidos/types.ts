@@ -35,6 +35,12 @@ export interface ItemAdicional {
   nome: string;
   /** Snapshot do valor unitário do adicional (somado ao produto). */
   valor: number;
+  /**
+   * Quando definido, o adicional entra no pedido sem valor calculado e o
+   * pedido fica marcado como "orçamento pendente" até que o valor seja
+   * informado na seção "Orçamentos Pendentes".
+   */
+  pendencia?: PendenciaAdicional;
 }
 
 export interface ItemPedido {
@@ -69,6 +75,9 @@ export interface Pagamento {
 
 export type StatusProducao =
   | "em_orcamento"
+  | "pendente_orcamento"
+  | "pendente_orcamento_estampa"
+  | "pendente_orcamento_matriz"
   | "aguardando_orcamento_matriz"
   | "orcamento_matriz_realizado"
   | "aguardando_aprovacao"
@@ -93,6 +102,7 @@ export type OrigemHistorico =
   | "status_producao"
   | "status_financeiro"
   | "pagamento"
+  | "orcamento_pendente"
   | "cancelamento";
 
 export interface HistoricoEntrada {
