@@ -328,6 +328,7 @@ export function usePedidos() {
     totais,
     criar,
     atualizar,
+    atualizarOrcamentoPendente,
     excluir,
     alterarStatusProducao,
     registrarPagamento,
