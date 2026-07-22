@@ -1,4 +1,4 @@
-import { ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
+import { CheckCircle2, ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import {
