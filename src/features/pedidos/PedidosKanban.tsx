@@ -24,9 +24,10 @@ import {
 interface Props {
   pedidos: Pedido[];
   onAbrir: (p: Pedido) => void;
+  etapasVisiveis?: EtapaKanban[];
 }
 
-export function PedidosKanban({ pedidos, onAbrir }: Props) {
+export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
   const ativos = pedidos.filter((p) => p.statusFinanceiro !== "cancelado");
 
   const porColuna: Record<EtapaKanban, Pedido[]> = {
@@ -39,15 +40,19 @@ export function PedidosKanban({ pedidos, onAbrir }: Props) {
   };
   for (const p of ativos) porColuna[p.etapa].push(p);
 
+  const colunas =
+    etapasVisiveis && etapasVisiveis.length > 0 ? etapasVisiveis : ETAPAS_KANBAN;
+
   return (
     <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
-      {ETAPAS_KANBAN.map((etapa) => (
+      {colunas.map((etapa) => (
         <ColunaKanban
           key={etapa}
           etapa={etapa}
           pedidos={porColuna[etapa]}
           onAbrir={onAbrir}
         />
+
       ))}
     </div>
   );
