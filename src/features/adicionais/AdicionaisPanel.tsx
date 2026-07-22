@@ -35,7 +35,7 @@ import type {
 import { LABEL_TIPO_ADICIONAL, TIPOS_ADICIONAL } from "./types";
 
 export function AdicionaisPanel() {
-  const { adicionais, hidratado, criar, atualizar, excluir, filtrar } = useAdicionais();
+  const { adicionais, hidratado, criar, atualizar, excluir, remover, filtrar } = useAdicionais();
 
   const [termo, setTermo] = useState("");
   const [tipo, setTipo] = useState<TipoAdicional | "todos">("todos");
@@ -43,6 +43,7 @@ export function AdicionaisPanel() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Adicional | null>(null);
   const [excluindo, setExcluindo] = useState<Adicional | null>(null);
+  const [removendo, setRemovendo] = useState<Adicional | null>(null);
 
   const lista = useMemo(() => {
     let l = filtrar(termo);
@@ -77,6 +78,13 @@ export function AdicionaisPanel() {
     excluir(excluindo.id);
     toast.success("Adicional marcado como inativo.");
     setExcluindo(null);
+  }
+
+  function confirmarRemocao() {
+    if (!removendo) return;
+    remover(removendo.id);
+    toast.success("Adicional excluído permanentemente.");
+    setRemovendo(null);
   }
 
   const total = adicionais.length;
@@ -151,7 +159,7 @@ export function AdicionaisPanel() {
           description="Ajuste os filtros ou o termo de pesquisa."
         />
       ) : (
-        <AdicionaisTable adicionais={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} />
+        <AdicionaisTable adicionais={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} onRemover={setRemovendo} />
       )}
 
       <AdicionalFormDrawer
@@ -179,6 +187,29 @@ export function AdicionaisPanel() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Inativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!removendo} onOpenChange={(v) => (!v ? setRemovendo(null) : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir adicional permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O adicional{" "}
+              <span className="font-medium text-foreground">{removendo?.nome}</span> será
+              removido definitivamente do cadastro. Esta ação não pode ser desfeita.
+              Pedidos antigos que já utilizaram este adicional continuarão preservados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarRemocao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

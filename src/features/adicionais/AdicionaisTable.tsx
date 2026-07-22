@@ -26,9 +26,10 @@ interface Props {
   adicionais: Adicional[];
   onEditar: (a: Adicional) => void;
   onExcluir: (a: Adicional) => void;
+  onRemover: (a: Adicional) => void;
 }
 
-export function AdicionaisTable({ adicionais, onEditar, onExcluir }: Props) {
+export function AdicionaisTable({ adicionais, onEditar, onExcluir, onRemover }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
@@ -110,6 +111,12 @@ export function AdicionaisTable({ adicionais, onEditar, onExcluir }: Props) {
                           <Trash2 className="h-4 w-4" /> Inativar
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem
+                        onClick={() => onRemover(a)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" /> Excluir permanentemente
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

@@ -90,6 +90,11 @@ export function useProdutos() {
     );
   }, []);
 
+  /** Exclusão permanente: remove o registro do armazenamento. */
+  const remover = useCallback((id: string) => {
+    setProdutos(getSnapshot().filter((p) => p.id !== id));
+  }, []);
+
   const buscarPorId = useCallback(
     (id: string) => produtos.find((p) => p.id === id),
     [produtos],
@@ -112,7 +117,7 @@ export function useProdutos() {
   const ativos = useMemo(() => produtos.filter((p) => p.status === "ativo"), [produtos]);
 
   return useMemo(
-    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, buscarPorId, filtrar }),
-    [produtos, ativos, hidratado, criar, atualizar, excluir, buscarPorId, filtrar],
+    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar }),
+    [produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar],
   );
 }

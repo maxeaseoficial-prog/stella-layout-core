@@ -35,7 +35,7 @@ import type {
 import { CATEGORIAS_PRODUTO, LABEL_CATEGORIA_PRODUTO } from "./types";
 
 export function ProdutosPanel() {
-  const { produtos, hidratado, criar, atualizar, excluir, filtrar } = useProdutos();
+  const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar } = useProdutos();
 
   const [termo, setTermo] = useState("");
   const [categoria, setCategoria] = useState<CategoriaProduto | "todas">("todas");
@@ -43,6 +43,7 @@ export function ProdutosPanel() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Produto | null>(null);
   const [excluindo, setExcluindo] = useState<Produto | null>(null);
+  const [removendo, setRemovendo] = useState<Produto | null>(null);
 
   const lista = useMemo(() => {
     let l = filtrar(termo);
@@ -77,6 +78,13 @@ export function ProdutosPanel() {
     excluir(excluindo.id);
     toast.success("Produto marcado como inativo.");
     setExcluindo(null);
+  }
+
+  function confirmarRemocao() {
+    if (!removendo) return;
+    remover(removendo.id);
+    toast.success("Produto excluído permanentemente.");
+    setRemovendo(null);
   }
 
   const total = produtos.length;
@@ -151,7 +159,7 @@ export function ProdutosPanel() {
           description="Ajuste os filtros ou o termo de pesquisa."
         />
       ) : (
-        <ProdutosTable produtos={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} />
+        <ProdutosTable produtos={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} onRemover={setRemovendo} />
       )}
 
       <ProdutoFormDrawer
@@ -179,6 +187,29 @@ export function ProdutosPanel() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Inativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!removendo} onOpenChange={(v) => (!v ? setRemovendo(null) : null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir produto permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O produto{" "}
+              <span className="font-medium text-foreground">{removendo?.nome}</span> será
+              removido definitivamente do cadastro. Esta ação não pode ser desfeita.
+              Pedidos antigos que já utilizaram este produto continuarão preservados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarRemocao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -26,9 +26,10 @@ interface Props {
   produtos: Produto[];
   onEditar: (p: Produto) => void;
   onExcluir: (p: Produto) => void;
+  onRemover: (p: Produto) => void;
 }
 
-export function ProdutosTable({ produtos, onEditar, onExcluir }: Props) {
+export function ProdutosTable({ produtos, onEditar, onExcluir, onRemover }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
@@ -102,6 +103,12 @@ export function ProdutosTable({ produtos, onEditar, onExcluir }: Props) {
                           <Trash2 className="h-4 w-4" /> Inativar
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem
+                        onClick={() => onRemover(p)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" /> Excluir permanentemente
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
