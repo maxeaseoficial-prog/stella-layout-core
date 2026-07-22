@@ -188,12 +188,14 @@ export function usePedidos() {
             p.statusFinanceiro === "cancelado",
           );
           const restante = statusPendenciaAgregado(pendenciasDoPedido(itens));
+          // Resolver pendências sozinho não avança o pedido: ele volta para
+          // Em Elaboração até que o orçamento seja efetivamente enviado.
           const statusProducao =
             p.statusFinanceiro === "cancelado"
               ? p.statusProducao
-              : restante ?? "aguardando_aprovacao";
+              : restante ?? "em_orcamento";
           const valorFmt = valor.toFixed(2).replace(".", ",");
-          return {
+          const atualizado: Pedido = {
             ...p,
             itens,
             subtotal,
@@ -209,6 +211,8 @@ export function usePedidos() {
               ...p.historico,
             ],
           };
+          atualizado.etapa = calcularEtapa(atualizado);
+          return atualizado;
         }),
       );
     },
