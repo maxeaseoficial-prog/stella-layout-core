@@ -1,4 +1,4 @@
-import { Download, FileText, ImageIcon, Palette, Printer, Wallet } from "lucide-react";
+import { Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 import {
