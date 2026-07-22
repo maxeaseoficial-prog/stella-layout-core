@@ -43,13 +43,13 @@ export function categoriasIniciais(): Categoria[] {
   const criadoEm = nowISO();
   const lista: Categoria[] = [];
   CATEGORIAS_INICIAIS_PRODUTO.forEach((nome, i) =>
-    lista.push({ id: id("cat-prod", i), escopo: "produto", nome, criadoEm }),
+    lista.push({ id: id("cat-prod", i), escopo: "produto", nome, ordem: i, criadoEm }),
   );
   CATEGORIAS_INICIAIS_ESTOQUE.forEach((nome, i) =>
-    lista.push({ id: id("cat-est", i), escopo: "estoque", nome, criadoEm }),
+    lista.push({ id: id("cat-est", i), escopo: "estoque", nome, ordem: i, criadoEm }),
   );
   CATEGORIAS_INICIAIS_ADICIONAL.forEach((nome, i) =>
-    lista.push({ id: id("cat-adi", i), escopo: "adicional", nome, criadoEm }),
+    lista.push({ id: id("cat-adi", i), escopo: "adicional", nome, ordem: i, criadoEm }),
   );
   return lista;
 }
@@ -60,6 +60,7 @@ export function formasPagamentoIniciais(): FormaPagamento[] {
     id: id("fp", i),
     nome,
     ativo: true,
+    ordem: i,
     criadoEm,
   }));
 }

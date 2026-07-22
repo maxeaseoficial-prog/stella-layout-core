@@ -113,10 +113,14 @@ export function useConfiguracoes() {
         (c) => c.escopo === escopo && normalizar(c.nome) === nomeNorm,
       );
       if (existe) return null;
+      const maxOrdem = atual.categorias
+        .filter((c) => c.escopo === escopo)
+        .reduce((m, c) => Math.max(m, c.ordem ?? 0), -1);
       const nova: Categoria = {
         id: novoId(),
         escopo,
         nome: nome.trim(),
+        ordem: maxOrdem + 1,
         criadoEm: new Date().toISOString(),
       };
       setState({ ...atual, categorias: [...atual.categorias, nova] });
@@ -147,10 +151,29 @@ export function useConfiguracoes() {
     setState({ ...atual, categorias: atual.categorias.filter((c) => c.id !== id) });
   }, []);
 
+  const reordenarCategorias = useCallback(
+    (escopo: EscopoCategoria, idsOrdenados: string[]) => {
+      const atual = getSnapshot();
+      const ordemIndex = new Map(idsOrdenados.map((id, i) => [id, i]));
+      const atualizadas = atual.categorias.map((c) =>
+        c.escopo === escopo && ordemIndex.has(c.id)
+          ? { ...c, ordem: ordemIndex.get(c.id)! }
+          : c,
+      );
+      setState({ ...atual, categorias: atualizadas });
+    },
+    [],
+  );
+
   const categoriasPorEscopo = useCallback(
-    (escopo: EscopoCategoria) => state.categorias.filter((c) => c.escopo === escopo),
+    (escopo: EscopoCategoria) =>
+      state.categorias
+        .filter((c) => c.escopo === escopo)
+        .slice()
+        .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)),
     [state.categorias],
   );
+
 
   // ---------- Formas de Pagamento ----------
   const criarFormaPagamento = useCallback((nome: string): FormaPagamento | null => {
@@ -158,10 +181,12 @@ export function useConfiguracoes() {
     if (!nomeNorm) return null;
     const atual = getSnapshot();
     if (atual.formasPagamento.some((f) => normalizar(f.nome) === nomeNorm)) return null;
+    const maxOrdem = atual.formasPagamento.reduce((m, f) => Math.max(m, f.ordem ?? 0), -1);
     const nova: FormaPagamento = {
       id: novoId(),
       nome: nome.trim(),
       ativo: true,
+      ordem: maxOrdem + 1,
       criadoEm: new Date().toISOString(),
     };
     setState({ ...atual, formasPagamento: [...atual.formasPagamento, nova] });
@@ -203,6 +228,19 @@ export function useConfiguracoes() {
     });
   }, []);
 
+  const reordenarFormasPagamento = useCallback((idsOrdenados: string[]) => {
+    const atual = getSnapshot();
+    const ordemIndex = new Map(idsOrdenados.map((id, i) => [id, i]));
+    const atualizadas = atual.formasPagamento.map((f) =>
+      ordemIndex.has(f.id) ? { ...f, ordem: ordemIndex.get(f.id)! } : f,
+    );
+    setState({
+      ...atual,
+      formasPagamento: atualizadas.slice().sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)),
+    });
+  }, []);
+
+
   // ---------- Usuários ----------
   const salvarUsuarios = useCallback((usuarios: Usuario[]) => {
     setState({ ...getSnapshot(), usuarios });
@@ -241,10 +279,12 @@ export function useConfiguracoes() {
       criarCategoria,
       editarCategoria,
       excluirCategoria,
+      reordenarCategorias,
       categoriasPorEscopo,
       criarFormaPagamento,
       editarFormaPagamento,
       excluirFormaPagamento,
+      reordenarFormasPagamento,
       salvarUsuarios,
       salvarAparencia,
       exportar,
@@ -261,15 +301,18 @@ export function useConfiguracoes() {
       criarCategoria,
       editarCategoria,
       excluirCategoria,
+      reordenarCategorias,
       categoriasPorEscopo,
       criarFormaPagamento,
       editarFormaPagamento,
       excluirFormaPagamento,
+      reordenarFormasPagamento,
       salvarUsuarios,
       salvarAparencia,
       exportar,
       importar,
       restaurarPadrao,
+
     ],
   );
 }

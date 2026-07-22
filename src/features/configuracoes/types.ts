@@ -50,6 +50,7 @@ export interface Categoria {
   id: string;
   escopo: EscopoCategoria;
   nome: string;
+  ordem: number;
   criadoEm: string;
 }
 
@@ -57,6 +58,7 @@ export interface FormaPagamento {
   id: string;
   nome: string;
   ativo: boolean;
+  ordem: number;
   criadoEm: string;
 }
 
