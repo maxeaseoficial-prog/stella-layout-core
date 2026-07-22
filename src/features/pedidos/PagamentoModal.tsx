@@ -140,7 +140,7 @@ export function PagamentoModal({ aberto, onFechar, pedido, onConfirmar }: Props)
           <Button variant="outline" onClick={onFechar}>
             Cancelar
           </Button>
-          <Button onClick={handleConfirmar}>Confirmar recebimento</Button>
+          <Button onClick={handleConfirmar}>Salvar Recebimento</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
