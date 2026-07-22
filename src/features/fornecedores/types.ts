@@ -2,10 +2,6 @@ export type StatusFornecedor = "ativo" | "inativo";
 
 export type CategoriaFornecedor =
   | "tecidos"
-  | "linhas"
-  | "botoes"
-  | "zipers"
-  | "cordoes"
   | "etiquetas"
   | "embalagens"
   | "aviamentos"
@@ -15,10 +11,6 @@ export type CategoriaFornecedor =
 
 export const CATEGORIAS_FORNECEDOR: CategoriaFornecedor[] = [
   "tecidos",
-  "linhas",
-  "botoes",
-  "zipers",
-  "cordoes",
   "etiquetas",
   "embalagens",
   "aviamentos",
@@ -29,10 +21,6 @@ export const CATEGORIAS_FORNECEDOR: CategoriaFornecedor[] = [
 
 export const LABEL_CATEGORIA_FORNECEDOR: Record<CategoriaFornecedor, string> = {
   tecidos: "Tecidos",
-  linhas: "Linhas",
-  botoes: "Botões",
-  zipers: "Zíperes",
-  cordoes: "Cordões",
   etiquetas: "Etiquetas",
   embalagens: "Embalagens",
   aviamentos: "Aviamentos",
