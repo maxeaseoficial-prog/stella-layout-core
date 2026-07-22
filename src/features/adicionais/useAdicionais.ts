@@ -120,7 +120,7 @@ export function useAdicionais() {
   );
 
   return useMemo(
-    () => ({ adicionais, ativos, hidratado, criar, atualizar, excluir, buscarPorId, filtrar }),
-    [adicionais, ativos, hidratado, criar, atualizar, excluir, buscarPorId, filtrar],
+    () => ({ adicionais, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar }),
+    [adicionais, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar],
   );
 }
