@@ -1,5 +1,13 @@
-import type { ConfiguracoesState } from "./types";
+import type { Categoria, ConfiguracoesState } from "./types";
 import { configuracoesIniciais } from "./defaults";
+
+function mesclarCategorias(base: Categoria[], salvas?: Categoria[]): Categoria[] {
+  if (!salvas) return base;
+  const chave = (c: Categoria) => `${c.escopo}::${c.nome.trim().toLowerCase()}`;
+  const existentes = new Set(salvas.map(chave));
+  const faltantes = base.filter((c) => !existentes.has(chave(c)));
+  return [...salvas, ...faltantes];
+}
 
 const STORAGE_KEY = "stella.configuracoes.v1";
 
