@@ -96,6 +96,8 @@ const CHECKS: { key: keyof PersonalizacoesPermitidas; label: string }[] = [
 const IMG_ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
 export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props) {
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasProduto = categoriasPorEscopo("produto");
   const [form, setForm] = useState<FormState>(() => estadoInicial(produto));
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
