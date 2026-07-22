@@ -83,10 +83,11 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { alterarStatusProducao, buscarPorId, registrarEnvioOrcamento } = usePedidos();
+  const { alterarStatusProducao, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
   const [enviando, setEnviando] = useState(false);
+  const [gerandoOP, setGerandoOP] = useState(false);
 
   // Sempre deriva a versão atual do pedido do store para refletir mudanças
   // (ex.: preencher orçamento pendente) sem precisar fechar/reabrir o drawer.
