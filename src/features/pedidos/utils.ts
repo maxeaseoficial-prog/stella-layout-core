@@ -166,7 +166,8 @@ export function corStatusProducao(status: StatusProducao): string {
     case "bordado":
     case "costura":
       return "border-blue-300 bg-blue-100 text-blue-800";
-    // 🟢 Verde — concluído / entregue
+    // 🟢 Verde — orçamento aprovado / concluído / entregue
+    case "orcamento_aprovado":
     case "matriz_concluida":
     case "finalizado":
     case "entregue":
