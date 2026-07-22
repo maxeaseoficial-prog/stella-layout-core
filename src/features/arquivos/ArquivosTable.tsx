@@ -21,7 +21,12 @@ import { ClienteAvatar, useClientes, getClienteNome } from "@/features/clientes"
 import { formatarDataBR } from "@/features/clientes/utils";
 
 import type { Arquivo } from "./types";
-import { LABEL_FINALIDADE, LABEL_TIPO_ARQUIVO } from "./types";
+import {
+  LABEL_FINALIDADE,
+  LABEL_TIPO_APLICACAO,
+  LABEL_TIPO_ARQUIVO,
+  labelPosicao,
+} from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 
 interface Props {
