@@ -421,6 +421,17 @@ export function PedidoViewDrawer({
                   <Printer className="h-4 w-4" /> Imprimir
                 </Button>
               )}
+              {podeEnviarOrcamento && (
+                <Button
+                  variant="outline"
+                  onClick={handleEnviarOrcamento}
+                  disabled={enviando}
+                  className="border-primary/40 bg-primary-soft/60 text-primary hover:bg-primary-soft"
+                >
+                  <Send className="h-4 w-4" />{" "}
+                  {enviando ? "Gerando..." : "Enviar Orçamento"}
+                </Button>
+              )}
               {cap.registrarPagamento && (
                 <Button variant="outline" onClick={() => onReceberPagamento(pedido)}>
                   <Wallet className="h-4 w-4" /> Receber pagamento
