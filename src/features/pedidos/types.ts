@@ -117,6 +117,20 @@ export interface HistoricoEntrada {
   usuario?: string;
 }
 
+export type EtapaKanban =
+  | "em_elaboracao"
+  | "pendencias_orcamento"
+  | "aguardando_aprovacao"
+  | "em_producao"
+  | "finalizado"
+  | "entregue";
+
+export type PedidoBadge =
+  | "prioridade_alta"
+  | "retirada"
+  | "transportadora"
+  | "nota_fiscal";
+
 export interface Pedido {
   id: string;
   numero: string; // PED-2026-000001
@@ -130,6 +144,10 @@ export interface Pedido {
   totalPago: number;
   statusProducao: StatusProducao;
   statusFinanceiro: StatusFinanceiro;
+  /** Coluna atual do Kanban. Derivada automaticamente por ações. */
+  etapa: EtapaKanban;
+  /** Badges livres (nota fiscal, prioridade, retirada, etc.). */
+  badges?: PedidoBadge[];
   previsaoEntrega?: string; // ISO date
   observacoes?: string;
   pagamentos: Pagamento[];
@@ -137,6 +155,40 @@ export interface Pedido {
   criadoEm: string;
   atualizadoEm: string;
 }
+
+export const ETAPAS_KANBAN: EtapaKanban[] = [
+  "em_elaboracao",
+  "pendencias_orcamento",
+  "aguardando_aprovacao",
+  "em_producao",
+  "finalizado",
+  "entregue",
+];
+
+export const LABEL_ETAPA_KANBAN: Record<EtapaKanban, string> = {
+  em_elaboracao: "Em Elaboração",
+  pendencias_orcamento: "Pendências de Orçamento",
+  aguardando_aprovacao: "Aguardando Aprovação",
+  em_producao: "Em Produção",
+  finalizado: "Finalizado",
+  entregue: "Entregue",
+};
+
+export const ICONE_ETAPA_KANBAN: Record<EtapaKanban, string> = {
+  em_elaboracao: "✏️",
+  pendencias_orcamento: "🟠",
+  aguardando_aprovacao: "🟡",
+  em_producao: "🔵",
+  finalizado: "🟢",
+  entregue: "⚫",
+};
+
+export const LABEL_BADGE: Record<PedidoBadge, string> = {
+  prioridade_alta: "Prioridade Alta",
+  retirada: "Retirada",
+  transportadora: "Transportadora",
+  nota_fiscal: "Nota Fiscal",
+};
 
 export type PedidoInput = Omit<
   Pedido,
