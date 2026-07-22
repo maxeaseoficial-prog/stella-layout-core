@@ -119,7 +119,7 @@ export function PedidoViewDrawer({
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto bg-surface-muted/40">
-              <Tabs defaultValue="geral" className="w-full">
+              <Tabs value={tabAtiva} onValueChange={setTabAtiva} className="w-full">
                 <div className="sticky top-0 z-10 border-b border-border bg-surface px-6 pt-3">
                   <TabsList className="w-full justify-start overflow-x-auto">
                     <TabsTrigger value="geral">Geral</TabsTrigger>
@@ -133,7 +133,9 @@ export function PedidoViewDrawer({
                 </div>
 
                 <div className="space-y-4 px-6 py-4">
-                  <OrcamentosPendentesSection pedido={pedido} />
+                  {tabAtiva !== "produtos" && (
+                    <OrcamentosPendentesSection pedido={pedido} />
+                  )}
                   <TabsContent value="geral" className="mt-0 space-y-4">
                     <Bloco titulo="Cliente">
                       {cliente ? (
