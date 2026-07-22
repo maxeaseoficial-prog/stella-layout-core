@@ -134,6 +134,27 @@ export function PedidoViewDrawer({
     }
   }
 
+  async function handleImprimirProducao() {
+    if (!pedido) return;
+    setGerandoOP(true);
+    try {
+      const { blob, nomeArquivo } = await gerarOrdemProducaoPDF(
+        pedido,
+        cliente,
+        config.empresa,
+      );
+      abrirImpressaoPDF(blob);
+      registrarOrdemProducao(pedido.id, { nomeArquivo });
+      toast.success("Ordem de Produção gerada.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar a Ordem de Produção.");
+    } finally {
+      setGerandoOP(false);
+    }
+  }
+
+
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
