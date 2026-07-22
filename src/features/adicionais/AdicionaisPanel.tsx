@@ -43,6 +43,7 @@ export function AdicionaisPanel() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Adicional | null>(null);
   const [excluindo, setExcluindo] = useState<Adicional | null>(null);
+  const [removendo, setRemovendo] = useState<Adicional | null>(null);
 
   const lista = useMemo(() => {
     let l = filtrar(termo);
