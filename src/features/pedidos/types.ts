@@ -203,9 +203,11 @@ export type PedidoInput = Omit<
   | "atualizadoEm"
   | "statusProducao"
   | "statusFinanceiro"
+  | "etapa"
 > & {
   statusProducao?: StatusProducao;
   statusFinanceiro?: StatusFinanceiro;
+  etapa?: EtapaKanban;
 };
 
 export const LABEL_STATUS_PRODUCAO: Record<StatusProducao, string> = {
