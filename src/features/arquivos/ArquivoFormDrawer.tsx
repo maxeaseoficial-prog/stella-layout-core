@@ -51,9 +51,9 @@ interface FormState {
   nome: string;
   descricao: string;
   status: StatusArquivo;
-  tamanhoPeca: string;
-  cor: string;
-  numeroCor: string;
+  larguraCm: string;
+  alturaCm: string;
+  cores: CorAplicacao[];
   arquivoNome: string;
   extensao: string;
   mime: string;
@@ -72,15 +72,20 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
       nome: "",
       descricao: "",
       status: "ativo",
-      tamanhoPeca: "",
-      cor: "",
-      numeroCor: "",
+      larguraCm: "",
+      alturaCm: "",
+      cores: [],
       arquivoNome: "",
       extensao: "",
       mime: "",
       tamanho: 0,
       dataUrl: "",
     };
+  }
+  // Migração de campos legados
+  let cores: CorAplicacao[] = a.cores ?? [];
+  if (cores.length === 0 && (a.cor || a.numeroCor)) {
+    cores = [{ nome: a.cor ?? "", numero: a.numeroCor ?? "" }];
   }
   return {
     clienteId: a.clienteId,
@@ -91,9 +96,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     nome: a.nome,
     descricao: a.descricao ?? "",
     status: a.status,
-    tamanhoPeca: a.tamanhoPeca ?? "",
-    cor: a.cor ?? "",
-    numeroCor: a.numeroCor ?? "",
+    larguraCm: a.larguraCm != null ? String(a.larguraCm) : "",
+    alturaCm: a.alturaCm != null ? String(a.alturaCm) : "",
+    cores,
     arquivoNome: a.arquivoNome,
     extensao: a.extensao,
     mime: a.mime,
@@ -101,6 +106,7 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     dataUrl: a.dataUrl,
   };
 }
+
 
 const ACCEPT = EXTENSOES_ACEITAS.map((e) => `.${e}`).join(",");
 
