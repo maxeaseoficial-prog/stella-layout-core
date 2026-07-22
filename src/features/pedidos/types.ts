@@ -1,4 +1,7 @@
 import type { ClienteArquivo } from "@/features/clientes";
+import type { PendenciaAdicional } from "@/features/adicionais/types";
+
+export type { PendenciaAdicional };
 
 export type TipoPersonalizacao =
   | "bordado"
