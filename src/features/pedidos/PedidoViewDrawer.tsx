@@ -19,15 +19,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 import { formatarTamanho } from "@/features/clientes/utils";
 import { useClientes, getClienteNome, ClienteAvatar } from "@/features/clientes";
 import { useAuth } from "@/features/auth/useAuth";
 import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
+import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
 import { usePedidos } from "./usePedidos";
 import { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 
-import type { Pedido, StatusProducao } from "./types";
+import type { Pedido, StatusProducao, ItemPedido } from "./types";
 import {
   LABEL_FORMA_PAGAMENTO_PEDIDO,
   LABEL_POSICAO_PERSONALIZACAO,
@@ -42,6 +46,7 @@ import {
   formatarDataBR,
   formatarDataHoraBR,
   formatarMoeda,
+  parseValorInput,
   totalItensPedido,
 } from "./utils";
 
