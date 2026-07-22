@@ -114,15 +114,29 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
     };
   }
 
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const el = scrollRef.current;
+    if (!el) return;
+    const alvo = e.target as HTMLElement;
+    if (alvo.closest("input, textarea, select, [contenteditable='true']")) return;
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    e.preventDefault();
+    // Rola aproximadamente a largura de uma coluna (280-300px + gap).
+    const passo = 312;
+    el.scrollBy({ left: e.key === "ArrowRight" ? passo : -passo, behavior: "smooth" });
+  }
+
   return (
     <div
       ref={scrollRef}
+      tabIndex={0}
+      onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={encerrarArraste}
       onPointerCancel={encerrarArraste}
       onPointerLeave={encerrarArraste}
-      className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 cursor-grab"
+      className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 cursor-grab focus:outline-none"
     >
       {colunas.map((etapa) => (
         <ColunaKanban
