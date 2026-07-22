@@ -21,7 +21,12 @@ import { ClienteAvatar, useClientes, getClienteNome } from "@/features/clientes"
 import { formatarDataBR } from "@/features/clientes/utils";
 
 import type { Arquivo } from "./types";
-import { LABEL_FINALIDADE, LABEL_TIPO_ARQUIVO } from "./types";
+import {
+  LABEL_FINALIDADE,
+  LABEL_TIPO_APLICACAO,
+  LABEL_TIPO_ARQUIVO,
+  labelPosicao,
+} from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 
 interface Props {
@@ -103,9 +108,15 @@ export function ArquivosTable({ arquivos, onVisualizar, onEditar, onExcluir }: P
                         {a.nome}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {a.finalidade
-                          ? LABEL_FINALIDADE[a.finalidade]
-                          : a.arquivoNome}
+                        {a.tipoAplicacao
+                          ? `${LABEL_TIPO_APLICACAO[a.tipoAplicacao]}${
+                              a.posicaoAplicacao
+                                ? ` • ${labelPosicao(a.posicaoAplicacao)}`
+                                : ""
+                            }`
+                          : a.finalidade
+                            ? LABEL_FINALIDADE[a.finalidade]
+                            : a.arquivoNome}
                       </p>
                     </div>
                   </TableCell>

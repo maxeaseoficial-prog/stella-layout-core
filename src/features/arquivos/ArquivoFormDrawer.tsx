@@ -18,14 +18,16 @@ import { fileToDataUrl, formatarTamanho, hojeISO } from "@/features/clientes/uti
 import type {
   Arquivo,
   ArquivoInput,
-  FinalidadeArquivo,
   StatusArquivo,
+  TipoAplicacao,
   TipoArquivo,
 } from "./types";
 import {
   EXTENSOES_ACEITAS,
-  LABEL_FINALIDADE,
+  LABEL_GRUPO_POSICAO,
+  LABEL_TIPO_APLICACAO,
   LABEL_TIPO_ARQUIVO,
+  posicoesParaTipo,
 } from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 import { ArquivoClienteSelector } from "./ArquivoClienteSelector";
@@ -42,7 +44,9 @@ interface Props {
 interface FormState {
   clienteId: string;
   tipo: TipoArquivo;
-  finalidade: FinalidadeArquivo | "";
+  tipoAplicacao: TipoAplicacao | "";
+  posicaoAplicacao: string;
+  descricaoAplicacao: string;
   nome: string;
   descricao: string;
   status: StatusArquivo;
@@ -61,7 +65,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     return {
       clienteId: clienteIdInicial ?? "",
       tipo: "logo",
-      finalidade: "",
+      tipoAplicacao: "",
+      posicaoAplicacao: "",
+      descricaoAplicacao: "",
       nome: "",
       descricao: "",
       status: "ativo",
@@ -78,7 +84,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
   return {
     clienteId: a.clienteId,
     tipo: a.tipo,
-    finalidade: a.finalidade ?? "",
+    tipoAplicacao: a.tipoAplicacao ?? "",
+    posicaoAplicacao: a.posicaoAplicacao ?? "",
+    descricaoAplicacao: a.descricaoAplicacao ?? "",
     nome: a.nome,
     descricao: a.descricao ?? "",
     status: a.status,
@@ -147,6 +155,13 @@ export function ArquivoFormDrawer({
     if (!form.clienteId) e.clienteId = "Selecione um cliente.";
     if (!form.nome.trim()) e.nome = "Informe o nome do arquivo.";
     if (!form.dataUrl) e.arquivo = "Envie o arquivo.";
+    if (
+      form.posicaoAplicacao === "outro_local" &&
+      !form.descricaoAplicacao.trim()
+    ) {
+      e.descricaoAplicacao =
+        "Descreva a aplicação quando a posição for 'Outro local'.";
+    }
     setErros(e);
     return Object.keys(e).length === 0;
   }
@@ -156,7 +171,9 @@ export function ArquivoFormDrawer({
     const dados: ArquivoInput = {
       clienteId: form.clienteId,
       tipo: form.tipo,
-      finalidade: form.finalidade || undefined,
+      tipoAplicacao: form.tipoAplicacao || undefined,
+      posicaoAplicacao: form.posicaoAplicacao || undefined,
+      descricaoAplicacao: form.descricaoAplicacao.trim() || undefined,
       nome: form.nome.trim(),
       descricao: form.descricao.trim() || undefined,
       status: form.status,
@@ -209,10 +226,10 @@ export function ArquivoFormDrawer({
               )}
             </section>
 
-            {/* Tipo & finalidade */}
+            {/* Tipo do arquivo & nome */}
             <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
               <h4 className="text-sm font-semibold text-foreground">
-                Tipo & finalidade
+                Identificação
               </h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Campo label="Tipo do arquivo" obrigatorio>
@@ -228,29 +245,10 @@ export function ArquivoFormDrawer({
                     ))}
                   </select>
                 </Campo>
-                <Campo label="Finalidade (opcional)">
-                  <select
-                    value={form.finalidade}
-                    onChange={(e) =>
-                      up("finalidade", e.target.value as FinalidadeArquivo | "")
-                    }
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                  >
-                    <option value="">— Não definido —</option>
-                    {(Object.keys(LABEL_FINALIDADE) as FinalidadeArquivo[]).map(
-                      (f) => (
-                        <option key={f} value={f}>
-                          {LABEL_FINALIDADE[f]}
-                        </option>
-                      ),
-                    )}
-                  </select>
-                </Campo>
                 <Campo
                   label="Nome do arquivo"
                   obrigatorio
                   erro={erros.nome}
-                  className="sm:col-span-2"
                 >
                   <Input
                     value={form.nome}
@@ -260,6 +258,95 @@ export function ArquivoFormDrawer({
                 </Campo>
               </div>
             </section>
+
+            {/* Aplicação (hierárquica) */}
+            <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Aplicação
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Escolha o tipo, a posição e detalhe como a peça deve ser produzida.
+                </p>
+              </div>
+
+              <Campo label="Tipo de aplicação">
+                <select
+                  value={form.tipoAplicacao}
+                  onChange={(e) => {
+                    const novoTipo = e.target.value as TipoAplicacao | "";
+                    setForm((f) => ({
+                      ...f,
+                      tipoAplicacao: novoTipo,
+                      posicaoAplicacao: "",
+                    }));
+                  }}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                >
+                  <option value="">— Não definido —</option>
+                  {(Object.keys(LABEL_TIPO_APLICACAO) as TipoAplicacao[]).map(
+                    (t) => (
+                      <option key={t} value={t}>
+                        {LABEL_TIPO_APLICACAO[t]}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </Campo>
+
+              <Campo label="Posição da aplicação">
+                <select
+                  value={form.posicaoAplicacao}
+                  onChange={(e) => up("posicaoAplicacao", e.target.value)}
+                  disabled={!form.tipoAplicacao}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <option value="">
+                    {form.tipoAplicacao
+                      ? "— Selecione a posição —"
+                      : "Selecione primeiro o tipo de aplicação"}
+                  </option>
+                  {form.tipoAplicacao &&
+                    (() => {
+                      const opcoes = posicoesParaTipo(
+                        form.tipoAplicacao as TipoAplicacao,
+                      );
+                      const grupos = Array.from(
+                        new Set(opcoes.map((o) => o.grupo)),
+                      );
+                      return grupos.map((g) => (
+                        <optgroup key={g} label={LABEL_GRUPO_POSICAO[g]}>
+                          {opcoes
+                            .filter((o) => o.grupo === g)
+                            .map((o) => (
+                              <option key={o.id} value={o.id}>
+                                {o.label}
+                              </option>
+                            ))}
+                        </optgroup>
+                      ));
+                    })()}
+                </select>
+              </Campo>
+
+              <Campo
+                label={
+                  form.posicaoAplicacao === "outro_local"
+                    ? "Descrição da aplicação"
+                    : "Descrição da aplicação (opcional)"
+                }
+                obrigatorio={form.posicaoAplicacao === "outro_local"}
+                erro={erros.descricaoAplicacao}
+              >
+                <Textarea
+                  rows={3}
+                  value={form.descricaoAplicacao}
+                  onChange={(e) => up("descricaoAplicacao", e.target.value)}
+                  placeholder="Ex.: Centralizar 3 cm abaixo da gola. Bordado com 8 cm de largura."
+                />
+              </Campo>
+            </section>
+
 
             {/* Especificações */}
             <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">

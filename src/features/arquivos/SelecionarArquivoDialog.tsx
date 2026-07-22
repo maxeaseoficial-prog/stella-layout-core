@@ -17,7 +17,12 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FolderOpen } from "lucide-react";
 
 import type { Arquivo } from "./types";
-import { LABEL_FINALIDADE, LABEL_TIPO_ARQUIVO } from "./types";
+import {
+  LABEL_FINALIDADE,
+  LABEL_TIPO_APLICACAO,
+  LABEL_TIPO_ARQUIVO,
+  labelPosicao,
+} from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 import { useArquivos } from "./useArquivos";
 
@@ -138,13 +143,25 @@ export function SelecionarArquivoDialog({
                           >
                             {LABEL_TIPO_ARQUIVO[a.tipo]}
                           </Badge>
-                          {a.finalidade && (
+                          {a.tipoAplicacao ? (
                             <Badge
                               variant="outline"
                               className="border-border bg-surface-muted/60 text-[10px]"
                             >
-                              {LABEL_FINALIDADE[a.finalidade]}
+                              {LABEL_TIPO_APLICACAO[a.tipoAplicacao]}
+                              {a.posicaoAplicacao
+                                ? ` • ${labelPosicao(a.posicaoAplicacao)}`
+                                : ""}
                             </Badge>
+                          ) : (
+                            a.finalidade && (
+                              <Badge
+                                variant="outline"
+                                className="border-border bg-surface-muted/60 text-[10px]"
+                              >
+                                {LABEL_FINALIDADE[a.finalidade]}
+                              </Badge>
+                            )
                           )}
                           <span className="text-[10px] text-muted-foreground">
                             {a.extensao.toUpperCase()}

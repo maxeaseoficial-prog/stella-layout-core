@@ -17,7 +17,12 @@ import {
 import { formatarDataBR, formatarTamanho } from "@/features/clientes/utils";
 
 import type { Arquivo } from "./types";
-import { LABEL_FINALIDADE, LABEL_TIPO_ARQUIVO } from "./types";
+import {
+  LABEL_FINALIDADE,
+  LABEL_TIPO_APLICACAO,
+  LABEL_TIPO_ARQUIVO,
+  labelPosicao,
+} from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 
 interface Props {
@@ -104,7 +109,28 @@ export function ArquivoViewDrawer({ arquivo, aberto, onFechar, onEditar }: Props
                     label="Tipo"
                     valor={LABEL_TIPO_ARQUIVO[arquivo.tipo]}
                   />
-                  {arquivo.finalidade && (
+                  {arquivo.tipoAplicacao && (
+                    <Info
+                      icon={Tag}
+                      label="Tipo da aplicação"
+                      valor={LABEL_TIPO_APLICACAO[arquivo.tipoAplicacao]}
+                    />
+                  )}
+                  {arquivo.posicaoAplicacao && (
+                    <Info
+                      icon={Tag}
+                      label="Posição"
+                      valor={labelPosicao(arquivo.posicaoAplicacao)}
+                    />
+                  )}
+                  {arquivo.descricaoAplicacao && (
+                    <Info
+                      icon={Tag}
+                      label="Descrição da aplicação"
+                      valor={arquivo.descricaoAplicacao}
+                    />
+                  )}
+                  {!arquivo.tipoAplicacao && arquivo.finalidade && (
                     <Info
                       icon={Tag}
                       label="Finalidade"
