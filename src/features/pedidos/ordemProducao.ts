@@ -207,6 +207,52 @@ export async function gerarOrdemProducaoPDF(
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
 
+    // Imagens (logo / arte) — pré-visualização
+    if (imagens.length > 0) {
+      y += 8;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...CINZA);
+      doc.text("Logo / Arte", margem, y);
+      y += 10;
+
+      const maxLarg = larg - margem * 2;
+      const alturaMaxima = 180;
+      let cursorX = margem;
+      let alturaLinha = 0;
+
+      for (const arq of imagens) {
+        const fmt = formatoJsPDF(arq.extensao);
+        if (!fmt) continue;
+        try {
+          const { w, h } = await dimensoesImagem(arq.dataUrl);
+          const ratio = w / h;
+          let renderH = alturaMaxima;
+          let renderW = renderH * ratio;
+          const maxW = Math.min(260, maxLarg);
+          if (renderW > maxW) {
+            renderW = maxW;
+            renderH = renderW / ratio;
+          }
+          if (cursorX + renderW > margem + maxLarg) {
+            y += alturaLinha + 8;
+            cursorX = margem;
+            alturaLinha = 0;
+            if (y + renderH > 760) {
+              doc.addPage();
+              y = margem;
+            }
+          }
+          doc.addImage(arq.dataUrl, fmt, cursorX, y, renderW, renderH, undefined, "SLOW");
+          cursorX += renderW + 10;
+          alturaLinha = Math.max(alturaLinha, renderH);
+        } catch {
+          /* ignora imagem inválida */
+        }
+      }
+      y += alturaLinha + 8;
+    }
+
     // Personalizações / adicionais
     if (personalizacoes.length > 0) {
       autoTable(doc, {
@@ -232,13 +278,16 @@ export async function gerarOrdemProducaoPDF(
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
     }
 
-    // Arquivos (nome apenas) — vinculados ao pedido
-    if (arquivosNomes.length > 0) {
+    // Arquivos vetoriais / não-visualizáveis
+    if (vetoriais.length > 0) {
       autoTable(doc, {
         startY: y,
         margin: { left: margem, right: margem },
-        head: [["Arquivos"]],
-        body: arquivosNomes.map((n) => [n]),
+        head: [["Arquivo", "Tipo"]],
+        body: vetoriais.map((a) => [
+          a.nome,
+          `Arquivo ${a.extensao.toUpperCase()} (vetorial — abrir no software gráfico)`,
+        ]),
         theme: "grid",
         headStyles: {
           fillColor: [255, 255, 255],
@@ -253,9 +302,14 @@ export async function gerarOrdemProducaoPDF(
           textColor: PRETO,
           lineColor: [235, 235, 235],
         },
+        columnStyles: {
+          0: { cellWidth: "auto", fontStyle: "bold" },
+          1: { cellWidth: 240, textColor: CINZA },
+        },
       });
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
     }
+
 
     // Divisória entre produtos
     y += 14;
