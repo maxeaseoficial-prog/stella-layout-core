@@ -187,56 +187,11 @@ export function PedidoViewDrawer({
 
                   <TabsContent value="produtos" className="mt-0 space-y-3">
                     {pedido.itens.map((item) => (
-                      <div
+                      <ItemDetalhado
                         key={item.id}
-                        className="space-y-2 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div>
-                            <p className="font-semibold text-foreground">
-                              {item.produto}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {item.quantidade} × {formatarMoeda(item.valorUnitario)}
-                            </p>
-                          </div>
-                          <p className="font-semibold tabular-nums text-foreground">
-                            {formatarMoeda(calcularSubtotalItem(item))}
-                          </p>
-                        </div>
-
-                        {item.personalizacoes.length > 0 && (
-                          <div className="space-y-1.5 border-t border-border/60 pt-2">
-                            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground">
-                              <Palette className="h-3 w-3" /> Personalizações
-                            </p>
-                            <ul className="space-y-1.5">
-                              {item.personalizacoes.map((p) => (
-                                <li
-                                  key={p.id}
-                                  className="rounded-md bg-surface-muted/60 p-2 text-xs"
-                                >
-                                  <p className="font-medium text-foreground">
-                                    {LABEL_TIPO_PERSONALIZACAO[p.tipo]} •{" "}
-                                    {LABEL_POSICAO_PERSONALIZACAO[p.posicao]}
-                                    {p.medidas && (
-                                      <span className="text-muted-foreground">
-                                        {" "}
-                                        • {p.medidas}
-                                      </span>
-                                    )}
-                                  </p>
-                                  {p.observacoes && (
-                                    <p className="mt-0.5 text-muted-foreground">
-                                      {p.observacoes}
-                                    </p>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
+                        pedidoId={pedido.id}
+                        item={item}
+                      />
                     ))}
                   </TabsContent>
 
