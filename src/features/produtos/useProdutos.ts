@@ -117,7 +117,7 @@ export function useProdutos() {
   const ativos = useMemo(() => produtos.filter((p) => p.status === "ativo"), [produtos]);
 
   return useMemo(
-    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, buscarPorId, filtrar }),
-    [produtos, ativos, hidratado, criar, atualizar, excluir, buscarPorId, filtrar],
+    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar }),
+    [produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar],
   );
 }
