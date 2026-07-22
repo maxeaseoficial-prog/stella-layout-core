@@ -159,7 +159,7 @@ export function ProdutosPanel() {
           description="Ajuste os filtros ou o termo de pesquisa."
         />
       ) : (
-        <ProdutosTable produtos={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} />
+        <ProdutosTable produtos={lista} onEditar={abrirEdicao} onExcluir={setExcluindo} onRemover={setRemovendo} />
       )}
 
       <ProdutoFormDrawer
