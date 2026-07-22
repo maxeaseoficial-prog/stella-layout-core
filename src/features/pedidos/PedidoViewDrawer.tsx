@@ -408,5 +408,158 @@ function Linha({ label, valor }: { label: string; valor: string }) {
   );
 }
 
+function ItemDetalhado({
+  pedidoId,
+  item,
+}: {
+  pedidoId: string;
+  item: ItemPedido;
+}) {
+  const { atualizarOrcamentoPendente } = usePedidos();
+  const [rascunhos, setRascunhos] = useState<Record<string, string>>({});
+
+  const adicionais = item.adicionais ?? [];
+  const pendentes = adicionais.filter((a) => a.pendencia);
+  const subtotalItem = calcularSubtotalItem(item);
+
+  let sufixoPendencia = "";
+  if (pendentes.length === 1) {
+    const p = pendentes[0].pendencia!;
+    if (p === "estampa") sufixoPendencia = " + Estampa pendente";
+    else if (p === "matriz") sufixoPendencia = " + Matriz pendente";
+    else sufixoPendencia = " + 1 orçamento pendente";
+  } else if (pendentes.length > 1) {
+    sufixoPendencia = ` + ${pendentes.length} orçamentos pendentes`;
+  }
+
+  function salvarOrcamento(adId: string) {
+    const raw = rascunhos[adId] ?? "";
+    const valor = parseValorInput(raw);
+    if (!raw.trim() || valor <= 0) return;
+    atualizarOrcamentoPendente(pedidoId, item.id, adId, valor);
+    setRascunhos((r) => {
+      const { [adId]: _omit, ...rest } = r;
+      return rest;
+    });
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Produto
+        </p>
+        <div className="mt-1 flex flex-wrap items-baseline justify-between gap-2">
+          <p className="font-semibold text-foreground">
+            {item.produto}
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              — {formatarMoeda(item.valorUnitario)}
+            </span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Qtd: {item.quantidade}
+          </p>
+        </div>
+      </div>
+
+      {adicionais.length > 0 && (
+        <div className="space-y-2 border-t border-border/60 pt-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Adicionais
+          </p>
+          <ul className="space-y-2">
+            {adicionais.map((a) => (
+              <li key={a.id} className="space-y-2">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                  <span className="text-foreground">• {a.nome}</span>
+                  {a.pendencia ? (
+                    <Badge
+                      variant="outline"
+                      className="border-amber-300 bg-amber-100 text-amber-800"
+                    >
+                      {LABEL_PENDENCIA_ADICIONAL[a.pendencia]}
+                    </Badge>
+                  ) : (
+                    <span className="font-medium tabular-nums text-foreground">
+                      {formatarMoeda(a.valor)}
+                    </span>
+                  )}
+                </div>
+                {a.pendencia && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3">
+                    <Label className="text-xs text-amber-900">
+                      Valor do orçamento
+                    </Label>
+                    <div className="mt-1.5 flex items-end gap-2">
+                      <Input
+                        inputMode="decimal"
+                        placeholder="R$ 0,00"
+                        value={rascunhos[a.id] ?? ""}
+                        onChange={(e) =>
+                          setRascunhos((r) => ({ ...r, [a.id]: e.target.value }))
+                        }
+                        className="h-9"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => salvarOrcamento(a.id)}
+                      >
+                        Salvar orçamento
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {item.personalizacoes.length > 0 && (
+        <div className="space-y-1.5 border-t border-border/60 pt-3">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Palette className="h-3 w-3" /> Personalizações
+          </p>
+          <ul className="space-y-1.5">
+            {item.personalizacoes.map((p) => (
+              <li
+                key={p.id}
+                className="rounded-md bg-surface-muted/60 p-2 text-xs"
+              >
+                <p className="font-medium text-foreground">
+                  {LABEL_TIPO_PERSONALIZACAO[p.tipo]} •{" "}
+                  {LABEL_POSICAO_PERSONALIZACAO[p.posicao]}
+                  {p.medidas && (
+                    <span className="text-muted-foreground"> • {p.medidas}</span>
+                  )}
+                </p>
+                {p.observacoes && (
+                  <p className="mt-0.5 text-muted-foreground">{p.observacoes}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-border pt-3">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Total
+        </span>
+        <span className="font-display text-sm font-bold text-foreground">
+          {formatarMoeda(subtotalItem)}
+          {sufixoPendencia && (
+            <span className="ml-1 text-xs font-medium text-amber-700">
+              {sufixoPendencia}
+            </span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+
 // Silence unused warning when tree-shaking picks a different icon
 export const _iconRef = ImageIcon;
