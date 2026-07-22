@@ -173,6 +173,11 @@ export function labelPosicao(id: string | undefined | null): string {
   return POSICOES_APLICACAO.find((p) => p.id === id)?.label ?? id;
 }
 
+export interface CorAplicacao {
+  nome: string;
+  numero: string;
+}
+
 export interface Arquivo {
   id: string;
   clienteId: string;
@@ -187,9 +192,15 @@ export interface Arquivo {
   descricao?: string;
   status: StatusArquivo;
   // Especificações
+  /** @deprecated substituído por larguraCm/alturaCm */
   tamanhoPeca?: string;
+  larguraCm?: number;
+  alturaCm?: number;
+  /** @deprecated substituído por `cores` */
   cor?: string;
+  /** @deprecated substituído por `cores` */
   numeroCor?: string;
+  cores?: CorAplicacao[];
   // Arquivo
   arquivoNome: string;
   extensao: string;
@@ -200,6 +211,7 @@ export interface Arquivo {
   criadoEm: string;
   atualizadoEm: string;
 }
+
 
 export type ArquivoInput = Omit<Arquivo, "id" | "criadoEm" | "atualizadoEm">;
 
