@@ -143,13 +143,25 @@ export function SelecionarArquivoDialog({
                           >
                             {LABEL_TIPO_ARQUIVO[a.tipo]}
                           </Badge>
-                          {a.finalidade && (
+                          {a.tipoAplicacao ? (
                             <Badge
                               variant="outline"
                               className="border-border bg-surface-muted/60 text-[10px]"
                             >
-                              {LABEL_FINALIDADE[a.finalidade]}
+                              {LABEL_TIPO_APLICACAO[a.tipoAplicacao]}
+                              {a.posicaoAplicacao
+                                ? ` • ${labelPosicao(a.posicaoAplicacao)}`
+                                : ""}
                             </Badge>
+                          ) : (
+                            a.finalidade && (
+                              <Badge
+                                variant="outline"
+                                className="border-border bg-surface-muted/60 text-[10px]"
+                              >
+                                {LABEL_FINALIDADE[a.finalidade]}
+                              </Badge>
+                            )
                           )}
                           <span className="text-[10px] text-muted-foreground">
                             {a.extensao.toUpperCase()}
