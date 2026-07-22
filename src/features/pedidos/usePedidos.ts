@@ -92,6 +92,8 @@ export function usePedidos() {
       totalPago: 0,
       statusProducao,
       statusFinanceiro: entrada.statusFinanceiro ?? "aguardando_pagamento",
+      etapa: "em_elaboracao",
+      badges: entrada.badges,
       previsaoEntrega: entrada.previsaoEntrega,
       observacoes: entrada.observacoes,
       pagamentos: [],
@@ -104,6 +106,7 @@ export function usePedidos() {
       criadoEm: agora,
       atualizadoEm: agora,
     };
+    novo.etapa = calcularEtapa(novo);
     commit(setPedidos, (atual) => [novo, ...atual]);
     return novo;
   }, []);
