@@ -38,10 +38,7 @@ import type {
   ItemEstoque,
   ItemEstoqueInput,
 } from "@/features/estoque";
-import {
-  CATEGORIAS_ESTOQUE,
-  LABEL_CATEGORIA_ESTOQUE,
-} from "@/features/estoque";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 export const Route = createFileRoute("/estoque")({
   component: EstoquePage,
@@ -49,6 +46,8 @@ export const Route = createFileRoute("/estoque")({
 
 function EstoquePage() {
   const { itens, hidratado, stats, criar, atualizar, excluir, filtrar } = useEstoque();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasEstoque = categoriasPorEscopo("estoque");
 
   const [termo, setTermo] = useState("");
   const [categoria, setCategoria] = useState<CategoriaEstoque | "todas">("todas");
@@ -135,9 +134,9 @@ function EstoquePage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="todas">Todas as categorias</SelectItem>
-            {CATEGORIAS_ESTOQUE.map((c) => (
-              <SelectItem key={c} value={c}>
-                {LABEL_CATEGORIA_ESTOQUE[c]}
+            {categoriasEstoque.map((c) => (
+              <SelectItem key={c.id} value={c.nome}>
+                {c.nome}
               </SelectItem>
             ))}
           </SelectContent>

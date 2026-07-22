@@ -1,18 +1,14 @@
 export type StatusProduto = "ativo" | "inativo";
 
-export type CategoriaProduto =
-  | "camiseta"
-  | "polo"
-  | "jaqueta"
-  | "calca"
-  | "bermuda"
-  | "moletom"
-  | "jaleco"
-  | "avental"
-  | "bone"
-  | "outro";
+/**
+ * Categoria do produto — string livre.
+ * As opções disponíveis são gerenciadas em Configurações → Categorias (escopo "produto").
+ * Mantemos o mapa de labels legado para exibir corretamente registros antigos
+ * que salvaram uma chave enum (ex.: "camiseta").
+ */
+export type CategoriaProduto = string;
 
-export const LABEL_CATEGORIA_PRODUTO: Record<CategoriaProduto, string> = {
+export const LABEL_CATEGORIA_PRODUTO: Record<string, string> = {
   camiseta: "Camiseta",
   polo: "Polo",
   jaqueta: "Jaqueta",
@@ -25,18 +21,10 @@ export const LABEL_CATEGORIA_PRODUTO: Record<CategoriaProduto, string> = {
   outro: "Outro",
 };
 
-export const CATEGORIAS_PRODUTO: CategoriaProduto[] = [
-  "camiseta",
-  "polo",
-  "jaqueta",
-  "calca",
-  "bermuda",
-  "moletom",
-  "jaleco",
-  "avental",
-  "bone",
-  "outro",
-];
+/** Exibe o label da categoria (compatível com chaves legadas). */
+export function labelCategoriaProduto(cat: string): string {
+  return LABEL_CATEGORIA_PRODUTO[cat] ?? cat;
+}
 
 export interface PersonalizacoesPermitidas {
   bordado: boolean;

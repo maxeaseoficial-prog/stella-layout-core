@@ -1,4 +1,3 @@
-import { CATEGORIAS_ADICIONAL, LABEL_CATEGORIA_ADICIONAL } from "@/features/adicionais/types";
 import type { Categoria, ConfiguracoesState, FormaPagamento, Usuario } from "./types";
 
 function id(prefix: string, i: number) {
@@ -26,9 +25,25 @@ const CATEGORIAS_INICIAIS_ESTOQUE = [
   "Embalagens",
 ];
 
-const CATEGORIAS_INICIAIS_ADICIONAL = CATEGORIAS_ADICIONAL.map(
-  (c) => LABEL_CATEGORIA_ADICIONAL[c],
-);
+const CATEGORIAS_INICIAIS_ADICIONAL = [
+  "Botão",
+  "Zíper",
+  "Cordão",
+  "Bolso",
+  "Gola especial",
+  "Punho",
+  "Punho reforçado",
+  "Tecido Dry Fit",
+  "Tecido Oxford",
+  "Tecido Brim",
+  "Refletivo",
+  "Elástico",
+  "Acabamento especial",
+  "Bordado",
+  "Estampa",
+  "Sublimação",
+  "Outro",
+];
 
 const FORMAS_INICIAIS = [
   "PIX",

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { fileToDataUrl } from "@/features/clientes";
 import { useFornecedores } from "@/features/fornecedores";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 import type {
   CategoriaEstoque,
@@ -30,8 +31,6 @@ import type {
   UnidadeMedida,
 } from "./types";
 import {
-  CATEGORIAS_ESTOQUE,
-  LABEL_CATEGORIA_ESTOQUE,
   LABEL_UNIDADE,
   UNIDADES_MEDIDA,
 } from "./types";
@@ -71,7 +70,7 @@ function estadoInicial(item?: ItemEstoque | null): FormState {
   if (!item) {
     return {
       nome: "",
-      categoria: "tecido",
+      categoria: "",
       imagem: undefined,
       descricao: "",
       fornecedor: "",
@@ -105,6 +104,8 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const { ativos: fornecedoresAtivos } = useFornecedores();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasEstoque = categoriasPorEscopo("estoque");
 
   useEffect(() => {
     if (aberto) {
@@ -227,9 +228,9 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS_ESTOQUE.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {LABEL_CATEGORIA_ESTOQUE[c]}
+                    {categoriasEstoque.map((c) => (
+                      <SelectItem key={c.id} value={c.nome}>
+                        {c.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>

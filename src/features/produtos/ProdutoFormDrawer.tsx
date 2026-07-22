@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { fileToDataUrl } from "@/features/clientes";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 import type {
   CategoriaProduto,
@@ -31,8 +32,6 @@ import type {
   StatusProduto,
 } from "./types";
 import {
-  CATEGORIAS_PRODUTO,
-  LABEL_CATEGORIA_PRODUTO,
   PERSONALIZACOES_VAZIAS,
 } from "./types";
 
@@ -60,7 +59,7 @@ function estadoInicial(produto?: Produto | null): FormState {
     return {
       nome: "",
       sku: "",
-      categoria: "camiseta",
+      categoria: "",
       precoStr: "",
       personalizacoes: { ...PERSONALIZACOES_VAZIAS },
       descricao: "",
@@ -97,6 +96,8 @@ const CHECKS: { key: keyof PersonalizacoesPermitidas; label: string }[] = [
 const IMG_ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
 export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props) {
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasProduto = categoriasPorEscopo("produto");
   const [form, setForm] = useState<FormState>(() => estadoInicial(produto));
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
@@ -231,9 +232,9 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS_PRODUTO.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {LABEL_CATEGORIA_PRODUTO[c]}
+                    {categoriasProduto.map((c) => (
+                      <SelectItem key={c.id} value={c.nome}>
+                        {c.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>

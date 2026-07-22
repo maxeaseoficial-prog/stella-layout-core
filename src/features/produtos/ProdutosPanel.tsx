@@ -32,10 +32,12 @@ import type {
   ProdutoInput,
   StatusProduto,
 } from "./types";
-import { CATEGORIAS_PRODUTO, LABEL_CATEGORIA_PRODUTO } from "./types";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 export function ProdutosPanel() {
   const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar } = useProdutos();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasProduto = categoriasPorEscopo("produto");
 
   const [termo, setTermo] = useState("");
   const [categoria, setCategoria] = useState<CategoriaProduto | "todas">("todas");
@@ -113,9 +115,9 @@ export function ProdutosPanel() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas as categorias</SelectItem>
-              {CATEGORIAS_PRODUTO.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {LABEL_CATEGORIA_PRODUTO[c]}
+              {categoriasProduto.map((c) => (
+                <SelectItem key={c.id} value={c.nome}>
+                  {c.nome}
                 </SelectItem>
               ))}
             </SelectContent>
