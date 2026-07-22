@@ -2,24 +2,11 @@ export type StatusAdicional = "ativo" | "inativo";
 
 export type TipoAdicional = "acessorio" | "material" | "acabamento" | "personalizacao";
 
-export type CategoriaAdicional =
-  | "botao"
-  | "ziper"
-  | "cordao"
-  | "bolso"
-  | "gola"
-  | "punho"
-  | "punho_reforcado"
-  | "tecido_dry_fit"
-  | "tecido_oxford"
-  | "tecido_brim"
-  | "refletivo"
-  | "elastico"
-  | "acabamento_especial"
-  | "bordado"
-  | "estampa"
-  | "sublimacao"
-  | "outro";
+/**
+ * Categoria do adicional — string livre.
+ * As opções são gerenciadas em Configurações → Categorias (escopo "adicional").
+ */
+export type CategoriaAdicional = string;
 
 export const LABEL_TIPO_ADICIONAL: Record<TipoAdicional, string> = {
   acessorio: "Acessório",
@@ -35,7 +22,7 @@ export const TIPOS_ADICIONAL: TipoAdicional[] = [
   "personalizacao",
 ];
 
-export const LABEL_CATEGORIA_ADICIONAL: Record<CategoriaAdicional, string> = {
+export const LABEL_CATEGORIA_ADICIONAL: Record<string, string> = {
   botao: "Botão",
   ziper: "Zíper",
   cordao: "Cordão",
@@ -55,28 +42,12 @@ export const LABEL_CATEGORIA_ADICIONAL: Record<CategoriaAdicional, string> = {
   outro: "Outro",
 };
 
-export const CATEGORIAS_ADICIONAL: CategoriaAdicional[] = [
-  "botao",
-  "ziper",
-  "cordao",
-  "bolso",
-  "gola",
-  "punho",
-  "punho_reforcado",
-  "tecido_dry_fit",
-  "tecido_oxford",
-  "tecido_brim",
-  "refletivo",
-  "elastico",
-  "acabamento_especial",
-  "bordado",
-  "estampa",
-  "sublimacao",
-  "outro",
-];
+export function labelCategoriaAdicional(cat: string): string {
+  return LABEL_CATEGORIA_ADICIONAL[cat] ?? cat;
+}
 
-/** Sugestão de tipo para cada categoria — usado como default no formulário. */
-export const TIPO_PADRAO_POR_CATEGORIA: Record<CategoriaAdicional, TipoAdicional> = {
+/** Sugestão de tipo para cada categoria legada — usado como default no formulário. */
+export const TIPO_PADRAO_POR_CATEGORIA: Record<string, TipoAdicional> = {
   botao: "acessorio",
   ziper: "acessorio",
   cordao: "acessorio",
