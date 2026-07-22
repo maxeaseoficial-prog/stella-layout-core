@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProdutos } from "@/features/produtos";
-import { useAdicionais, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
+import { useAdicionais, LABEL_PENDENCIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
 
 import type { ItemAdicional, ItemPedido, Personalizacao } from "./types";
 import {
@@ -116,7 +116,8 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
           id: novoId(),
           adicionalId: a.id,
           nome: a.nome,
-          valor: a.valor,
+          valor: a.pendencia ? 0 : a.valor,
+          pendencia: a.pendencia,
         };
         return { ...i, adicionais: [...atuais, novo] };
       }),
@@ -294,9 +295,11 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                               return (
                                 <SelectItem key={a.id} value={a.id} disabled={jaUsado}>
                                   {a.nome}
-                                  {a.valor > 0
-                                    ? ` — +${formatarMoeda(a.valor)}`
-                                    : ""}
+                                  {a.pendencia
+                                    ? " — Orçamento pendente"
+                                    : a.valor > 0
+                                      ? ` — +${formatarMoeda(a.valor)}`
+                                      : ""}
                                   <span className="ml-1 text-[10px] text-muted-foreground">
                                     ({LABEL_TIPO_ADICIONAL[a.tipo]})
                                   </span>
@@ -322,9 +325,15 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                         >
                           <span className="truncate">{a.nome}</span>
                           <div className="flex items-center gap-2">
-                            <span className="tabular-nums text-muted-foreground">
-                              + {formatarMoeda(a.valor)}
-                            </span>
+                            {a.pendencia ? (
+                              <span className="rounded-full border border-amber-300 bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                                {LABEL_PENDENCIA_ADICIONAL[a.pendencia]}
+                              </span>
+                            ) : (
+                              <span className="tabular-nums text-muted-foreground">
+                                + {formatarMoeda(a.valor)}
+                              </span>
+                            )}
                             <Button
                               type="button"
                               size="icon"
