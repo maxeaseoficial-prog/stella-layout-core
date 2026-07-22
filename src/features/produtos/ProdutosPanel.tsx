@@ -35,7 +35,7 @@ import type {
 import { CATEGORIAS_PRODUTO, LABEL_CATEGORIA_PRODUTO } from "./types";
 
 export function ProdutosPanel() {
-  const { produtos, hidratado, criar, atualizar, excluir, filtrar } = useProdutos();
+  const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar } = useProdutos();
 
   const [termo, setTermo] = useState("");
   const [categoria, setCategoria] = useState<CategoriaProduto | "todas">("todas");
@@ -43,6 +43,7 @@ export function ProdutosPanel() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Produto | null>(null);
   const [excluindo, setExcluindo] = useState<Produto | null>(null);
+  const [removendo, setRemovendo] = useState<Produto | null>(null);
 
   const lista = useMemo(() => {
     let l = filtrar(termo);
