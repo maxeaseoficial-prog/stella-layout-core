@@ -1,3 +1,4 @@
+import { CATEGORIAS_ADICIONAL, LABEL_CATEGORIA_ADICIONAL } from "@/features/adicionais/types";
 import type { Categoria, ConfiguracoesState, FormaPagamento, Usuario } from "./types";
 
 function id(prefix: string, i: number) {
@@ -25,12 +26,9 @@ const CATEGORIAS_INICIAIS_ESTOQUE = [
   "Embalagens",
 ];
 
-const CATEGORIAS_INICIAIS_ADICIONAL = [
-  "Tecido",
-  "Aviamento",
-  "Acessório",
-  "Acabamento",
-];
+const CATEGORIAS_INICIAIS_ADICIONAL = CATEGORIAS_ADICIONAL.map(
+  (c) => LABEL_CATEGORIA_ADICIONAL[c],
+);
 
 const FORMAS_INICIAIS = [
   "PIX",
