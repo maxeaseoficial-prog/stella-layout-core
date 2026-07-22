@@ -164,6 +164,7 @@ export const LABEL_STATUS_PRODUCAO: Record<StatusProducao, string> = {
   aguardando_orcamento_matriz: "Aguardando orçamento da matriz",
   orcamento_matriz_realizado: "Orçamento da matriz realizado",
   aguardando_aprovacao: "Aguardando aprovação",
+  orcamento_aprovado: "Orçamento aprovado",
   producao_matriz: "Produção da matriz",
   matriz_concluida: "Matriz concluída",
   producao: "Em produção",
