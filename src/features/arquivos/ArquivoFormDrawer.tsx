@@ -44,7 +44,9 @@ interface Props {
 interface FormState {
   clienteId: string;
   tipo: TipoArquivo;
-  finalidade: FinalidadeArquivo | "";
+  tipoAplicacao: TipoAplicacao | "";
+  posicaoAplicacao: string;
+  descricaoAplicacao: string;
   nome: string;
   descricao: string;
   status: StatusArquivo;
