@@ -116,11 +116,21 @@ export function ArquivoViewDrawer({ arquivo, aberto, onFechar, onEditar }: Props
                     label="Arquivo"
                     valor={`${arquivo.extensao.toUpperCase()} • ${formatarTamanho(arquivo.tamanho)}`}
                   />
+                  {arquivo.tamanhoPeca && (
+                    <Info icon={Tag} label="Tamanho" valor={arquivo.tamanhoPeca} />
+                  )}
+                  {arquivo.cor && (
+                    <Info icon={Tag} label="Cor" valor={arquivo.cor} />
+                  )}
+                  {arquivo.numeroCor && (
+                    <Info icon={Tag} label="Número da cor" valor={arquivo.numeroCor} />
+                  )}
                   <Info
                     icon={CalendarDays}
                     label="Cadastrado em"
                     valor={formatarDataBR(arquivo.criadoEm)}
                   />
+
                 </Bloco>
 
                 {arquivo.descricao && (

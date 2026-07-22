@@ -46,6 +46,9 @@ interface FormState {
   nome: string;
   descricao: string;
   status: StatusArquivo;
+  tamanhoPeca: string;
+  cor: string;
+  numeroCor: string;
   arquivoNome: string;
   extensao: string;
   mime: string;
@@ -62,6 +65,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
       nome: "",
       descricao: "",
       status: "ativo",
+      tamanhoPeca: "",
+      cor: "",
+      numeroCor: "",
       arquivoNome: "",
       extensao: "",
       mime: "",
@@ -76,6 +82,9 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     nome: a.nome,
     descricao: a.descricao ?? "",
     status: a.status,
+    tamanhoPeca: a.tamanhoPeca ?? "",
+    cor: a.cor ?? "",
+    numeroCor: a.numeroCor ?? "",
     arquivoNome: a.arquivoNome,
     extensao: a.extensao,
     mime: a.mime,
@@ -151,6 +160,9 @@ export function ArquivoFormDrawer({
       nome: form.nome.trim(),
       descricao: form.descricao.trim() || undefined,
       status: form.status,
+      tamanhoPeca: form.tamanhoPeca.trim() || undefined,
+      cor: form.cor.trim() || undefined,
+      numeroCor: form.numeroCor.trim() || undefined,
       arquivoNome: form.arquivoNome,
       extensao: form.extensao,
       mime: form.mime,
@@ -248,6 +260,42 @@ export function ArquivoFormDrawer({
                 </Campo>
               </div>
             </section>
+
+            {/* Especificações */}
+            <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Especificações
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Tamanho da peça e cor utilizada no bordado/estampa.
+                </p>
+              </div>
+              <Campo label="Tamanho">
+                <Input
+                  value={form.tamanhoPeca}
+                  onChange={(e) => up("tamanhoPeca", e.target.value)}
+                  placeholder="Ex.: 8 cm x 8 cm, P, M, G"
+                />
+              </Campo>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Campo label="Cor">
+                  <Input
+                    value={form.cor}
+                    onChange={(e) => up("cor", e.target.value)}
+                    placeholder="Ex.: Rosa Stella"
+                  />
+                </Campo>
+                <Campo label="Número da cor">
+                  <Input
+                    value={form.numeroCor}
+                    onChange={(e) => up("numeroCor", e.target.value)}
+                    placeholder="Ex.: 1805, Pantone 213C"
+                  />
+                </Campo>
+              </div>
+            </section>
+
 
             {/* Upload */}
             <section className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">

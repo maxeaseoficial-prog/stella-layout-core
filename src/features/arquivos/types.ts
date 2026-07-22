@@ -27,6 +27,10 @@ export interface Arquivo {
   nome: string;
   descricao?: string;
   status: StatusArquivo;
+  // Especificações
+  tamanhoPeca?: string;
+  cor?: string;
+  numeroCor?: string;
   // Arquivo
   arquivoNome: string;
   extensao: string;
