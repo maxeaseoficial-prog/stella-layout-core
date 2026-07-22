@@ -26,11 +26,14 @@ import type {
   Adicional,
   AdicionalInput,
   CategoriaAdicional,
+  PendenciaAdicional,
   StatusAdicional,
   TipoAdicional,
 } from "./types";
 import {
+  LABEL_PENDENCIA_ADICIONAL,
   LABEL_TIPO_ADICIONAL,
+  PENDENCIAS_ADICIONAL,
   TIPOS_ADICIONAL,
   TIPO_PADRAO_POR_CATEGORIA,
 } from "./types";
