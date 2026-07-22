@@ -108,9 +108,15 @@ export function ArquivosTable({ arquivos, onVisualizar, onEditar, onExcluir }: P
                         {a.nome}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {a.finalidade
-                          ? LABEL_FINALIDADE[a.finalidade]
-                          : a.arquivoNome}
+                        {a.tipoAplicacao
+                          ? `${LABEL_TIPO_APLICACAO[a.tipoAplicacao]}${
+                              a.posicaoAplicacao
+                                ? ` • ${labelPosicao(a.posicaoAplicacao)}`
+                                : ""
+                            }`
+                          : a.finalidade
+                            ? LABEL_FINALIDADE[a.finalidade]
+                            : a.arquivoNome}
                       </p>
                     </div>
                   </TableCell>
