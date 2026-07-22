@@ -21,7 +21,9 @@ import {
   calcularTotal,
   gerarNumeroPedido,
   novoId,
+  pendenciasDoPedido,
   statusFinanceiroCalculado,
+  statusPendenciaAgregado,
   statusProducaoInicial,
 } from "./utils";
 
@@ -116,6 +118,14 @@ export function usePedidos() {
           p.totalPago,
           p.statusFinanceiro === "cancelado",
         );
+        // Recalcula status de pendência de orçamento conforme os adicionais atuais.
+        const pendenciaStatus = statusPendenciaAgregado(
+          pendenciasDoPedido(entrada.itens),
+        );
+        const statusProducao =
+          p.statusFinanceiro === "cancelado"
+            ? p.statusProducao
+            : pendenciaStatus ?? p.statusProducao;
         return {
           ...p,
           clienteId: entrada.clienteId,
@@ -126,6 +136,7 @@ export function usePedidos() {
           frete: entrada.frete,
           total,
           statusFinanceiro,
+          statusProducao,
           previsaoEntrega: entrada.previsaoEntrega,
           observacoes: entrada.observacoes,
           atualizadoEm: new Date().toISOString(),
@@ -137,6 +148,62 @@ export function usePedidos() {
       }),
     );
   }, []);
+
+  /**
+   * Preenche o valor de um adicional que estava pendente de orçamento.
+   * Se após o preenchimento não houver mais pendências, o status do pedido
+   * passa automaticamente para "aguardando_aprovacao".
+   */
+  const atualizarOrcamentoPendente = useCallback(
+    (pedidoId: string, itemId: string, adicionalItemId: string, valor: number) => {
+      commit(setPedidos, (atual) =>
+        atual.map((p) => {
+          if (p.id !== pedidoId) return p;
+          let nomeAdicional = "";
+          const itens = p.itens.map((it) => {
+            if (it.id !== itemId) return it;
+            const adicionais = (it.adicionais ?? []).map((a) => {
+              if (a.id !== adicionalItemId) return a;
+              nomeAdicional = a.nome;
+              return { ...a, valor, pendencia: undefined };
+            });
+            return { ...it, adicionais };
+          });
+          const subtotal = calcularSubtotal(itens);
+          const total = calcularTotal(subtotal, p.desconto, p.frete);
+          const statusFinanceiro = statusFinanceiroCalculado(
+            total,
+            p.totalPago,
+            p.statusFinanceiro === "cancelado",
+          );
+          const restante = statusPendenciaAgregado(pendenciasDoPedido(itens));
+          const statusProducao =
+            p.statusFinanceiro === "cancelado"
+              ? p.statusProducao
+              : restante ?? "aguardando_aprovacao";
+          const valorFmt = valor.toFixed(2).replace(".", ",");
+          return {
+            ...p,
+            itens,
+            subtotal,
+            total,
+            statusFinanceiro,
+            statusProducao,
+            atualizadoEm: new Date().toISOString(),
+            historico: [
+              novaEntradaHistorico(
+                "orcamento_pendente",
+                `Orçamento informado para "${nomeAdicional}": R$ ${valorFmt}.`,
+              ),
+              ...p.historico,
+            ],
+          };
+        }),
+      );
+    },
+    [],
+  );
+
 
   const excluir = useCallback((id: string) => {
     commit(setPedidos, (atual) => atual.filter((p) => p.id !== id));
@@ -261,6 +328,7 @@ export function usePedidos() {
     totais,
     criar,
     atualizar,
+    atualizarOrcamentoPendente,
     excluir,
     alterarStatusProducao,
     registrarPagamento,

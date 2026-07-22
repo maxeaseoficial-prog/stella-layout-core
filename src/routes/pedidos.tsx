@@ -88,6 +88,25 @@ function PedidosPage() {
       if (filtro === "em_orcamento" && p.statusProducao !== "em_orcamento")
         return false;
       if (
+        filtro === "pendentes_orcamento" &&
+        ![
+          "pendente_orcamento",
+          "pendente_orcamento_estampa",
+          "pendente_orcamento_matriz",
+        ].includes(p.statusProducao)
+      )
+        return false;
+      if (
+        filtro === "pendente_orcamento_estampa" &&
+        p.statusProducao !== "pendente_orcamento_estampa"
+      )
+        return false;
+      if (
+        filtro === "pendente_orcamento_matriz" &&
+        p.statusProducao !== "pendente_orcamento_matriz"
+      )
+        return false;
+      if (
         filtro === "aguardando_aprovacao" &&
         p.statusProducao !== "aguardando_aprovacao"
       )

@@ -13,6 +13,9 @@ export type PeriodoFiltroPedido =
 export type FiltroRapido =
   | "todos"
   | "em_orcamento"
+  | "pendentes_orcamento"
+  | "pendente_orcamento_estampa"
+  | "pendente_orcamento_matriz"
   | "aguardando_aprovacao"
   | "producao"
   | "finalizados"
@@ -35,6 +38,9 @@ interface Props {
 const FILTROS: { valor: FiltroRapido; label: string }[] = [
   { valor: "todos", label: "Todos" },
   { valor: "em_orcamento", label: "Em orçamento" },
+  { valor: "pendentes_orcamento", label: "Pendentes de orçamento" },
+  { valor: "pendente_orcamento_estampa", label: "Pend. estampa" },
+  { valor: "pendente_orcamento_matriz", label: "Pend. matriz" },
   { valor: "aguardando_aprovacao", label: "Aguardando aprovação" },
   { valor: "producao", label: "Em produção" },
   { valor: "finalizados", label: "Finalizados" },

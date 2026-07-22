@@ -67,12 +67,31 @@ export const TIPO_PADRAO_POR_CATEGORIA: Record<string, TipoAdicional> = {
   outro: "acessorio",
 };
 
+export type PendenciaAdicional = "orcamento" | "estampa" | "matriz";
+
+export const LABEL_PENDENCIA_ADICIONAL: Record<PendenciaAdicional, string> = {
+  orcamento: "Pendente de Orçamento",
+  estampa: "Pendente de Orçamento de Estampa",
+  matriz: "Pendente de Orçamento de Matriz",
+};
+
+export const PENDENCIAS_ADICIONAL: PendenciaAdicional[] = [
+  "orcamento",
+  "estampa",
+  "matriz",
+];
+
 export interface Adicional {
   id: string;
   nome: string;
   tipo: TipoAdicional;
   categoria: CategoriaAdicional;
   valor: number;
+  /**
+   * Quando definido, o adicional não possui valor fixo — o valor será informado
+   * na criação do pedido via seção "Orçamentos Pendentes".
+   */
+  pendencia?: PendenciaAdicional;
   descricao?: string;
   imagem?: string; // data URL
   status: StatusAdicional;

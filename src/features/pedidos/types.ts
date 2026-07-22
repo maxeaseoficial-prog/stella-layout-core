@@ -1,4 +1,7 @@
 import type { ClienteArquivo } from "@/features/clientes";
+import type { PendenciaAdicional } from "@/features/adicionais/types";
+
+export type { PendenciaAdicional };
 
 export type TipoPersonalizacao =
   | "bordado"
@@ -32,6 +35,12 @@ export interface ItemAdicional {
   nome: string;
   /** Snapshot do valor unitário do adicional (somado ao produto). */
   valor: number;
+  /**
+   * Quando definido, o adicional entra no pedido sem valor calculado e o
+   * pedido fica marcado como "orçamento pendente" até que o valor seja
+   * informado na seção "Orçamentos Pendentes".
+   */
+  pendencia?: PendenciaAdicional;
 }
 
 export interface ItemPedido {
@@ -66,6 +75,9 @@ export interface Pagamento {
 
 export type StatusProducao =
   | "em_orcamento"
+  | "pendente_orcamento"
+  | "pendente_orcamento_estampa"
+  | "pendente_orcamento_matriz"
   | "aguardando_orcamento_matriz"
   | "orcamento_matriz_realizado"
   | "aguardando_aprovacao"
@@ -90,6 +102,7 @@ export type OrigemHistorico =
   | "status_producao"
   | "status_financeiro"
   | "pagamento"
+  | "orcamento_pendente"
   | "cancelamento";
 
 export interface HistoricoEntrada {
@@ -141,6 +154,9 @@ export type PedidoInput = Omit<
 
 export const LABEL_STATUS_PRODUCAO: Record<StatusProducao, string> = {
   em_orcamento: "Em orçamento",
+  pendente_orcamento: "Pendente de Orçamento",
+  pendente_orcamento_estampa: "Pendente de Orçamento de Estampa",
+  pendente_orcamento_matriz: "Pendente de Orçamento de Matriz",
   aguardando_orcamento_matriz: "Aguardando orçamento da matriz",
   orcamento_matriz_realizado: "Orçamento da matriz realizado",
   aguardando_aprovacao: "Aguardando aprovação",
@@ -189,6 +205,9 @@ export const LABEL_FORMA_PAGAMENTO_PEDIDO: Record<FormaPagamentoPedido, string> 
 
 export const STATUS_PRODUCAO_LISTA: StatusProducao[] = [
   "em_orcamento",
+  "pendente_orcamento",
+  "pendente_orcamento_estampa",
+  "pendente_orcamento_matriz",
   "aguardando_orcamento_matriz",
   "orcamento_matriz_realizado",
   "aguardando_aprovacao",
