@@ -24,7 +24,7 @@ import {
   PedidoFiltros,
   PedidoFormDrawer,
   PedidoViewDrawer,
-  PedidosTable,
+  PedidosKanban,
   usePedidos,
   imprimirPedido,
   hojeISO,
@@ -85,42 +85,14 @@ function PedidosPage() {
         if (dataFim && dataPedido > dataFim) return false;
       }
 
-      if (filtro === "em_orcamento" && p.statusProducao !== "em_orcamento")
-        return false;
-      if (
-        filtro === "pendentes_orcamento" &&
-        ![
-          "pendente_orcamento",
-          "pendente_orcamento_estampa",
-          "pendente_orcamento_matriz",
-        ].includes(p.statusProducao)
-      )
-        return false;
-      if (
-        filtro === "pendente_orcamento_estampa" &&
-        p.statusProducao !== "pendente_orcamento_estampa"
-      )
-        return false;
-      if (
-        filtro === "pendente_orcamento_matriz" &&
-        p.statusProducao !== "pendente_orcamento_matriz"
-      )
-        return false;
-      if (
-        filtro === "aguardando_aprovacao" &&
-        p.statusProducao !== "aguardando_aprovacao"
-      )
-        return false;
-      if (
-        filtro === "producao" &&
-        !["producao", "bordado", "costura"].includes(p.statusProducao)
-      )
-        return false;
-      if (filtro === "finalizados" && p.statusProducao !== "finalizado")
-        return false;
-      if (filtro === "entregues" && p.statusProducao !== "entregue") return false;
-      if (filtro === "cancelados" && p.statusProducao !== "cancelado")
-        return false;
+      // O filtro "Cancelados" mostra apenas cancelados; os demais mostram só
+      // ativos (cancelados nunca entram no Kanban).
+      if (filtro === "cancelados") {
+        if (p.statusFinanceiro !== "cancelado") return false;
+      } else {
+        if (p.statusFinanceiro === "cancelado") return false;
+        if (filtro !== "todos" && p.etapa !== filtro) return false;
+      }
 
       if (t) {
         const cliente = clientes.find((c) => c.id === p.clienteId);
@@ -180,7 +152,7 @@ function PedidosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Pedidos"
-        description="Gerencie todos os pedidos da empresa."
+        description="Kanban do fluxo operacional. Os cards se movem automaticamente conforme as ações."
         actions={
           capPedidos.criar ? (
             <Button size="sm" onClick={abrirNovo}>
@@ -228,14 +200,7 @@ function PedidosPage() {
           description="Ajuste os filtros ou a busca para ver mais resultados."
         />
       ) : (
-        <PedidosTable
-          pedidos={pedidosFiltrados}
-          onVisualizar={setVisualizando}
-          onEditar={abrirEdicao}
-          onExcluir={setExcluindo}
-          onImprimir={handleImprimir}
-          onReceberPagamento={handleReceberPagamento}
-        />
+        <PedidosKanban pedidos={pedidosFiltrados} onAbrir={setVisualizando} />
       )}
 
       <PedidoFormDrawer
@@ -261,7 +226,7 @@ function PedidosPage() {
         onConfirmar={(dados) => {
           if (pagamentoDe) {
             registrarPagamento(pagamentoDe.id, dados);
-            toast.success("Pagamento registrado.");
+            toast.success("Recebimento registrado.");
           }
         }}
       />
