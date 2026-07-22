@@ -374,21 +374,32 @@ export function usePedidos() {
       dados: { nomeArquivo: string; numeroWhatsapp: string },
     ) => {
       commit(setPedidos, (atual) =>
-        atual.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                atualizadoEm: new Date().toISOString(),
-                historico: [
-                  novaEntradaHistorico(
-                    "envio_orcamento",
-                    `Orçamento enviado via WhatsApp (${dados.numeroWhatsapp}) — arquivo: ${dados.nomeArquivo}.`,
-                  ),
-                  ...p.historico,
-                ],
-              }
-            : p,
-        ),
+        atual.map((p) => {
+          if (p.id !== id) return p;
+          // Envio do orçamento move automaticamente para "aguardando aprovação"
+          // quando não há mais pendências e o pedido ainda não avançou.
+          const semPendencias = pendenciasDoPedido(p.itens).length === 0;
+          const podeAvancar =
+            semPendencias &&
+            p.statusFinanceiro !== "cancelado" &&
+            (p.statusProducao === "em_orcamento" ||
+              p.statusProducao === "aguardando_orcamento_matriz" ||
+              p.statusProducao === "orcamento_matriz_realizado");
+          const atualizado: Pedido = {
+            ...p,
+            statusProducao: podeAvancar ? "aguardando_aprovacao" : p.statusProducao,
+            atualizadoEm: new Date().toISOString(),
+            historico: [
+              novaEntradaHistorico(
+                "envio_orcamento",
+                `Orçamento enviado via WhatsApp (${dados.numeroWhatsapp}) — arquivo: ${dados.nomeArquivo}.`,
+              ),
+              ...p.historico,
+            ],
+          };
+          atualizado.etapa = calcularEtapa(atualizado);
+          return atualizado;
+        }),
       );
     },
     [],
