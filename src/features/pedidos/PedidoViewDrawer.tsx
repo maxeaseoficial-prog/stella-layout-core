@@ -38,7 +38,7 @@ import {
   telefoneParaWhatsapp,
 } from "./enviarOrcamento";
 import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
-import { pedidoTemPendencia } from "./utils";
+
 
 
 import type { Pedido, StatusProducao, ItemPedido } from "./types";
