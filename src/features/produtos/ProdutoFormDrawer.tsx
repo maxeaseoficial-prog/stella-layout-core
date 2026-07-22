@@ -232,9 +232,9 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS_PRODUTO.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {LABEL_CATEGORIA_PRODUTO[c]}
+                    {categoriasProduto.map((c) => (
+                      <SelectItem key={c.id} value={c.nome}>
+                        {c.nome}
                       </SelectItem>
                     ))}
                   </SelectContent>
