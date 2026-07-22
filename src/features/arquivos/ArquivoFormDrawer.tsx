@@ -261,6 +261,42 @@ export function ArquivoFormDrawer({
               </div>
             </section>
 
+            {/* Especificações */}
+            <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  Especificações
+                </h4>
+                <p className="text-xs text-muted-foreground">
+                  Tamanho da peça e cor utilizada no bordado/estampa.
+                </p>
+              </div>
+              <Campo label="Tamanho">
+                <Input
+                  value={form.tamanhoPeca}
+                  onChange={(e) => up("tamanhoPeca", e.target.value)}
+                  placeholder="Ex.: 8 cm x 8 cm, P, M, G"
+                />
+              </Campo>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Campo label="Cor">
+                  <Input
+                    value={form.cor}
+                    onChange={(e) => up("cor", e.target.value)}
+                    placeholder="Ex.: Rosa Stella"
+                  />
+                </Campo>
+                <Campo label="Número da cor">
+                  <Input
+                    value={form.numeroCor}
+                    onChange={(e) => up("numeroCor", e.target.value)}
+                    placeholder="Ex.: 1805, Pantone 213C"
+                  />
+                </Campo>
+              </div>
+            </section>
+
+
             {/* Upload */}
             <section className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
               <div className="flex items-start justify-between gap-3">
