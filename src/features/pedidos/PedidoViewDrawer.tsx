@@ -98,6 +98,41 @@ export function PedidoViewDrawer({
     toast.success("Status atualizado.");
   }
 
+  const podeEnviarOrcamento =
+    !!pedido &&
+    pedido.statusProducao === "aguardando_aprovacao" &&
+    !pedidoTemPendencia(pedido);
+
+  async function handleEnviarOrcamento() {
+    if (!pedido) return;
+    const numero = telefoneParaWhatsapp(cliente?.telefone ?? "");
+    if (!numero) {
+      toast.error("Cliente sem telefone/WhatsApp cadastrado.");
+      return;
+    }
+    setEnviando(true);
+    try {
+      const { blob, nomeArquivo } = await gerarOrcamentoPDF(
+        pedido,
+        cliente,
+        config.empresa,
+      );
+      baixarPDF(blob, nomeArquivo);
+      registrarEnvioOrcamento(pedido.id, {
+        nomeArquivo,
+        numeroWhatsapp: numero,
+      });
+      abrirWhatsApp(numero, mensagemPadraoOrcamento(pedido, cliente));
+      toast.success("Orçamento gerado. Anexe o PDF baixado no WhatsApp.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Não foi possível gerar o orçamento.");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
       <SheetContent
