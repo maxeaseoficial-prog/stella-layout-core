@@ -1,6 +1,25 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { useClientes, getClienteNome } from "@/features/clientes";
 import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
@@ -13,6 +32,7 @@ import {
   LABEL_ETAPA_KANBAN,
   LABEL_STATUS_FINANCEIRO,
 } from "./types";
+import { usePedidos } from "./usePedidos";
 import {
   corEtapaKanban,
   corStatusFinanceiro,
@@ -21,6 +41,7 @@ import {
   pendenciasDoPedido,
   totalItensPedido,
 } from "./utils";
+
 
 interface Props {
   pedidos: Pedido[];
@@ -196,6 +217,8 @@ function PedidoCard({
   onAbrir: (p: Pedido) => void;
 }) {
   const { clientes } = useClientes();
+  const { excluir } = usePedidos();
+  const [confirmarAberto, setConfirmarAberto] = useState(false);
   const cliente = clientes.find((c) => c.id === pedido.clienteId);
   const nomeCliente = cliente ? getClienteNome(cliente) : "Cliente removido";
   const responsavel =
@@ -205,77 +228,123 @@ function PedidoCard({
   const qtdTotal = totalItensPedido(pedido);
   const pendencias = pendenciasDoPedido(pedido.itens);
 
+  function confirmarExclusao() {
+    excluir(pedido.id);
+    setConfirmarAberto(false);
+    toast.success(`Pedido ${pedido.numero} excluído.`);
+  }
+
   return (
     <li>
-      <button
-        type="button"
-        onClick={() => onAbrir(pedido)}
-        className="flex w-full flex-col gap-2 rounded-lg border border-border bg-surface p-3 text-left shadow-[var(--shadow-soft)] transition hover:border-primary/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
-      >
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="font-mono text-xs font-semibold text-primary">
-            {pedido.numero}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {pedido.previsaoEntrega
-              ? `Entrega ${formatarDataBR(pedido.previsaoEntrega)}`
-              : "Sem previsão"}
-          </span>
-        </div>
-
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {nomeCliente}
-          </p>
-          {responsavel && (
-            <p className="truncate text-[11px] text-muted-foreground">
-              Resp.: {responsavel}
-            </p>
-          )}
-        </div>
-
-        {primeiroItem && (
-          <div className="min-w-0 text-xs text-muted-foreground">
-            <p className="truncate">
-              <span className="text-foreground">{primeiroItem.produto}</span>
-              {restantes > 0 && (
-                <span className="text-muted-foreground"> +{restantes}</span>
-              )}
-            </p>
-            <p>
-              {qtdTotal} un. • {formatarMoeda(pedido.total)}
-            </p>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-1">
-          <Badge
-            variant="outline"
-            className={cn("text-[10px]", corStatusFinanceiro(pedido.statusFinanceiro))}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <button
+            type="button"
+            onClick={() => onAbrir(pedido)}
+            className="flex w-full flex-col gap-2 rounded-lg border border-border bg-surface p-3 text-left shadow-[var(--shadow-soft)] transition hover:border-primary/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
-            {LABEL_STATUS_FINANCEIRO[pedido.statusFinanceiro]}
-          </Badge>
-          {pedido.etapa === "pendencias_orcamento" &&
-            pendencias.map((pen) => (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="font-mono text-xs font-semibold text-primary">
+                {pedido.numero}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {pedido.previsaoEntrega
+                  ? `Entrega ${formatarDataBR(pedido.previsaoEntrega)}`
+                  : "Sem previsão"}
+              </span>
+            </div>
+
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {nomeCliente}
+              </p>
+              {responsavel && (
+                <p className="truncate text-[11px] text-muted-foreground">
+                  Resp.: {responsavel}
+                </p>
+              )}
+            </div>
+
+            {primeiroItem && (
+              <div className="min-w-0 text-xs text-muted-foreground">
+                <p className="truncate">
+                  <span className="text-foreground">{primeiroItem.produto}</span>
+                  {restantes > 0 && (
+                    <span className="text-muted-foreground"> +{restantes}</span>
+                  )}
+                </p>
+                <p>
+                  {qtdTotal} un. • {formatarMoeda(pedido.total)}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center gap-1">
               <Badge
-                key={pen}
                 variant="outline"
-                className="border-orange-300 bg-orange-100 text-[10px] text-orange-900 dark:bg-orange-950/40 dark:text-orange-200"
+                className={cn("text-[10px]", corStatusFinanceiro(pedido.statusFinanceiro))}
               >
-                🟠 {LABEL_PENDENCIA_ADICIONAL[pen]}
+                {LABEL_STATUS_FINANCEIRO[pedido.statusFinanceiro]}
               </Badge>
-            ))}
-          {(pedido.badges ?? []).map((b) => (
-            <Badge
-              key={b}
-              variant="outline"
-              className="border-primary/30 bg-primary-soft/60 text-[10px] text-primary"
+              {pedido.etapa === "pendencias_orcamento" &&
+                pendencias.map((pen) => (
+                  <Badge
+                    key={pen}
+                    variant="outline"
+                    className="border-orange-300 bg-orange-100 text-[10px] text-orange-900 dark:bg-orange-950/40 dark:text-orange-200"
+                  >
+                    🟠 {LABEL_PENDENCIA_ADICIONAL[pen]}
+                  </Badge>
+                ))}
+              {(pedido.badges ?? []).map((b) => (
+                <Badge
+                  key={b}
+                  variant="outline"
+                  className="border-primary/30 bg-primary-soft/60 text-[10px] text-primary"
+                >
+                  {LABEL_BADGE[b]}
+                </Badge>
+              ))}
+            </div>
+          </button>
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-52">
+          <ContextMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setConfirmarAberto(true);
+            }}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Excluir pedido
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+
+      <AlertDialog open={confirmarAberto} onOpenChange={setConfirmarAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir pedido {pedido.numero}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O pedido de{" "}
+              <span className="font-medium text-foreground">{nomeCliente}</span>{" "}
+              será removido permanentemente, junto com seus itens, pagamentos e
+              histórico.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmarExclusao}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {LABEL_BADGE[b]}
-            </Badge>
-          ))}
-        </div>
-      </button>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </li>
   );
 }
+
