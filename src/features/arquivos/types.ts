@@ -28,7 +28,7 @@ export interface Arquivo {
   descricao?: string;
   status: StatusArquivo;
   // Especificações
-  tamanho?: string;
+  tamanhoPeca?: string;
   cor?: string;
   numeroCor?: string;
   // Arquivo
