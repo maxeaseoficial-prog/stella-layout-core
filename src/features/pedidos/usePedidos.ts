@@ -232,6 +232,24 @@ export function usePedidos() {
     [],
   );
 
+  const aprovarPedido = useCallback((id: string) => {
+    commit(setPedidos, (atual) =>
+      atual.map((p) => {
+        if (p.id !== id) return p;
+        if (p.statusProducao !== "aguardando_aprovacao") return p;
+        return {
+          ...p,
+          statusProducao: "orcamento_aprovado",
+          atualizadoEm: new Date().toISOString(),
+          historico: [
+            novaEntradaHistorico("status_producao", "Pedido aprovado."),
+            ...p.historico,
+          ],
+        };
+      }),
+    );
+  }, []);
+
   const registrarPagamento = useCallback(
     (id: string, dados: Omit<Pagamento, "id" | "criadoEm">) => {
       commit(setPedidos, (atual) =>
