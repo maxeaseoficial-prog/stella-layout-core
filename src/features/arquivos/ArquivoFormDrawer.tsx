@@ -18,6 +18,7 @@ import { fileToDataUrl, formatarTamanho, hojeISO } from "@/features/clientes/uti
 import type {
   Arquivo,
   ArquivoInput,
+  CorAplicacao,
   StatusArquivo,
   TipoAplicacao,
   TipoArquivo,
