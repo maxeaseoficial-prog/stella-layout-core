@@ -18,14 +18,16 @@ import { fileToDataUrl, formatarTamanho, hojeISO } from "@/features/clientes/uti
 import type {
   Arquivo,
   ArquivoInput,
-  FinalidadeArquivo,
   StatusArquivo,
+  TipoAplicacao,
   TipoArquivo,
 } from "./types";
 import {
   EXTENSOES_ACEITAS,
-  LABEL_FINALIDADE,
+  LABEL_GRUPO_POSICAO,
+  LABEL_TIPO_APLICACAO,
   LABEL_TIPO_ARQUIVO,
+  posicoesParaTipo,
 } from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 import { ArquivoClienteSelector } from "./ArquivoClienteSelector";
