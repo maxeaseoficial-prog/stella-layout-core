@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -43,8 +44,86 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
   const colunas =
     etapasVisiveis && etapasVisiveis.length > 0 ? etapasVisiveis : ETAPAS_KANBAN;
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef<{
+    ativo: boolean;
+    arrastou: boolean;
+    startX: number;
+    startScroll: number;
+    pointerId: number | null;
+  }>({ ativo: false, arrastou: false, startX: 0, startScroll: 0, pointerId: null });
+
+  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    // Só arrasta com botão principal do mouse; ignora toque (scroll nativo) e
+    // cliques em botões/links, para não bloquear a abertura de cards.
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    const alvo = e.target as HTMLElement;
+    if (alvo.closest("button, a, input, textarea, select")) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    dragState.current = {
+      ativo: true,
+      arrastou: false,
+      startX: e.clientX,
+      startScroll: el.scrollLeft,
+      pointerId: e.pointerId,
+    };
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const st = dragState.current;
+    if (!st.ativo) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const dx = e.clientX - st.startX;
+    if (!st.arrastou && Math.abs(dx) > 4) {
+      st.arrastou = true;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+    }
+    if (st.arrastou) {
+      el.scrollLeft = st.startScroll - dx;
+    }
+  }
+
+  function encerrarArraste(e: React.PointerEvent<HTMLDivElement>) {
+    const st = dragState.current;
+    const el = scrollRef.current;
+    if (st.arrastou && el) {
+      // Impede que o pointerup vire click e abra o card.
+      const bloquearClique = (ev: MouseEvent) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
+      el.addEventListener("click", bloquearClique, { capture: true, once: true });
+    }
+    if (el && st.pointerId !== null && el.hasPointerCapture?.(st.pointerId)) {
+      el.releasePointerCapture(st.pointerId);
+    }
+    if (el) {
+      el.style.cursor = "";
+      el.style.userSelect = "";
+    }
+    dragState.current = {
+      ativo: false,
+      arrastou: false,
+      startX: 0,
+      startScroll: 0,
+      pointerId: null,
+    };
+  }
+
   return (
-    <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
+    <div
+      ref={scrollRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={encerrarArraste}
+      onPointerCancel={encerrarArraste}
+      onPointerLeave={encerrarArraste}
+      className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 cursor-grab"
+    >
       {colunas.map((etapa) => (
         <ColunaKanban
           key={etapa}
@@ -52,7 +131,6 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
           pedidos={porColuna[etapa]}
           onAbrir={onAbrir}
         />
-
       ))}
     </div>
   );
