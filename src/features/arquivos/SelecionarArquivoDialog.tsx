@@ -17,7 +17,12 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FolderOpen } from "lucide-react";
 
 import type { Arquivo } from "./types";
-import { LABEL_FINALIDADE, LABEL_TIPO_ARQUIVO } from "./types";
+import {
+  LABEL_FINALIDADE,
+  LABEL_TIPO_APLICACAO,
+  LABEL_TIPO_ARQUIVO,
+  labelPosicao,
+} from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
 import { useArquivos } from "./useArquivos";
 
