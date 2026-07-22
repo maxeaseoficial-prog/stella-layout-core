@@ -104,6 +104,8 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const { ativos: fornecedoresAtivos } = useFornecedores();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const categoriasEstoque = categoriasPorEscopo("estoque");
 
   useEffect(() => {
     if (aberto) {
