@@ -80,6 +80,13 @@ export function AdicionaisPanel() {
     setExcluindo(null);
   }
 
+  function confirmarRemocao() {
+    if (!removendo) return;
+    remover(removendo.id);
+    toast.success("Adicional excluído permanentemente.");
+    setRemovendo(null);
+  }
+
   const total = adicionais.length;
   const listaVazia = hidratado && total === 0;
   const semResultado = hidratado && total > 0 && lista.length === 0;
