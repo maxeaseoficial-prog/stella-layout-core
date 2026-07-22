@@ -181,10 +181,12 @@ export function useConfiguracoes() {
     if (!nomeNorm) return null;
     const atual = getSnapshot();
     if (atual.formasPagamento.some((f) => normalizar(f.nome) === nomeNorm)) return null;
+    const maxOrdem = atual.formasPagamento.reduce((m, f) => Math.max(m, f.ordem ?? 0), -1);
     const nova: FormaPagamento = {
       id: novoId(),
       nome: nome.trim(),
       ativo: true,
+      ordem: maxOrdem + 1,
       criadoEm: new Date().toISOString(),
     };
     setState({ ...atual, formasPagamento: [...atual.formasPagamento, nova] });
@@ -225,6 +227,19 @@ export function useConfiguracoes() {
       formasPagamento: atual.formasPagamento.filter((f) => f.id !== id),
     });
   }, []);
+
+  const reordenarFormasPagamento = useCallback((idsOrdenados: string[]) => {
+    const atual = getSnapshot();
+    const ordemIndex = new Map(idsOrdenados.map((id, i) => [id, i]));
+    const atualizadas = atual.formasPagamento.map((f) =>
+      ordemIndex.has(f.id) ? { ...f, ordem: ordemIndex.get(f.id)! } : f,
+    );
+    setState({
+      ...atual,
+      formasPagamento: atualizadas.slice().sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0)),
+    });
+  }, []);
+
 
   // ---------- Usuários ----------
   const salvarUsuarios = useCallback((usuarios: Usuario[]) => {
