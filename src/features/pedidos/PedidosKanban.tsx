@@ -1,6 +1,25 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { useClientes, getClienteNome } from "@/features/clientes";
 import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
@@ -13,6 +32,7 @@ import {
   LABEL_ETAPA_KANBAN,
   LABEL_STATUS_FINANCEIRO,
 } from "./types";
+import { usePedidos } from "./usePedidos";
 import {
   corEtapaKanban,
   corStatusFinanceiro,
@@ -21,6 +41,7 @@ import {
   pendenciasDoPedido,
   totalItensPedido,
 } from "./utils";
+
 
 interface Props {
   pedidos: Pedido[];
