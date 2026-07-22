@@ -437,25 +437,31 @@ export function usePedidos() {
 
   const totais = useMemo(() => {
     const ativos = pedidos.filter((p) => p.statusFinanceiro !== "cancelado");
+    const porEtapa = {
+      em_elaboracao: 0,
+      pendencias_orcamento: 0,
+      aguardando_aprovacao: 0,
+      em_producao: 0,
+      finalizado: 0,
+      entregue: 0,
+    };
+    for (const p of ativos) porEtapa[p.etapa] = (porEtapa[p.etapa] ?? 0) + 1;
     return {
       totalPedidos: pedidos.length,
-      pendentes: ativos.filter((p) =>
-        [
-          "em_orcamento",
-          "aguardando_orcamento_matriz",
-          "orcamento_matriz_realizado",
-          "aguardando_aprovacao",
-        ].includes(p.statusProducao),
-      ).length,
-      producao: ativos.filter((p) =>
-        ["producao_matriz", "producao", "bordado", "costura"].includes(
-          p.statusProducao,
-        ),
-      ).length,
-      entregues: ativos.filter((p) => p.statusProducao === "entregue").length,
+      porEtapa,
+      pendentes: porEtapa.em_elaboracao + porEtapa.pendencias_orcamento + porEtapa.aguardando_aprovacao,
+      producao: porEtapa.em_producao,
+      finalizados: porEtapa.finalizado,
+      entregues: porEtapa.entregue,
+      emAberto: ativos.filter((p) => p.statusFinanceiro === "aguardando_pagamento").length,
+      parcialmentePagos: ativos.filter((p) => p.statusFinanceiro === "parcialmente_pago").length,
       pagos: ativos.filter((p) => p.statusFinanceiro === "pago").length,
       faturamento: ativos.reduce((s, p) => s + p.total, 0),
       recebido: ativos.reduce((s, p) => s + p.totalPago, 0),
+      saldoReceber: ativos.reduce(
+        (s, p) => s + Math.max(0, p.total - p.totalPago),
+        0,
+      ),
     };
   }, [pedidos]);
 
@@ -469,6 +475,8 @@ export function usePedidos() {
     excluir,
     alterarStatusProducao,
     aprovarPedido,
+    finalizarProducao,
+    marcarEntregue,
     registrarPagamento,
     registrarEnvioOrcamento,
     registrarOrdemProducao,
