@@ -35,7 +35,7 @@ import type {
 import { LABEL_TIPO_ADICIONAL, TIPOS_ADICIONAL } from "./types";
 
 export function AdicionaisPanel() {
-  const { adicionais, hidratado, criar, atualizar, excluir, filtrar } = useAdicionais();
+  const { adicionais, hidratado, criar, atualizar, excluir, remover, filtrar } = useAdicionais();
 
   const [termo, setTermo] = useState("");
   const [tipo, setTipo] = useState<TipoAdicional | "todos">("todos");
