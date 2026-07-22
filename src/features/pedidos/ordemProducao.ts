@@ -95,9 +95,10 @@ export async function gerarOrdemProducaoPDF(
 
   function linhaInfo(coluna: number, label: string, valor: string, cursorY: number) {
     doc.setFont("helvetica", "bold");
-    doc.text(`${label}:`, coluna, cursorY);
+    const labelTxt = `${label}:`;
+    doc.text(labelTxt, coluna, cursorY);
     doc.setFont("helvetica", "normal");
-    const larguraLabel = doc.getTextWidth(`${label}: `);
+    const larguraLabel = doc.getTextWidth(labelTxt) + 4;
     doc.text(valor, coluna + larguraLabel, cursorY);
   }
 
@@ -130,16 +131,38 @@ export async function gerarOrdemProducaoPDF(
   doc.text("Produtos", margem, y);
   y += 14;
 
+  const EXT_IMG_RASTER = ["png", "jpg", "jpeg", "webp"];
+
+  function formatoJsPDF(ext: string): "PNG" | "JPEG" | "WEBP" | null {
+    const e = ext.toLowerCase();
+    if (e === "png") return "PNG";
+    if (e === "jpg" || e === "jpeg") return "JPEG";
+    if (e === "webp") return "WEBP";
+    return null;
+  }
+
+  async function dimensoesImagem(dataUrl: string): Promise<{ w: number; h: number }> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth || 1, h: img.naturalHeight || 1 });
+      img.onerror = () => resolve({ w: 1, h: 1 });
+      img.src = dataUrl;
+    });
+  }
+
   for (const item of pedido.itens) {
     const personalizacoes = personalizacoesDoItem(item);
-    const arquivosNomes = pedido.arquivos.map((a) => a.nome);
+    const arquivos = pedido.arquivos;
+    const imagens = arquivos.filter((a) => EXT_IMG_RASTER.includes(a.extensao.toLowerCase()));
+    const vetoriais = arquivos.filter((a) => !EXT_IMG_RASTER.includes(a.extensao.toLowerCase()));
 
     // Estimar altura do bloco para quebra de página
-    const linhasEstim =
-      2 + // produto + qtd
-      (personalizacoes.length ? 1 + personalizacoes.length : 0) +
-      (arquivosNomes.length ? 1 + arquivosNomes.length : 0);
-    const alturaEstim = 60 + linhasEstim * 16;
+    const alturaImg = imagens.length > 0 ? 200 : 0;
+    const alturaEstim =
+      60 +
+      alturaImg +
+      (personalizacoes.length ? 20 + personalizacoes.length * 16 : 0) +
+      (vetoriais.length ? 20 + vetoriais.length * 16 : 0);
     if (y + alturaEstim > 760) {
       doc.addPage();
       y = margem;
