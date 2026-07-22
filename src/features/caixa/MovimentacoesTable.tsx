@@ -87,7 +87,7 @@ export function MovimentacoesTable({
                     m.tipo === "entrada" ? "text-success" : "text-destructive",
                   )}
                 >
-                  {m.tipo === "entrada" ? "+" : "−"} {formatarMoeda(m.valor)}
+                  {m.tipo === "entrada" ? "+" : "-"} {formatarMoeda(m.valor)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {formatarDataBR(m.data)}

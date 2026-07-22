@@ -54,7 +54,7 @@ export function MovimentacaoViewDialog({ movimentacao, aberto, onFechar }: Props
                     : "text-destructive",
                 )}
               >
-                {movimentacao.tipo === "entrada" ? "+" : "−"}{" "}
+                {movimentacao.tipo === "entrada" ? "+" : "-"}{" "}
                 {formatarMoeda(movimentacao.valor)}
               </span>
             </div>
