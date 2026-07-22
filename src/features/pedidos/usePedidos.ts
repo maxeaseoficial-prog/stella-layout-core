@@ -359,7 +359,9 @@ export function usePedidos() {
     excluir,
     alterarStatusProducao,
     registrarPagamento,
+    registrarEnvioOrcamento,
     cancelar,
     buscarPorId,
   };
 }
+
