@@ -151,6 +151,10 @@ export function corStatusProducao(status: StatusProducao): string {
   switch (status) {
     case "em_orcamento":
       return "border-border bg-muted text-muted-foreground";
+    case "pendente_orcamento":
+    case "pendente_orcamento_estampa":
+    case "pendente_orcamento_matriz":
+      return "border-amber-400 bg-amber-100 text-amber-900";
     case "aguardando_orcamento_matriz":
       return "border-orange-300 bg-orange-100 text-orange-800";
     case "orcamento_matriz_realizado":
