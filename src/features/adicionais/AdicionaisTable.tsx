@@ -111,6 +111,12 @@ export function AdicionaisTable({ adicionais, onEditar, onExcluir, onRemover }: 
                           <Trash2 className="h-4 w-4" /> Inativar
                         </DropdownMenuItem>
                       )}
+                      <DropdownMenuItem
+                        onClick={() => onRemover(a)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" /> Excluir permanentemente
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
