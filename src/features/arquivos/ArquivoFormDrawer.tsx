@@ -184,9 +184,11 @@ export function ArquivoFormDrawer({
       nome: form.nome.trim(),
       descricao: form.descricao.trim() || undefined,
       status: form.status,
-      tamanhoPeca: form.tamanhoPeca.trim() || undefined,
-      cor: form.cor.trim() || undefined,
-      numeroCor: form.numeroCor.trim() || undefined,
+      larguraCm: form.larguraCm.trim() ? Number(form.larguraCm.replace(",", ".")) : undefined,
+      alturaCm: form.alturaCm.trim() ? Number(form.alturaCm.replace(",", ".")) : undefined,
+      cores: form.cores.length
+        ? form.cores.map((c) => ({ nome: c.nome.trim(), numero: c.numero.trim() }))
+        : undefined,
       arquivoNome: form.arquivoNome,
       extensao: form.extensao,
       mime: form.mime,
