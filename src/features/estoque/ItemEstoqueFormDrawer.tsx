@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { fileToDataUrl } from "@/features/clientes";
 import { useFornecedores } from "@/features/fornecedores";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 import type {
   CategoriaEstoque,
@@ -30,8 +31,6 @@ import type {
   UnidadeMedida,
 } from "./types";
 import {
-  CATEGORIAS_ESTOQUE,
-  LABEL_CATEGORIA_ESTOQUE,
   LABEL_UNIDADE,
   UNIDADES_MEDIDA,
 } from "./types";
