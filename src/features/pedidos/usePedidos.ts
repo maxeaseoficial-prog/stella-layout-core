@@ -188,12 +188,15 @@ export function usePedidos() {
             p.statusFinanceiro === "cancelado",
           );
           const restante = statusPendenciaAgregado(pendenciasDoPedido(itens));
-          // Resolver pendências sozinho não avança o pedido: ele volta para
-          // Em Elaboração até que o orçamento seja efetivamente enviado.
+          // Enquanto houver pendências, mantém o status agregado (pendente_*).
+          // Quando a última pendência é resolvida, o pedido avança direto para
+          // "Aguardando Aprovação" — só sai dessa etapa quando o usuário
+          // clicar em "Aprovar Pedido".
           const statusProducao =
             p.statusFinanceiro === "cancelado"
               ? p.statusProducao
-              : restante ?? "em_orcamento";
+              : restante ?? "aguardando_aprovacao";
+
           const valorFmt = valor.toFixed(2).replace(".", ",");
           const atualizado: Pedido = {
             ...p,
