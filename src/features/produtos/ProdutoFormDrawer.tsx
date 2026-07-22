@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { fileToDataUrl } from "@/features/clientes";
+import { useConfiguracoes } from "@/features/configuracoes";
 
 import type {
   CategoriaProduto,
@@ -31,8 +32,6 @@ import type {
   StatusProduto,
 } from "./types";
 import {
-  CATEGORIAS_PRODUTO,
-  LABEL_CATEGORIA_PRODUTO,
   PERSONALIZACOES_VAZIAS,
 } from "./types";
 
