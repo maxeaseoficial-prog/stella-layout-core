@@ -90,6 +90,11 @@ export function useProdutos() {
     );
   }, []);
 
+  /** Exclusão permanente: remove o registro do armazenamento. */
+  const remover = useCallback((id: string) => {
+    setProdutos(getSnapshot().filter((p) => p.id !== id));
+  }, []);
+
   const buscarPorId = useCallback(
     (id: string) => produtos.find((p) => p.id === id),
     [produtos],
