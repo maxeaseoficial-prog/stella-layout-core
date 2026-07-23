@@ -288,11 +288,8 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                             </div>
                           ) : (
                             adicionaisAtivos.map((a) => {
-                              const jaUsado = (item.adicionais ?? []).some(
-                                (x) => x.adicionalId === a.id,
-                              );
                               return (
-                                <SelectItem key={a.id} value={a.id} disabled={jaUsado}>
+                                <SelectItem key={a.id} value={a.id}>
                                   {a.nome}
                                   {a.pendencia
                                     ? " — Orçamento pendente"
@@ -305,6 +302,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                                 </SelectItem>
                               );
                             })
+
                           )}
                         </SelectContent>
                       </Select>
