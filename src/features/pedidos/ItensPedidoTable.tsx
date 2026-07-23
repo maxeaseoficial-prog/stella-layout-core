@@ -110,8 +110,6 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
       itens.map((i) => {
         if (i.id !== itemId) return i;
         const atuais = i.adicionais ?? [];
-        // Não duplicar o mesmo adicional no item.
-        if (atuais.some((x) => x.adicionalId === a.id)) return i;
         const novo: ItemAdicional = {
           id: novoId(),
           adicionalId: a.id,
@@ -123,6 +121,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
       }),
     );
   }
+
 
   function removerAdicional(itemId: string, adicionalItemId: string) {
     onChange(
