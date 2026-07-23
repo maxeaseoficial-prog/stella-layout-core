@@ -110,8 +110,6 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
       itens.map((i) => {
         if (i.id !== itemId) return i;
         const atuais = i.adicionais ?? [];
-        // Não duplicar o mesmo adicional no item.
-        if (atuais.some((x) => x.adicionalId === a.id)) return i;
         const novo: ItemAdicional = {
           id: novoId(),
           adicionalId: a.id,
@@ -123,6 +121,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
       }),
     );
   }
+
 
   function removerAdicional(itemId: string, adicionalItemId: string) {
     onChange(
@@ -289,11 +288,8 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                             </div>
                           ) : (
                             adicionaisAtivos.map((a) => {
-                              const jaUsado = (item.adicionais ?? []).some(
-                                (x) => x.adicionalId === a.id,
-                              );
                               return (
-                                <SelectItem key={a.id} value={a.id} disabled={jaUsado}>
+                                <SelectItem key={a.id} value={a.id}>
                                   {a.nome}
                                   {a.pendencia
                                     ? " — Orçamento pendente"
@@ -306,6 +302,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                                 </SelectItem>
                               );
                             })
+
                           )}
                         </SelectContent>
                       </Select>
