@@ -33,7 +33,7 @@ export interface ItemAdicional {
   adicionalId?: string;
   /** Snapshot do nome do adicional no momento do pedido. */
   nome: string;
-  /** Snapshot do valor unitário do adicional (somado ao produto). */
+  /** Snapshot do valor do adicional. Por padrão somado por unidade do produto. */
   valor: number;
   /**
    * Quando definido, o adicional entra no pedido sem valor calculado e o
@@ -41,6 +41,12 @@ export interface ItemAdicional {
    * informado na seção "Orçamentos Pendentes".
    */
   pendencia?: PendenciaAdicional;
+  /**
+   * Quando true, o valor é cobrado uma única vez por item (não multiplica
+   * pela quantidade). Usado em custos avulsos como matriz de bordado /
+   * estampa — adicionais originados de uma pendência são únicos por padrão.
+   */
+  unico?: boolean;
 }
 
 export interface ItemPedido {
