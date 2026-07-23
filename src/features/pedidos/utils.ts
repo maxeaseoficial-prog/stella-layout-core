@@ -60,13 +60,24 @@ export function isAdicionalPendente(a: ItemAdicional): boolean {
 
 export function somaAdicionaisItem(item: ItemPedido): number {
   return (item.adicionais ?? []).reduce(
-    (s, a) => s + (isAdicionalPendente(a) ? 0 : a.valor || 0),
+    (s, a) => s + (isAdicionalPendente(a) || a.unico ? 0 : a.valor || 0),
+    0,
+  );
+}
+
+/** Soma dos adicionais cobrados uma única vez por item (não multiplicam por qtd). */
+export function somaAdicionaisUnicosItem(item: ItemPedido): number {
+  return (item.adicionais ?? []).reduce(
+    (s, a) => s + (!isAdicionalPendente(a) && a.unico ? a.valor || 0 : 0),
     0,
   );
 }
 
 export function calcularSubtotalItem(item: ItemPedido): number {
-  return item.quantidade * (item.valorUnitario + somaAdicionaisItem(item));
+  return (
+    item.quantidade * (item.valorUnitario + somaAdicionaisItem(item)) +
+    somaAdicionaisUnicosItem(item)
+  );
 }
 
 export function calcularSubtotal(itens: ItemPedido[]): number {

@@ -83,7 +83,7 @@ export function OrcamentosPendentesSection({ pedido }: Props) {
             Orçamentos Pendentes
           </h4>
           <p className="text-xs text-amber-800/80">
-            Informe o valor de cada adicional para liberar o pedido.
+            Informe o valor total (único) de cada adicional para liberar o pedido.
           </p>
         </div>
       </div>
