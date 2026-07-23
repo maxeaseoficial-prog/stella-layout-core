@@ -116,6 +116,10 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
           nome: a.nome,
           valor: a.pendencia ? 0 : a.valor,
           pendencia: a.pendencia,
+          // Custos que dependem de orçamento (matriz de bordado / estampa,
+          // orçamentos avulsos) são cobrados uma única vez por item, não
+          // multiplicam pela quantidade produzida.
+          unico: a.pendencia ? true : undefined,
         };
         return { ...i, adicionais: [...atuais, novo] };
       }),
