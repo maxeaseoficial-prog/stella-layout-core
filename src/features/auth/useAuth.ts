@@ -78,6 +78,19 @@ function escrever(state: AuthState) {
   window.dispatchEvent(new Event(EVENT_NAME));
 }
 
+let snapshotCache: AuthState = { user: null };
+let snapshotKey = "__init__";
+function getStableSnapshot(): AuthState {
+  const next = ler();
+  const key = JSON.stringify(next);
+  if (key !== snapshotKey) {
+    snapshotCache = next;
+    snapshotKey = key;
+  }
+  return snapshotCache;
+}
+const EMPTY_SNAPSHOT: AuthState = { user: null };
+
 function identificadorParaEmail(id: string): string {
   const trimmed = id.trim();
   if (trimmed.includes("@")) return trimmed.toLowerCase();
