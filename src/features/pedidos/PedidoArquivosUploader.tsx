@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { ClienteArquivo } from "@/features/clientes";
 import { fileToDataUrl, formatarTamanho } from "@/features/clientes/utils";
 import { SelecionarArquivoDialog } from "@/features/arquivos";
+import type { Arquivo } from "@/features/arquivos";
 import { formatarDataBR, novoId } from "./utils";
 
 const ACCEPT =
@@ -20,6 +21,12 @@ interface Props {
   subtitulo?: string;
   /** Oculta o cabeçalho padrão (usado quando o card externo já traz o título). */
   semCabecalho?: boolean;
+  /**
+   * Disparado quando o usuário adiciona itens vindos do acervo (Matrizes &
+   * Logos). Permite que o pedido reaproveite valor e especificações do
+   * arquivo — lançando adicional único e copiando dados para observações.
+   */
+  onAnexosDoAcervo?: (arquivos: Arquivo[]) => void;
 }
 
 export function PedidoArquivosUploader({
@@ -29,6 +36,7 @@ export function PedidoArquivosUploader({
   titulo,
   subtitulo,
   semCabecalho,
+  onAnexosDoAcervo,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectorAberto, setSelectorAberto] = useState(false);
@@ -58,22 +66,23 @@ export function PedidoArquivosUploader({
     onChange(arquivos.filter((a) => a.id !== id));
   }
 
-  function adicionarDoAcervo(itens: { id: string; arquivoNome: string; mime: string; extensao: string; tamanho: number; dataUrl: string }[]) {
+  function adicionarDoAcervo(itens: Arquivo[]) {
     const jaIds = new Set(arquivos.map((a) => a.id));
-    const novos: ClienteArquivo[] = itens
-      .filter((i) => !jaIds.has(i.id))
-      .map((i) => ({
-        id: i.id,
-        nome: i.arquivoNome,
-        tipo: i.mime,
-        extensao: i.extensao,
-        tamanho: i.tamanho,
-        dataUrl: i.dataUrl,
-        criadoEm: new Date().toISOString(),
-      }));
+    const inéditos = itens.filter((i) => !jaIds.has(i.id));
+    const novos: ClienteArquivo[] = inéditos.map((i) => ({
+      id: i.id,
+      nome: i.arquivoNome,
+      tipo: i.mime,
+      extensao: i.extensao,
+      tamanho: i.tamanho,
+      dataUrl: i.dataUrl,
+      criadoEm: new Date().toISOString(),
+    }));
     if (novos.length) onChange([...arquivos, ...novos]);
+    if (inéditos.length && onAnexosDoAcervo) onAnexosDoAcervo(inéditos);
     setSelectorAberto(false);
   }
+
 
   return (
     <div className="space-y-3">
@@ -97,7 +106,7 @@ export function PedidoArquivosUploader({
               variant="outline"
               onClick={() => setSelectorAberto(true)}
             >
-              <FolderOpen className="h-4 w-4" /> Selecionar arquivo existente
+              <FolderOpen className="h-4 w-4" /> Anexar Matriz/Logo
             </Button>
           )}
           <Button

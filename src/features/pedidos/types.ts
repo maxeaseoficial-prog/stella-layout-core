@@ -66,6 +66,8 @@ export interface ItemPedido {
    * Orçamento passam a exibir somente os arquivos do próprio item.
    */
   arquivos?: ClienteArquivo[];
+  /** Observações específicas deste produto no pedido. */
+  observacoes?: string;
 }
 
 

@@ -14,13 +14,15 @@ import {
 import { cn } from "@/lib/utils";
 
 import type { ClienteArquivo } from "@/features/clientes";
+import type { Arquivo } from "@/features/arquivos";
+import { arquivoParaObservacoes } from "@/features/arquivos";
 
-import type { ItemPedido, Pedido, PedidoInput } from "./types";
+import type { ItemAdicional, ItemPedido, Pedido, PedidoInput } from "./types";
 import { ClienteSelector } from "./ClienteSelector";
 import { ItensPedidoTable } from "./ItensPedidoTable";
 import { PedidoArquivosUploader } from "./PedidoArquivosUploader";
 import { ResumoFinanceiro } from "./ResumoFinanceiro";
-import { calcularSubtotal, parseValorInput } from "./utils";
+import { calcularSubtotal, novoId, parseValorInput } from "./utils";
 
 interface Props {
   aberto: boolean;
@@ -106,6 +108,42 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
   function up<K extends keyof FormState>(k: K, v: FormState[K]) {
     setForm((f) => ({ ...f, [k]: v }));
   }
+
+  function anexarDoAcervo(itemId: string, arqs: Arquivo[]) {
+    setForm((f) => ({
+      ...f,
+      itens: f.itens.map((it) => {
+        if (it.id !== itemId) return it;
+        const atuais = it.adicionais ?? [];
+        // Evita duplicar adicionais para o mesmo arquivo já anexado
+        const jaVinculados = new Set(
+          atuais
+            .map((a) => (a as ItemAdicional & { arquivoId?: string }).arquivoId)
+            .filter(Boolean) as string[],
+        );
+        const novosAdicionais: ItemAdicional[] = arqs
+          .filter((a) => (a.valor ?? 0) > 0 && !jaVinculados.has(a.id))
+          .map((a) => ({
+            id: novoId(),
+            nome: `${a.nome} (matriz/logo)`,
+            valor: a.valor ?? 0,
+            unico: true,
+            arquivoId: a.id,
+          } as ItemAdicional & { arquivoId: string }));
+
+        const blocos = arqs.map(arquivoParaObservacoes).filter(Boolean);
+        const anterior = (it.observacoes ?? "").trim();
+        const combinado = [anterior, ...blocos].filter(Boolean).join("\n\n");
+
+        return {
+          ...it,
+          adicionais: [...atuais, ...novosAdicionais],
+          observacoes: combinado || undefined,
+        };
+      }),
+    }));
+  }
+
 
   function podeAvancar(): boolean {
     if (etapa === 1 && !form.clienteId) {
@@ -269,7 +307,26 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
                           )
                         }
                         clienteId={form.clienteId}
+                        onAnexosDoAcervo={(arqs) => anexarDoAcervo(item.id, arqs)}
                       />
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Observações do produto</Label>
+                        <Textarea
+                          rows={4}
+                          value={item.observacoes ?? ""}
+                          onChange={(e) =>
+                            up(
+                              "itens",
+                              form.itens.map((it) =>
+                                it.id === item.id
+                                  ? { ...it, observacoes: e.target.value }
+                                  : it,
+                              ),
+                            )
+                          }
+                          placeholder="Preenchido automaticamente ao anexar uma Matriz/Logo."
+                        />
+                      </div>
                     </div>
                   ))
                 )}
