@@ -51,10 +51,28 @@ function estadoInicial(pedido?: Pedido | null): FormState {
       observacoes: "",
     };
   }
+  // Migração de arquivos legados (vinculados ao pedido) para o primeiro item,
+  // caso nenhum item ainda possua arquivos próprios. Assim pedidos antigos
+  // continuam funcionando e passam a seguir a nova estrutura por produto.
+  const algumItemComArquivos = pedido.itens.some(
+    (i) => (i.arquivos ?? []).length > 0,
+  );
+  let itens = pedido.itens;
+  let arquivosLegados = pedido.arquivos;
+  if (
+    !algumItemComArquivos &&
+    pedido.arquivos.length > 0 &&
+    pedido.itens.length > 0
+  ) {
+    itens = pedido.itens.map((i, idx) =>
+      idx === 0 ? { ...i, arquivos: pedido.arquivos } : i,
+    );
+    arquivosLegados = [];
+  }
   return {
     clienteId: pedido.clienteId,
-    itens: pedido.itens,
-    arquivos: pedido.arquivos,
+    itens,
+    arquivos: arquivosLegados,
     descontoStr:
       pedido.desconto > 0 ? pedido.desconto.toFixed(2).replace(".", ",") : "",
     freteStr: pedido.frete > 0 ? pedido.frete.toFixed(2).replace(".", ",") : "",
@@ -62,6 +80,7 @@ function estadoInicial(pedido?: Pedido | null): FormState {
     observacoes: pedido.observacoes ?? "",
   };
 }
+
 
 const ETAPAS = [
   { id: 1, label: "Cliente" },
