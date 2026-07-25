@@ -9,7 +9,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -154,7 +154,19 @@ function AuthGate() {
   const isLoginRoute = pathname === "/login";
   const isTrocaSenhaRoute = pathname === "/trocar-senha";
 
+  // Evita redirecionar antes de o snapshot do localStorage estar disponível.
+  // Durante a hidratação (SSR/CSR), `useSyncExternalStore` devolve o server
+  // snapshot (user=null); só depois de montado passamos a ler o snapshot real
+  // do cliente. Sem esse guard, um F5 em /pedidos dispara o efeito abaixo com
+  // isAuthenticated=false e chuta o usuário para /login (ou /) antes de a
+  // sessão real ser lida.
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!isAuthenticated && !isLoginRoute) {
       navigate({
         to: "/login",
@@ -175,7 +187,7 @@ function AuthGate() {
         }
       });
     }
-  }, [isAuthenticated, isLoginRoute, isTrocaSenhaRoute, navigate, pathname, papel, user?.precisaTrocarSenha]);
+  }, [hydrated, isAuthenticated, isLoginRoute, isTrocaSenhaRoute, navigate, pathname, papel, user?.precisaTrocarSenha]);
 
   if (isLoginRoute || isTrocaSenhaRoute) {
     return <Outlet />;
