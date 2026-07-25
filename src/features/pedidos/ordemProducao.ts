@@ -229,9 +229,24 @@ export async function gerarOrdemProducaoPDF(
     h: number;
   }
 
-  for (const item of pedido.itens) {
+  // Compatibilidade: pedidos legados podem ter arquivos apenas em pedido.arquivos.
+  // Quando nenhum item tiver arquivos próprios, usamos pedido.arquivos apenas
+  // no primeiro item (evita repetir o mesmo arquivo em todos os produtos).
+  const nenhumItemTemArquivos = pedido.itens.every(
+    (it) => (it.arquivos ?? []).length === 0,
+  );
+  const usarLegadoNoPrimeiroItem =
+    nenhumItemTemArquivos && (pedido.arquivos?.length ?? 0) > 0;
+
+  for (let idxItem = 0; idxItem < pedido.itens.length; idxItem++) {
+    const item = pedido.itens[idxItem];
     const personalizacoes = personalizacoesDoItem(item);
-    const arquivos = pedido.arquivos;
+    const arquivos =
+      (item.arquivos ?? []).length > 0
+        ? item.arquivos!
+        : usarLegadoNoPrimeiroItem && idxItem === 0
+          ? pedido.arquivos
+          : [];
 
     // Preparar previews (raster, svg, pdf renderizado)
     const previews: PreviewItem[] = [];
@@ -254,6 +269,7 @@ export async function gerarOrdemProducaoPDF(
         semPreview.push({ nome: arq.nome, motivo: `Arquivo ${ext.toUpperCase()}` });
       }
     }
+
 
     // Estimar altura do bloco para quebra de página
     const alturaImg = previews.length > 0 ? 220 : 0;
