@@ -14,13 +14,15 @@ import {
 import { cn } from "@/lib/utils";
 
 import type { ClienteArquivo } from "@/features/clientes";
+import type { Arquivo } from "@/features/arquivos";
+import { arquivoParaObservacoes } from "@/features/arquivos";
 
-import type { ItemPedido, Pedido, PedidoInput } from "./types";
+import type { ItemAdicional, ItemPedido, Pedido, PedidoInput } from "./types";
 import { ClienteSelector } from "./ClienteSelector";
 import { ItensPedidoTable } from "./ItensPedidoTable";
 import { PedidoArquivosUploader } from "./PedidoArquivosUploader";
 import { ResumoFinanceiro } from "./ResumoFinanceiro";
-import { calcularSubtotal, parseValorInput } from "./utils";
+import { calcularSubtotal, novoId, parseValorInput } from "./utils";
 
 interface Props {
   aberto: boolean;
