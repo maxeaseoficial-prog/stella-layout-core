@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { login, useAuth } from "@/features/auth/useAuth";
+import { bootstrapUsuariosStella } from "@/lib/bootstrap-usuarios.functions";
 import fachada from "@/assets/stella-fachada.png.asset.json";
 
 export const Route = createFileRoute("/login")({
@@ -33,6 +34,11 @@ function LoginPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [esqueceuAberto, setEsqueceuAberto] = useState(false);
+
+  useEffect(() => {
+    // Garante que as contas semente da Stella existem no Cloud (idempotente).
+    void bootstrapUsuariosStella().catch(() => { /* silencioso */ });
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
