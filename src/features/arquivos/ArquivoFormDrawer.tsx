@@ -405,6 +405,26 @@ export function ArquivoFormDrawer({
                 </div>
               </div>
 
+              {/* Valor */}
+              <div>
+                <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Valor da matriz/logo
+                </h5>
+                <Campo label="Valor (R$)">
+                  <Input
+                    inputMode="decimal"
+                    value={form.valorStr}
+                    onChange={(e) => up("valorStr", e.target.value)}
+                    placeholder="Ex.: 45,00"
+                  />
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Este valor será lançado automaticamente como adicional único
+                    do produto ao anexar esta matriz/logo em um pedido.
+                  </p>
+                </Campo>
+              </div>
+
+
               {/* Cores */}
               <div>
                 <h5 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
