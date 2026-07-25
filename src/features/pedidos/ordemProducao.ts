@@ -92,33 +92,37 @@ export async function gerarOrdemProducaoPDF(
 
   const colEsq = margem;
   const colDir = larg / 2 + 10;
+  const larguraColuna = larg / 2 - margem - 10;
+  const larguraLabel = 130; // largura fixa para alinhamento consistente
+  const alturaLinha = 14;
 
-  function linhaInfo(coluna: number, label: string, valor: string, cursorY: number) {
+  function linhaInfo(coluna: number, label: string, valor: string, cursorY: number): number {
     doc.setFont("helvetica", "bold");
-    const labelTxt = `${label}: `;
-    doc.text(labelTxt, coluna, cursorY);
+    doc.text(`${label}:`, coluna, cursorY);
     doc.setFont("helvetica", "normal");
-    const larguraLabel = doc.getTextWidth(labelTxt) + 2;
-    doc.text(String(valor ?? "—"), coluna + larguraLabel, cursorY);
+    const texto = String(valor ?? "—").trim() || "—";
+    const larguraValor = larguraColuna - larguraLabel;
+    const linhas = doc.splitTextToSize(texto, larguraValor);
+    doc.text(linhas, coluna + larguraLabel, cursorY);
+    return linhas.length;
   }
 
+  function par(labelEsq: string, valorEsq: string, labelDir: string | null, valorDir: string) {
+    const nEsq = linhaInfo(colEsq, labelEsq, valorEsq, y);
+    const nDir = labelDir ? linhaInfo(colDir, labelDir, valorDir, y) : 0;
+    y += Math.max(nEsq, nDir, 1) * alturaLinha + 4;
+  }
 
-  linhaInfo(colEsq, "Pedido", pedido.numero, y);
-  linhaInfo(colDir, "Data", emissao, y);
-  y += 16;
-  linhaInfo(colEsq, "Cliente", nomeCliente, y);
-  linhaInfo(colDir, "Empresa", empresaCliente, y);
-  y += 16;
-  linhaInfo(colEsq, "Responsável", responsavelPedido, y);
-  linhaInfo(
-    colDir,
+  par("Pedido", pedido.numero, "Data", emissao);
+  par("Cliente", nomeCliente, "Empresa", empresaCliente);
+  par(
+    "Responsável",
+    responsavelPedido,
     "Previsão de entrega",
     pedido.previsaoEntrega ? formatarDataBR(pedido.previsaoEntrega) : "—",
-    y,
   );
-  y += 16;
-  linhaInfo(colEsq, "Status", LABEL_STATUS_PRODUCAO[pedido.statusProducao], y);
-  y += 22;
+  par("Status", LABEL_STATUS_PRODUCAO[pedido.statusProducao], null, "");
+  y += 8;
 
   doc.setDrawColor(220);
   doc.setLineWidth(0.6);
