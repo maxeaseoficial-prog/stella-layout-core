@@ -397,6 +397,31 @@ export async function gerarOrdemProducaoPDF(
       y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
     }
 
+    // Observações do produto (inclui informações copiadas de Matrizes/Logos)
+    if (item.observacoes && item.observacoes.trim()) {
+      autoTable(doc, {
+        startY: y,
+        margin: { left: margem, right: margem },
+        head: [["Observações do produto"]],
+        body: [[item.observacoes.trim()]],
+        theme: "grid",
+        headStyles: {
+          fillColor: [255, 255, 255],
+          textColor: CINZA,
+          fontStyle: "bold",
+          fontSize: 10,
+          lineColor: [230, 230, 230],
+        },
+        styles: {
+          fontSize: 11,
+          cellPadding: 6,
+          textColor: PRETO,
+          lineColor: [235, 235, 235],
+        },
+      });
+      y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY;
+    }
+
     // Arquivos sem pré-visualização
     if (semPreview.length > 0) {
       autoTable(doc, {
