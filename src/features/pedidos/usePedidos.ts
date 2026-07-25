@@ -126,15 +126,16 @@ export function usePedidos() {
         const pendenciaStatus = statusPendenciaAgregado(
           pendenciasDoPedido(entrada.itens),
         );
-        // Editar um pedido devolve para Em Elaboração (exceto se já estiver
-        // finalizado/entregue/cancelado). Pendências, se houver, têm prioridade.
+        // Editar um pedido: se houver pendências, volta para o status agregado
+        // de pendência; caso contrário fica em "Aguardando Aprovação"
+        // (orçamento pronto). Preserva estados finais/cancelado.
         const preservar =
           p.statusFinanceiro === "cancelado" ||
           p.statusProducao === "finalizado" ||
           p.statusProducao === "entregue";
         const statusProducao = preservar
           ? p.statusProducao
-          : pendenciaStatus ?? "em_orcamento";
+          : pendenciaStatus ?? "aguardando_aprovacao";
         const atualizado: Pedido = {
           ...p,
           clienteId: entrada.clienteId,
