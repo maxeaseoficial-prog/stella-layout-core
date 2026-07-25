@@ -212,8 +212,14 @@ export function PedidoViewDrawer({
                     <TabsTrigger value="geral">Geral</TabsTrigger>
                     <TabsTrigger value="produtos">Produtos</TabsTrigger>
                     <TabsTrigger value="arquivos">
-                      Arquivos ({pedido.arquivos.length})
+                      Arquivos (
+                      {pedido.itens.reduce(
+                        (n, it) => n + (it.arquivos?.length ?? 0),
+                        0,
+                      ) + pedido.arquivos.length}
+                      )
                     </TabsTrigger>
+
                     <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
                     <TabsTrigger value="historico">Histórico</TabsTrigger>
                   </TabsList>
