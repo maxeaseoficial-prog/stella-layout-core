@@ -201,6 +201,8 @@ export interface Arquivo {
   /** @deprecated substituído por `cores` */
   numeroCor?: string;
   cores?: CorAplicacao[];
+  /** Custo da matriz/logo. Reutilizado como adicional único no pedido. */
+  valor?: number;
   // Arquivo
   arquivoNome: string;
   extensao: string;
