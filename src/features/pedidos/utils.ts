@@ -124,7 +124,9 @@ export function pedidoTemPendencia(pedido: Pedido | { itens: ItemPedido[] }): bo
 export function statusProducaoInicial(itens: ItemPedido[]): StatusProducao {
   const pendencia = statusPendenciaAgregado(pendenciasDoPedido(itens));
   if (pendencia) return pendencia;
-  return possuiBordado(itens) ? "aguardando_orcamento_matriz" : "em_orcamento";
+  // Sem pendências de orçamento → orçamento já está pronto para o cliente.
+  // O fluxo operacional é independente do financeiro; pagamento não muda coluna.
+  return "aguardando_aprovacao";
 }
 
 export function statusFinanceiroCalculado(
