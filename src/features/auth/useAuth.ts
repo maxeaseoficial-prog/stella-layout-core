@@ -161,8 +161,8 @@ export function useAuth(): {
         window.removeEventListener("storage", handler);
       };
     },
-    () => ler(),
-    () => ({ user: null }),
+    getStableSnapshot,
+    () => EMPTY_SNAPSHOT,
   );
   const papel = state.user?.papel ?? null;
   return {
