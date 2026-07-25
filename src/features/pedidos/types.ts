@@ -60,7 +60,14 @@ export interface ItemPedido {
   personalizacoes: Personalizacao[];
   /** Adicionais aplicados ao item (opcional em pedidos legados). */
   adicionais?: ItemAdicional[];
+  /**
+   * Arquivos (logos, matrizes, artes) vinculados especificamente a este
+   * produto. Substitui o antigo `pedido.arquivos` — os PDFs de Produção e
+   * Orçamento passam a exibir somente os arquivos do próprio item.
+   */
+  arquivos?: ClienteArquivo[];
 }
+
 
 export type FormaPagamentoPedido =
   | "pix"
