@@ -119,71 +119,94 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
     etapasVisiveis && etapasVisiveis.length > 0 ? etapasVisiveis : ETAPAS_KANBAN;
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef<{
-    ativo: boolean;
-    arrastou: boolean;
-    startX: number;
-    startScroll: number;
-    pointerId: number | null;
-  }>({ ativo: false, arrastou: false, startX: 0, startScroll: 0, pointerId: null });
 
-  function onPointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (e.pointerType !== "mouse" || e.button !== 0) return;
-    const alvo = e.target as HTMLElement;
-    if (alvo.closest("button, a, input, textarea, select")) return;
+  useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    dragState.current = {
-      ativo: true,
-      arrastou: false,
-      startX: e.clientX,
-      startScroll: el.scrollLeft,
-      pointerId: e.pointerId,
-    };
-  }
 
-  function onPointerMove(e: React.PointerEvent<HTMLDivElement>) {
-    const st = dragState.current;
-    if (!st.ativo) return;
-    const el = scrollRef.current;
-    if (!el) return;
-    const dx = e.clientX - st.startX;
-    if (!st.arrastou && Math.abs(dx) > 4) {
-      st.arrastou = true;
-      el.setPointerCapture(e.pointerId);
-      el.style.cursor = "grabbing";
-      el.style.userSelect = "none";
-    }
-    if (st.arrastou) {
-      el.scrollLeft = st.startScroll - dx;
-    }
-  }
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startScroll = 0;
+    let targetScroll = 0;
+    let rafId: number | null = null;
+    let suppressClick = false;
 
-  function encerrarArraste(e: React.PointerEvent<HTMLDivElement>) {
-    const st = dragState.current;
-    const el = scrollRef.current;
-    if (st.arrastou && el) {
-      const bloquearClique = (ev: MouseEvent) => {
-        ev.stopPropagation();
-        ev.preventDefault();
-      };
-      el.addEventListener("click", bloquearClique, { capture: true, once: true });
-    }
-    if (el && st.pointerId !== null && el.hasPointerCapture?.(st.pointerId)) {
-      el.releasePointerCapture(st.pointerId);
-    }
-    if (el) {
-      el.style.cursor = "";
-      el.style.userSelect = "";
-    }
-    dragState.current = {
-      ativo: false,
-      arrastou: false,
-      startX: 0,
-      startScroll: 0,
-      pointerId: null,
+    const applyScroll = () => {
+      rafId = null;
+      el.scrollLeft = targetScroll;
     };
-  }
+
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      const target = e.target as HTMLElement;
+      if (target.closest("button, a, input, textarea, select, [role='menu']")) return;
+      dragging = true;
+      moved = false;
+      startX = e.clientX;
+      startScroll = el.scrollLeft;
+      targetScroll = startScroll;
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      if (!moved) {
+        if (Math.abs(dx) < 4) return;
+        moved = true;
+        document.body.style.cursor = "grabbing";
+        document.body.style.userSelect = "none";
+      }
+      e.preventDefault();
+      targetScroll = startScroll - dx;
+      if (rafId === null) rafId = requestAnimationFrame(applyScroll);
+    };
+
+    const onMouseUp = () => {
+      if (!dragging) return;
+      const wasMoved = moved;
+      dragging = false;
+      moved = false;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+        el.scrollLeft = targetScroll;
+      }
+      if (wasMoved) {
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 0);
+      }
+    };
+
+    const onClickCapture = (e: MouseEvent) => {
+      if (suppressClick) {
+        e.stopPropagation();
+        e.preventDefault();
+        suppressClick = false;
+      }
+    };
+
+    const onDragStart = (e: DragEvent) => {
+      if (dragging) e.preventDefault();
+    };
+
+    el.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mousemove", onMouseMove, { passive: false });
+    window.addEventListener("mouseup", onMouseUp);
+    el.addEventListener("click", onClickCapture, true);
+    el.addEventListener("dragstart", onDragStart);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      el.removeEventListener("click", onClickCapture, true);
+      el.removeEventListener("dragstart", onDragStart);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     const el = scrollRef.current;
@@ -201,11 +224,6 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
       ref={scrollRef}
       tabIndex={0}
       onKeyDown={onKeyDown}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={encerrarArraste}
-      onPointerCancel={encerrarArraste}
-      onPointerLeave={encerrarArraste}
       className="scrollbar-thin -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-4 pt-1 cursor-grab focus:outline-none"
     >
       {colunas.map((etapa) => (
