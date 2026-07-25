@@ -48,8 +48,7 @@ function LoginPage() {
     }
     setEnviando(true);
     // pequena latência para dar sensação de autenticação real
-    await new Promise((r) => setTimeout(r, 400));
-    const result = login(email, senha);
+    const result = await login(email, senha);
     setEnviando(false);
     if (!result.ok) {
       toast.error(result.erro || "Não foi possível entrar.");
