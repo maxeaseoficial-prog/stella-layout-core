@@ -51,10 +51,28 @@ function estadoInicial(pedido?: Pedido | null): FormState {
       observacoes: "",
     };
   }
+  // Migração de arquivos legados (vinculados ao pedido) para o primeiro item,
+  // caso nenhum item ainda possua arquivos próprios. Assim pedidos antigos
+  // continuam funcionando e passam a seguir a nova estrutura por produto.
+  const algumItemComArquivos = pedido.itens.some(
+    (i) => (i.arquivos ?? []).length > 0,
+  );
+  let itens = pedido.itens;
+  let arquivosLegados = pedido.arquivos;
+  if (
+    !algumItemComArquivos &&
+    pedido.arquivos.length > 0 &&
+    pedido.itens.length > 0
+  ) {
+    itens = pedido.itens.map((i, idx) =>
+      idx === 0 ? { ...i, arquivos: pedido.arquivos } : i,
+    );
+    arquivosLegados = [];
+  }
   return {
     clienteId: pedido.clienteId,
-    itens: pedido.itens,
-    arquivos: pedido.arquivos,
+    itens,
+    arquivos: arquivosLegados,
     descontoStr:
       pedido.desconto > 0 ? pedido.desconto.toFixed(2).replace(".", ",") : "",
     freteStr: pedido.frete > 0 ? pedido.frete.toFixed(2).replace(".", ",") : "",
@@ -62,6 +80,7 @@ function estadoInicial(pedido?: Pedido | null): FormState {
     observacoes: pedido.observacoes ?? "",
   };
 }
+
 
 const ETAPAS = [
   { id: 1, label: "Cliente" },
@@ -207,13 +226,56 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
 
           {etapa === 3 && (
             <div className="space-y-4">
-              <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
-                <PedidoArquivosUploader
-                  arquivos={form.arquivos}
-                  onChange={(a) => up("arquivos", a)}
-                  clienteId={form.clienteId}
-                />
+              <section className="space-y-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Arquivos por produto
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Cada produto do pedido possui sua própria lista de logos, matrizes e artes.
+                    Os PDFs de Produção e Orçamento exibem apenas os arquivos do produto correspondente.
+                  </p>
+                </div>
+
+                {form.itens.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border/70 bg-surface-muted/40 p-6 text-center text-sm text-muted-foreground">
+                    Nenhum produto no pedido. Volte à etapa anterior para adicionar produtos.
+                  </div>
+                ) : (
+                  form.itens.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            {item.produto?.trim() || `Produto ${idx + 1}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Quantidade: {item.quantidade}
+                          </p>
+                        </div>
+                      </div>
+                      <PedidoArquivosUploader
+                        semCabecalho
+                        arquivos={item.arquivos ?? []}
+                        onChange={(a) =>
+                          up(
+                            "itens",
+                            form.itens.map((it) =>
+                              it.id === item.id ? { ...it, arquivos: a } : it,
+                            ),
+                          )
+                        }
+                        clienteId={form.clienteId}
+                      />
+                    </div>
+                  ))
+                )}
               </section>
+
+
 
               <ResumoFinanceiro
                 subtotal={subtotal}

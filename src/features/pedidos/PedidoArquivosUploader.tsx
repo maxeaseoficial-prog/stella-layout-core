@@ -16,9 +16,20 @@ interface Props {
   arquivos: ClienteArquivo[];
   onChange: (arquivos: ClienteArquivo[]) => void;
   clienteId?: string;
+  titulo?: string;
+  subtitulo?: string;
+  /** Oculta o cabeçalho padrão (usado quando o card externo já traz o título). */
+  semCabecalho?: boolean;
 }
 
-export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props) {
+export function PedidoArquivosUploader({
+  arquivos,
+  onChange,
+  clienteId,
+  titulo,
+  subtitulo,
+  semCabecalho,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectorAberto, setSelectorAberto] = useState(false);
 
@@ -67,12 +78,17 @@ export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props)
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">Arquivos</p>
-          <p className="text-xs text-muted-foreground">
-            Reutilize logos e matrizes já cadastradas do cliente ou envie novos arquivos.
-          </p>
-        </div>
+        {!semCabecalho && (
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              {titulo ?? "Arquivos"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {subtitulo ??
+                "Reutilize logos e matrizes já cadastradas do cliente ou envie novos arquivos."}
+            </p>
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           {clienteId && (
             <Button
@@ -90,7 +106,7 @@ export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props)
             variant="outline"
             onClick={() => inputRef.current?.click()}
           >
-            <Upload className="h-4 w-4" /> Enviar arquivos
+            <Upload className="h-4 w-4" /> Enviar arquivo
           </Button>
         </div>
         <input
@@ -102,6 +118,7 @@ export function PedidoArquivosUploader({ arquivos, onChange, clienteId }: Props)
           onChange={(e) => handleFiles(e.target.files)}
         />
       </div>
+
 
       {clienteId && (
         <SelecionarArquivoDialog

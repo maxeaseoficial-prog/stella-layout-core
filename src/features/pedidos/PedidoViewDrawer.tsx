@@ -212,8 +212,14 @@ export function PedidoViewDrawer({
                     <TabsTrigger value="geral">Geral</TabsTrigger>
                     <TabsTrigger value="produtos">Produtos</TabsTrigger>
                     <TabsTrigger value="arquivos">
-                      Arquivos ({pedido.arquivos.length})
+                      Arquivos (
+                      {pedido.itens.reduce(
+                        (n, it) => n + (it.arquivos?.length ?? 0),
+                        0,
+                      ) + pedido.arquivos.length}
+                      )
                     </TabsTrigger>
+
                     <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
                     <TabsTrigger value="historico">Histórico</TabsTrigger>
                   </TabsList>
@@ -285,58 +291,91 @@ export function PedidoViewDrawer({
                     ))}
                   </TabsContent>
 
-                  <TabsContent value="arquivos" className="mt-0">
-                    {pedido.arquivos.length === 0 ? (
-                      <Bloco titulo="Arquivos">
-                        <p className="text-sm text-muted-foreground">
-                          Nenhum arquivo anexado a este pedido.
-                        </p>
-                      </Bloco>
-                    ) : (
-                      <ul className="grid gap-2 sm:grid-cols-2">
-                        {pedido.arquivos.map((arq) => {
-                          const isImg = ["png", "jpg", "jpeg", "svg"].includes(
-                            arq.extensao,
-                          );
-                          return (
-                            <li
-                              key={arq.id}
-                              className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[var(--shadow-soft)]"
-                            >
-                              {isImg ? (
-                                <img
-                                  src={arq.dataUrl}
-                                  alt={arq.nome}
-                                  className="h-12 w-12 rounded-lg object-cover ring-1 ring-border"
-                                />
-                              ) : (
-                                <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary-soft text-primary">
-                                  <FileText className="h-5 w-5" />
-                                </div>
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-foreground">
-                                  {arq.nome}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {arq.extensao.toUpperCase()} •{" "}
-                                  {formatarTamanho(arq.tamanho)}
-                                </p>
-                              </div>
-                              <a
-                                href={arq.dataUrl}
-                                download={arq.nome}
-                                className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                                aria-label="Baixar"
-                              >
-                                <Download className="h-4 w-4" />
-                              </a>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
+                  <TabsContent value="arquivos" className="mt-0 space-y-3">
+                    {(() => {
+                      const grupos = pedido.itens.map((item) => ({
+                        titulo: item.produto?.trim() || "Produto",
+                        quantidade: item.quantidade,
+                        arquivos: item.arquivos ?? [],
+                      }));
+                      if (pedido.arquivos.length > 0) {
+                        grupos.push({
+                          titulo: "Arquivos do pedido (legado)",
+                          quantidade: 0,
+                          arquivos: pedido.arquivos,
+                        });
+                      }
+                      const totalArquivos = grupos.reduce(
+                        (n, g) => n + g.arquivos.length,
+                        0,
+                      );
+                      if (totalArquivos === 0) {
+                        return (
+                          <Bloco titulo="Arquivos">
+                            <p className="text-sm text-muted-foreground">
+                              Nenhum arquivo anexado a este pedido.
+                            </p>
+                          </Bloco>
+                        );
+                      }
+                      return grupos
+                        .filter((g) => g.arquivos.length > 0)
+                        .map((g, idx) => (
+                          <Bloco
+                            key={idx}
+                            titulo={
+                              g.quantidade > 0
+                                ? `${g.titulo} — Qtd: ${g.quantidade}`
+                                : g.titulo
+                            }
+                          >
+                            <ul className="grid gap-2 sm:grid-cols-2">
+                              {g.arquivos.map((arq) => {
+                                const isImg = ["png", "jpg", "jpeg", "svg"].includes(
+                                  arq.extensao,
+                                );
+                                return (
+                                  <li
+                                    key={arq.id}
+                                    className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[var(--shadow-soft)]"
+                                  >
+                                    {isImg ? (
+                                      <img
+                                        src={arq.dataUrl}
+                                        alt={arq.nome}
+                                        className="h-12 w-12 rounded-lg object-cover ring-1 ring-border"
+                                      />
+                                    ) : (
+                                      <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary-soft text-primary">
+                                        <FileText className="h-5 w-5" />
+                                      </div>
+                                    )}
+                                    <div className="min-w-0 flex-1">
+                                      <p className="truncate text-sm font-medium text-foreground">
+                                        {arq.nome}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {arq.extensao.toUpperCase()} •{" "}
+                                        {formatarTamanho(arq.tamanho)}
+                                      </p>
+                                    </div>
+                                    <a
+                                      href={arq.dataUrl}
+                                      download={arq.nome}
+                                      className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                                      aria-label="Baixar"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </a>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </Bloco>
+                        ));
+                    })()}
                   </TabsContent>
+
 
                   <TabsContent value="financeiro" className="mt-0 space-y-3">
                     <Bloco titulo="Valores">
