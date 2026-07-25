@@ -162,17 +162,10 @@ export async function gerarOrcamentoPDF(
     for (const ad of item.adicionais ?? []) {
       const rotulo = ad.pendencia
         ? `+ ${ad.nome} — pendente de orçamento`
-        : ad.unico
-          ? `+ ${ad.nome} (valor único)`
-          : `+ ${ad.nome}`;
-      const valorLinha = ad.pendencia
-        ? 0
-        : ad.unico
-          ? ad.valor || 0
-          : subtotalAdicional(ad) * item.quantidade;
+        : `+ ${ad.nome}`;
       linhas.push([
         rotulo,
-        ad.pendencia ? "—" : formatarMoeda(valorLinha),
+        ad.pendencia ? "—" : formatarMoeda(ad.valor || 0),
       ]);
     }
     linhas.push(["Subtotal do produto", formatarMoeda(subtotalItem)]);
