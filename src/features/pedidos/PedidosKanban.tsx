@@ -124,46 +124,64 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
     const el = scrollRef.current;
     if (!el) return;
 
-    let dragging = false;
+    let pointerId: number | null = null;
     let moved = false;
     let startX = 0;
     let startScroll = 0;
     let suppressClick = false;
 
-    const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 0) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0 || e.pointerType === "touch") return;
       const target = e.target as HTMLElement;
       if (target.closest("button, a, input, textarea, select, [role='menu']")) return;
-      dragging = true;
+      pointerId = e.pointerId;
       moved = false;
       startX = e.clientX;
       startScroll = el.scrollLeft;
     };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
+    const applyDelta = (clientX: number) => {
+      const dx = clientX - startX;
       if (!moved) {
         if (Math.abs(dx) < 4) return;
         moved = true;
         document.body.style.cursor = "grabbing";
         document.body.style.userSelect = "none";
+        try {
+          el.setPointerCapture(pointerId!);
+        } catch {}
       }
-      e.preventDefault();
-      // 1:1 direct write, no rAF coalescing, no rounding.
       el.scrollLeft = startScroll - dx;
     };
 
-    const onMouseUp = () => {
-      if (!dragging) return;
+    const onPointerMove = (e: PointerEvent) => {
+      if (pointerId === null || e.pointerId !== pointerId) return;
+      // Consume every coalesced sample the OS captured between frames so the
+      // drag matches the native scrollbar's compositor-driven smoothness.
+      const events =
+        typeof e.getCoalescedEvents === "function" ? e.getCoalescedEvents() : [];
+      if (events.length > 0) {
+        for (const ev of events) applyDelta(ev.clientX);
+      } else {
+        applyDelta(e.clientX);
+      }
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (pointerId === null || e.pointerId !== pointerId) return;
       const wasMoved = moved;
-      dragging = false;
+      try {
+        el.releasePointerCapture(pointerId);
+      } catch {}
+      pointerId = null;
       moved = false;
       if (wasMoved) {
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
         suppressClick = true;
-        setTimeout(() => { suppressClick = false; }, 0);
+        setTimeout(() => {
+          suppressClick = false;
+        }, 0);
       }
     };
 
@@ -176,19 +194,21 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
     };
 
     const onDragStart = (e: DragEvent) => {
-      if (dragging) e.preventDefault();
+      if (pointerId !== null) e.preventDefault();
     };
 
-    el.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove, { passive: false });
-    window.addEventListener("mouseup", onMouseUp);
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("pointercancel", onPointerUp);
     el.addEventListener("click", onClickCapture, true);
     el.addEventListener("dragstart", onDragStart);
 
     return () => {
-      el.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("pointercancel", onPointerUp);
       el.removeEventListener("click", onClickCapture, true);
       el.removeEventListener("dragstart", onDragStart);
     };
