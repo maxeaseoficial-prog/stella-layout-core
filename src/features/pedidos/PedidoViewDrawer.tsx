@@ -113,8 +113,9 @@ export function PedidoViewDrawer({
 
   const podeEnviarOrcamento =
     !!pedido &&
-    pedido.statusProducao === "aguardando_aprovacao" &&
+    pedido.itens.length > 0 &&
     !pedidoTemPendencia(pedido);
+
 
   async function handleEnviarOrcamento() {
     if (!pedido) return;
