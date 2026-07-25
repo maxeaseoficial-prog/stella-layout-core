@@ -226,13 +226,56 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
 
           {etapa === 3 && (
             <div className="space-y-4">
-              <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
-                <PedidoArquivosUploader
-                  arquivos={form.arquivos}
-                  onChange={(a) => up("arquivos", a)}
-                  clienteId={form.clienteId}
-                />
+              <section className="space-y-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Arquivos por produto
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Cada produto do pedido possui sua própria lista de logos, matrizes e artes.
+                    Os PDFs de Produção e Orçamento exibem apenas os arquivos do produto correspondente.
+                  </p>
+                </div>
+
+                {form.itens.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border/70 bg-surface-muted/40 p-6 text-center text-sm text-muted-foreground">
+                    Nenhum produto no pedido. Volte à etapa anterior para adicionar produtos.
+                  </div>
+                ) : (
+                  form.itens.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-foreground">
+                            {item.produto?.trim() || `Produto ${idx + 1}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Quantidade: {item.quantidade}
+                          </p>
+                        </div>
+                      </div>
+                      <PedidoArquivosUploader
+                        semCabecalho
+                        arquivos={item.arquivos ?? []}
+                        onChange={(a) =>
+                          up(
+                            "itens",
+                            form.itens.map((it) =>
+                              it.id === item.id ? { ...it, arquivos: a } : it,
+                            ),
+                          )
+                        }
+                        clienteId={form.clienteId}
+                      />
+                    </div>
+                  ))
+                )}
               </section>
+
+
 
               <ResumoFinanceiro
                 subtotal={subtotal}
