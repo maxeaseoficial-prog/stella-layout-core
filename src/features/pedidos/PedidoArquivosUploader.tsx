@@ -106,7 +106,7 @@ export function PedidoArquivosUploader({
               variant="outline"
               onClick={() => setSelectorAberto(true)}
             >
-              <FolderOpen className="h-4 w-4" /> Selecionar arquivo existente
+              <FolderOpen className="h-4 w-4" /> Anexar Matriz/Logo
             </Button>
           )}
           <Button
