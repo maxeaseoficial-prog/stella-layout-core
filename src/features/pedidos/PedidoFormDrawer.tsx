@@ -109,6 +109,42 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  function anexarDoAcervo(itemId: string, arqs: Arquivo[]) {
+    setForm((f) => ({
+      ...f,
+      itens: f.itens.map((it) => {
+        if (it.id !== itemId) return it;
+        const atuais = it.adicionais ?? [];
+        // Evita duplicar adicionais para o mesmo arquivo já anexado
+        const jaVinculados = new Set(
+          atuais
+            .map((a) => (a as ItemAdicional & { arquivoId?: string }).arquivoId)
+            .filter(Boolean) as string[],
+        );
+        const novosAdicionais: ItemAdicional[] = arqs
+          .filter((a) => (a.valor ?? 0) > 0 && !jaVinculados.has(a.id))
+          .map((a) => ({
+            id: novoId(),
+            nome: `${a.nome} (matriz/logo)`,
+            valor: a.valor ?? 0,
+            unico: true,
+            arquivoId: a.id,
+          } as ItemAdicional & { arquivoId: string }));
+
+        const blocos = arqs.map(arquivoParaObservacoes).filter(Boolean);
+        const anterior = (it.observacoes ?? "").trim();
+        const combinado = [anterior, ...blocos].filter(Boolean).join("\n\n");
+
+        return {
+          ...it,
+          adicionais: [...atuais, ...novosAdicionais],
+          observacoes: combinado || undefined,
+        };
+      }),
+    }));
+  }
+
+
   function podeAvancar(): boolean {
     if (etapa === 1 && !form.clienteId) {
       setErro("Selecione um cliente para continuar.");
