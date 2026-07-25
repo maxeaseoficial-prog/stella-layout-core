@@ -128,14 +128,7 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
     let moved = false;
     let startX = 0;
     let startScroll = 0;
-    let targetScroll = 0;
-    let rafId: number | null = null;
     let suppressClick = false;
-
-    const applyScroll = () => {
-      rafId = null;
-      el.scrollLeft = targetScroll;
-    };
 
     const onMouseDown = (e: MouseEvent) => {
       if (e.button !== 0) return;
@@ -145,7 +138,6 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
       moved = false;
       startX = e.clientX;
       startScroll = el.scrollLeft;
-      targetScroll = startScroll;
     };
 
     const onMouseMove = (e: MouseEvent) => {
@@ -158,8 +150,8 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
         document.body.style.userSelect = "none";
       }
       e.preventDefault();
-      targetScroll = startScroll - dx;
-      if (rafId === null) rafId = requestAnimationFrame(applyScroll);
+      // 1:1 direct write, no rAF coalescing, no rounding.
+      el.scrollLeft = startScroll - dx;
     };
 
     const onMouseUp = () => {
@@ -167,11 +159,6 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
       const wasMoved = moved;
       dragging = false;
       moved = false;
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-        el.scrollLeft = targetScroll;
-      }
       if (wasMoved) {
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
@@ -204,9 +191,9 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
       window.removeEventListener("mouseup", onMouseUp);
       el.removeEventListener("click", onClickCapture, true);
       el.removeEventListener("dragstart", onDragStart);
-      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, []);
+
 
   function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     const el = scrollRef.current;
