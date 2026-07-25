@@ -1,24 +1,27 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
+import { supabase } from "@/integrations/supabase/client";
 import type { Capacidades, Papel } from "./permissions";
 import { capacidadesDe } from "./permissions";
-import {
-  encontrarPorCredencial,
-  listarUsuarios,
-  registrarAcesso,
-  trocarPropriaSenha,
-} from "@/features/usuarios/useUsuarios";
 
 /**
- * Autenticação mock (localStorage). As contas ficam agora armazenadas no
- * módulo Usuários (`stella.usuarios.v1`) e podem ser gerenciadas pelo
- * Administrador. Contas padrão semeadas:
- *  - Administrador:  administrador@gmail.com / adm123 (usuário: administrador)
- *  - Operador Matriz: matriz / matriz123
+ * Autenticação real via Supabase Auth. Mantém a MESMA superfície pública
+ * (`useAuth`, `login`, `logout`, `usuarioAtual`, `trocarSenhaObrigatoria`,
+ * `CONTA_TESTE`) para não obrigar refatorações em consumidores.
+ *
+ * Regras:
+ *  - Login por e-mail OU pelo apelido cadastrado (ex.: "matriz" →
+ *    matriz@stella.com.br). O mapeamento é fixo para os usuários
+ *    semeados; contas criadas via Configurações → Usuários usam
+ *    o e-mail direto.
+ *  - O papel do usuário vem da tabela `empresa_usuarios`.
+ *  - `stella:auth` no localStorage é preenchido a partir da sessão do
+ *    Supabase para que os componentes continuem lendo síncrono.
  */
 
 const STORAGE_KEY = "stella:auth";
 const EVENT_NAME = "stella:auth:updated";
+const TENANT_ID_DEFAULT = "11111111-1111-1111-1111-111111111111";
 
 export const CONTA_TESTE = {
   email: "administrador@gmail.com",
@@ -30,6 +33,11 @@ export const CONTA_TESTE = {
 const PAPEL_LABEL: Record<Papel, string> = {
   administrador: "Administrador",
   operador_matriz: "Operador Matriz",
+};
+
+const APELIDOS_EMAIL: Record<string, string> = {
+  administrador: "administrador@gmail.com",
+  matriz: "matriz@stella.com.br",
 };
 
 export interface AuthUser {
@@ -46,49 +54,80 @@ interface AuthState {
   user: AuthUser | null;
 }
 
+function isBrowser() {
+  return typeof window !== "undefined";
+}
 function ler(): AuthState {
-  if (typeof window === "undefined") return { user: null };
+  if (!isBrowser()) return { user: null };
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return { user: null };
-    const parsed = JSON.parse(raw) as AuthState;
-    return { user: parsed.user ?? null };
+    return JSON.parse(raw) as AuthState;
   } catch {
     return { user: null };
   }
 }
-
 function escrever(state: AuthState) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!isBrowser()) return;
+  if (state.user) {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } else {
+    window.localStorage.removeItem(STORAGE_KEY);
+  }
   window.dispatchEvent(new Event(EVENT_NAME));
 }
 
-function subscribe(cb: () => void) {
-  if (typeof window === "undefined") return () => {};
-  const handler = () => cb();
-  window.addEventListener(EVENT_NAME, handler);
-  window.addEventListener("storage", handler);
-  return () => {
-    window.removeEventListener(EVENT_NAME, handler);
-    window.removeEventListener("storage", handler);
-  };
+function identificadorParaEmail(id: string): string {
+  const trimmed = id.trim();
+  if (trimmed.includes("@")) return trimmed.toLowerCase();
+  const key = trimmed.toLowerCase();
+  return APELIDOS_EMAIL[key] ?? key;
 }
 
-let cache: AuthState = ler();
-let cacheKey = "";
-function getSnapshot(): AuthState {
-  const next = ler();
-  const key = JSON.stringify(next);
-  if (key !== cacheKey) {
-    cache = next;
-    cacheKey = key;
-  }
-  return cache;
+async function papelDoUsuario(userId: string): Promise<Papel> {
+  const { data } = await supabase
+    .from("empresa_usuarios")
+    .select("papel")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return ((data?.papel as Papel | undefined) ?? "administrador") as Papel;
 }
-const EMPTY_AUTH: AuthState = { user: null };
-function getServerSnapshot(): AuthState {
-  return EMPTY_AUTH;
+
+async function sincronizarSessao() {
+  const { data } = await supabase.auth.getUser();
+  const u = data.user;
+  if (!u) {
+    escrever({ user: null });
+    return;
+  }
+  const papel = await papelDoUsuario(u.id);
+  const meta = (u.user_metadata ?? {}) as {
+    nome?: string;
+    usuario?: string;
+    papel?: Papel;
+  };
+  const nome = meta.nome ?? (u.email?.split("@")[0] ?? "Usuário");
+  const authUser: AuthUser = {
+    id: u.id,
+    email: u.email ?? "",
+    nome,
+    papel,
+    papelLabel: PAPEL_LABEL[papel],
+    logadoEm: new Date().toISOString(),
+    precisaTrocarSenha: false,
+  };
+  escrever({ user: authUser });
+}
+
+// Assina onAuthStateChange uma única vez, no boot do módulo (client-side)
+if (isBrowser()) {
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "INITIAL_SESSION") {
+      void sincronizarSessao();
+    } else if (event === "SIGNED_OUT") {
+      escrever({ user: null });
+    }
+  });
 }
 
 export function useAuth(): {
@@ -97,7 +136,19 @@ export function useAuth(): {
   papel: Papel | null;
   capacidades: Capacidades;
 } {
-  const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [state, setState] = useState<AuthState>(() =>
+    isBrowser() ? ler() : { user: null },
+  );
+  useEffect(() => {
+    if (!isBrowser()) return;
+    const handler = () => setState(ler());
+    window.addEventListener(EVENT_NAME, handler);
+    window.addEventListener("storage", handler);
+    return () => {
+      window.removeEventListener(EVENT_NAME, handler);
+      window.removeEventListener("storage", handler);
+    };
+  }, []);
   const papel = state.user?.papel ?? null;
   return {
     user: state.user,
@@ -111,44 +162,39 @@ export function usuarioAtual(): AuthUser | null {
   return ler().user;
 }
 
-export function login(
+export async function login(
   identificador: string,
   senha: string,
-): { ok: boolean; erro?: string; precisaTrocarSenha?: boolean } {
-  const conta = encontrarPorCredencial(identificador, senha);
-  if (!conta) return { ok: false, erro: "Usuário ou senha incorretos." };
-  if (conta.status === "inativo") {
-    return { ok: false, erro: "Este usuário está inativo. Contate o administrador." };
+): Promise<{ ok: boolean; erro?: string; precisaTrocarSenha?: boolean }> {
+  const email = identificadorParaEmail(identificador);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password: senha,
+  });
+  if (error || !data.user) {
+    return { ok: false, erro: "Usuário ou senha incorretos." };
   }
-  const authUser: AuthUser = {
-    id: conta.id,
-    email: conta.email,
-    nome: conta.nome,
-    papel: conta.papel,
-    papelLabel: PAPEL_LABEL[conta.papel],
-    logadoEm: new Date().toISOString(),
-    precisaTrocarSenha: conta.precisaTrocarSenha,
-  };
-  escrever({ user: authUser });
-  registrarAcesso(conta.id);
-  return { ok: true, precisaTrocarSenha: conta.precisaTrocarSenha };
+  await sincronizarSessao();
+  return { ok: true, precisaTrocarSenha: false };
 }
 
-export function logout() {
+export async function logout() {
+  await supabase.auth.signOut();
   escrever({ user: null });
 }
 
-/** Troca de senha durante o primeiro acesso. */
-export function trocarSenhaObrigatoria(novaSenha: string): { ok: boolean; erro?: string } {
+export async function trocarSenhaObrigatoria(
+  novaSenha: string,
+): Promise<{ ok: boolean; erro?: string }> {
+  const { error } = await supabase.auth.updateUser({ password: novaSenha });
+  if (error) return { ok: false, erro: error.message };
   const atual = usuarioAtual();
-  if (!atual) return { ok: false, erro: "Sessão inválida." };
-  const res = trocarPropriaSenha(atual.id, novaSenha);
-  if (!res.ok) return res;
-  escrever({ user: { ...atual, precisaTrocarSenha: false } });
+  if (atual) escrever({ user: { ...atual, precisaTrocarSenha: false } });
   return { ok: true };
 }
 
-/** Utilitário exportado (evita import direto do módulo de usuários). */
 export function _debugListarUsuarios() {
-  return listarUsuarios();
+  return [];
 }
+
+export const TENANT_ID = TENANT_ID_DEFAULT;
