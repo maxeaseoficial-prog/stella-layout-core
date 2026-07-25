@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import type { ClienteArquivo } from "@/features/clientes";
 import { fileToDataUrl, formatarTamanho } from "@/features/clientes/utils";
 import { SelecionarArquivoDialog } from "@/features/arquivos";
+import type { Arquivo } from "@/features/arquivos";
 import { formatarDataBR, novoId } from "./utils";
 
 const ACCEPT =
@@ -20,6 +21,12 @@ interface Props {
   subtitulo?: string;
   /** Oculta o cabeçalho padrão (usado quando o card externo já traz o título). */
   semCabecalho?: boolean;
+  /**
+   * Disparado quando o usuário adiciona itens vindos do acervo (Matrizes &
+   * Logos). Permite que o pedido reaproveite valor e especificações do
+   * arquivo — lançando adicional único e copiando dados para observações.
+   */
+  onAnexosDoAcervo?: (arquivos: Arquivo[]) => void;
 }
 
 export function PedidoArquivosUploader({
@@ -29,6 +36,7 @@ export function PedidoArquivosUploader({
   titulo,
   subtitulo,
   semCabecalho,
+  onAnexosDoAcervo,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectorAberto, setSelectorAberto] = useState(false);
