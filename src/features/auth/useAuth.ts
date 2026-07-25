@@ -137,19 +137,20 @@ export function useAuth(): {
   papel: Papel | null;
   capacidades: Capacidades;
 } {
-  const [state, setState] = useState<AuthState>(() =>
-    isBrowser() ? ler() : { user: null },
+  const state = useSyncExternalStore<AuthState>(
+    (cb) => {
+      if (!isBrowser()) return () => {};
+      const handler = () => cb();
+      window.addEventListener(EVENT_NAME, handler);
+      window.addEventListener("storage", handler);
+      return () => {
+        window.removeEventListener(EVENT_NAME, handler);
+        window.removeEventListener("storage", handler);
+      };
+    },
+    () => ler(),
+    () => ({ user: null }),
   );
-  useEffect(() => {
-    if (!isBrowser()) return;
-    const handler = () => setState(ler());
-    window.addEventListener(EVENT_NAME, handler);
-    window.addEventListener("storage", handler);
-    return () => {
-      window.removeEventListener(EVENT_NAME, handler);
-      window.removeEventListener("storage", handler);
-    };
-  }, []);
   const papel = state.user?.papel ?? null;
   return {
     user: state.user,
