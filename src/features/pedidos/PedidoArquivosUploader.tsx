@@ -66,22 +66,23 @@ export function PedidoArquivosUploader({
     onChange(arquivos.filter((a) => a.id !== id));
   }
 
-  function adicionarDoAcervo(itens: { id: string; arquivoNome: string; mime: string; extensao: string; tamanho: number; dataUrl: string }[]) {
+  function adicionarDoAcervo(itens: Arquivo[]) {
     const jaIds = new Set(arquivos.map((a) => a.id));
-    const novos: ClienteArquivo[] = itens
-      .filter((i) => !jaIds.has(i.id))
-      .map((i) => ({
-        id: i.id,
-        nome: i.arquivoNome,
-        tipo: i.mime,
-        extensao: i.extensao,
-        tamanho: i.tamanho,
-        dataUrl: i.dataUrl,
-        criadoEm: new Date().toISOString(),
-      }));
+    const inéditos = itens.filter((i) => !jaIds.has(i.id));
+    const novos: ClienteArquivo[] = inéditos.map((i) => ({
+      id: i.id,
+      nome: i.arquivoNome,
+      tipo: i.mime,
+      extensao: i.extensao,
+      tamanho: i.tamanho,
+      dataUrl: i.dataUrl,
+      criadoEm: new Date().toISOString(),
+    }));
     if (novos.length) onChange([...arquivos, ...novos]);
+    if (inéditos.length && onAnexosDoAcervo) onAnexosDoAcervo(inéditos);
     setSelectorAberto(false);
   }
+
 
   return (
     <div className="space-y-3">
