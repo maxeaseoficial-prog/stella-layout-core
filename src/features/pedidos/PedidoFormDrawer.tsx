@@ -271,7 +271,26 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
                           )
                         }
                         clienteId={form.clienteId}
+                        onAnexosDoAcervo={(arqs) => anexarDoAcervo(item.id, arqs)}
                       />
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Observações do produto</Label>
+                        <Textarea
+                          rows={4}
+                          value={item.observacoes ?? ""}
+                          onChange={(e) =>
+                            up(
+                              "itens",
+                              form.itens.map((it) =>
+                                it.id === item.id
+                                  ? { ...it, observacoes: e.target.value }
+                                  : it,
+                              ),
+                            )
+                          }
+                          placeholder="Preenchido automaticamente ao anexar uma Matriz/Logo."
+                        />
+                      </div>
                     </div>
                   ))
                 )}
