@@ -152,7 +152,7 @@ function PedidosPage() {
     <div className="space-y-6">
       <PageHeader
         title="Pedidos"
-        description="Kanban do fluxo operacional. Os cards se movem automaticamente conforme as ações."
+        description="Acompanhe todo o fluxo operacional dos pedidos em tempo real."
         actions={
           capPedidos.criar ? (
             <Button size="sm" onClick={abrirNovo}>
