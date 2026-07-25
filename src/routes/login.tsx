@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { login, useAuth } from "@/features/auth/useAuth";
+import { bootstrapUsuariosStella } from "@/lib/bootstrap-usuarios.functions";
 import fachada from "@/assets/stella-fachada.png.asset.json";
 
 export const Route = createFileRoute("/login")({
@@ -35,6 +36,11 @@ function LoginPage() {
   const [esqueceuAberto, setEsqueceuAberto] = useState(false);
 
   useEffect(() => {
+    // Garante que as contas semente da Stella existem no Cloud (idempotente).
+    void bootstrapUsuariosStella().catch(() => { /* silencioso */ });
+  }, []);
+
+  useEffect(() => {
     if (isAuthenticated) {
       navigate({ to: from || "/", replace: true });
     }
@@ -48,8 +54,7 @@ function LoginPage() {
     }
     setEnviando(true);
     // pequena latência para dar sensação de autenticação real
-    await new Promise((r) => setTimeout(r, 400));
-    const result = login(email, senha);
+    const result = await login(email, senha);
     setEnviando(false);
     if (!result.ok) {
       toast.error(result.erro || "Não foi possível entrar.");

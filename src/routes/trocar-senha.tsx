@@ -31,8 +31,7 @@ function TrocarSenhaPage() {
       return;
     }
     setEnviando(true);
-    await new Promise((r) => setTimeout(r, 250));
-    const res = trocarSenhaObrigatoria(nova);
+    const res = await trocarSenhaObrigatoria(nova);
     setEnviando(false);
     if (!res.ok) {
       toast.error(res.erro ?? "Não foi possível atualizar a senha.");

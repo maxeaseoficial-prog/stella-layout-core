@@ -17,6 +17,7 @@ import { AppShell } from "@/layouts/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/features/auth/useAuth";
+import { TenantSyncGate } from "@/features/sync/TenantSyncGate";
 import { ThemeApplier } from "@/features/configuracoes/ThemeApplier";
 
 function NotFoundComponent() {
@@ -198,8 +199,16 @@ function AuthGate() {
   }
 
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <TenantSyncGate
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-sm text-muted-foreground">Sincronizando dados da empresa…</div>
+        </div>
+      }
+    >
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </TenantSyncGate>
   );
 }
