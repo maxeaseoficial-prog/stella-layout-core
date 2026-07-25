@@ -54,6 +54,7 @@ interface FormState {
   larguraCm: string;
   alturaCm: string;
   cores: CorAplicacao[];
+  valorStr: string;
   arquivoNome: string;
   extensao: string;
   mime: string;
@@ -75,6 +76,7 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
       larguraCm: "",
       alturaCm: "",
       cores: [],
+      valorStr: "",
       arquivoNome: "",
       extensao: "",
       mime: "",
@@ -99,6 +101,10 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     larguraCm: a.larguraCm != null ? String(a.larguraCm) : "",
     alturaCm: a.alturaCm != null ? String(a.alturaCm) : "",
     cores,
+    valorStr:
+      a.valor != null && a.valor > 0
+        ? a.valor.toFixed(2).replace(".", ",")
+        : "",
     arquivoNome: a.arquivoNome,
     extensao: a.extensao,
     mime: a.mime,
@@ -189,6 +195,12 @@ export function ArquivoFormDrawer({
       cores: form.cores.length
         ? form.cores.map((c) => ({ nome: c.nome.trim(), numero: c.numero.trim() }))
         : undefined,
+      valor: (() => {
+        const v = form.valorStr.trim();
+        if (!v) return undefined;
+        const n = Number(v.replace(/\./g, "").replace(",", "."));
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+      })(),
       arquivoNome: form.arquivoNome,
       extensao: form.extensao,
       mime: form.mime,
