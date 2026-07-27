@@ -100,9 +100,11 @@ interface Props {
   pedidos: Pedido[];
   onAbrir: (p: Pedido) => void;
   etapasVisiveis?: EtapaKanban[];
+  highlightId?: string;
 }
 
-export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis }: Props) {
+export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis, highlightId }: Props) {
+
   const ativos = pedidos.filter((p) => p.statusFinanceiro !== "cancelado");
 
   const porColuna: Record<EtapaKanban, Pedido[]> = {
