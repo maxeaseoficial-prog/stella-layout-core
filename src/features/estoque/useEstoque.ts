@@ -215,11 +215,12 @@ export function useEstoque() {
   );
 
   const stats = useMemo(() => {
-    const total = state.itens.length;
+    const ativos = state.itens.filter((i) => i.status === "ativo");
+    const total = ativos.length;
     let baixo = 0;
     let sem = 0;
     let valor = 0;
-    for (const i of state.itens) {
+    for (const i of ativos) {
       if (i.quantidade <= 0) sem++;
       else if (i.quantidade <= i.estoqueMinimo) baixo++;
       valor += i.quantidade * (i.precoCompra || 0);
@@ -236,10 +237,13 @@ export function useEstoque() {
       criar,
       atualizar,
       excluir,
+      removerPermanente,
+      podeRemover,
       movimentar,
       historicoDoItem,
       filtrar,
     }),
-    [state.itens, state.movs, hidratado, stats, criar, atualizar, excluir, movimentar, historicoDoItem, filtrar],
+    [state.itens, state.movs, hidratado, stats, criar, atualizar, excluir, removerPermanente, podeRemover, movimentar, historicoDoItem, filtrar],
   );
 }
+
