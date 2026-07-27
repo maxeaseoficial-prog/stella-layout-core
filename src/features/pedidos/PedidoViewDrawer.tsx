@@ -379,6 +379,57 @@ export function PedidoViewDrawer({
 
 
                   <TabsContent value="financeiro" className="mt-0 space-y-3">
+                    <Bloco titulo="Composição por produto">
+                      {pedido.itens.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">
+                          Nenhum item.
+                        </p>
+                      ) : (
+                        <ul className="divide-y divide-border">
+                          {pedido.itens.map((it) => {
+                            const adicionais = it.adicionais ?? [];
+                            return (
+                              <li key={it.id} className="space-y-1 py-2 text-sm">
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className="font-medium text-foreground">
+                                    {it.produto}
+                                    <span className="ml-1 text-xs text-muted-foreground">
+                                      × {it.quantidade}
+                                    </span>
+                                  </span>
+                                  <span className="font-semibold tabular-nums text-foreground">
+                                    {formatarMoeda(calcularSubtotalItem(it))}
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
+                                  <span>Valor unitário</span>
+                                  <span className="tabular-nums">
+                                    {formatarMoeda(it.valorUnitario)}
+                                  </span>
+                                </div>
+                                {adicionais.map((a) => (
+                                  <div
+                                    key={a.id}
+                                    className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground"
+                                  >
+                                    <span>
+                                      + {a.nome}
+                                      {a.unico ? " (único)" : " / un"}
+                                    </span>
+                                    <span className="tabular-nums">
+                                      {a.pendencia
+                                        ? "a orçar"
+                                        : formatarMoeda(a.valor)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </Bloco>
+
                     <Bloco titulo="Valores">
                       <div className="space-y-1.5 text-sm">
                         <Linha label="Subtotal" valor={formatarMoeda(pedido.subtotal)} />
@@ -407,6 +458,7 @@ export function PedidoViewDrawer({
                         </div>
                       </div>
                     </Bloco>
+
 
                     <Bloco titulo="Pagamentos">
                       {pedido.pagamentos.length === 0 ? (
