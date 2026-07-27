@@ -150,12 +150,14 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
       unidade: form.unidade,
       quantidade: Math.max(0, num(form.quantidadeStr)),
       estoqueMinimo: Math.max(0, num(form.minimoStr)),
+      estoqueMaximo: form.maximoStr.trim() ? Math.max(0, num(form.maximoStr)) : undefined,
       precoCompra: num(form.precoCompraStr),
       precoVenda: form.precoVendaStr.trim() ? num(form.precoVendaStr) : undefined,
       status: form.status,
     };
     onSalvar(dados, item?.id);
   }
+
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : undefined)}>
