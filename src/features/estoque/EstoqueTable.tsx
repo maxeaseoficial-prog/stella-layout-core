@@ -60,7 +60,7 @@ function badgeEstoque(i: ItemEstoque) {
   );
 }
 
-export function EstoqueTable({ itens, onEditar, onExcluir, onMovimentar, onHistorico }: Props) {
+export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, podeRemover, onMovimentar, onHistorico }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
@@ -78,11 +78,18 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onMovimentar, onHisto
             </TableRow>
           </TableHeader>
           <TableBody>
-            {itens.map((i) => (
-              <TableRow key={i.id} className="cursor-pointer" onClick={() => onEditar(i)}>
+            {itens.map((i) => {
+              const inativo = i.status === "inativo";
+              const podeRemoverItem = inativo && podeRemover(i.id);
+              return (
+              <TableRow
+                key={i.id}
+                className={`cursor-pointer ${inativo ? "text-muted-foreground opacity-60" : ""}`}
+                onClick={() => onEditar(i)}
+              >
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-surface-muted">
+                    <div className={`grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-surface-muted ${inativo ? "grayscale" : ""}`}>
                       {i.imagem ? (
                         <img src={i.imagem} alt={i.nome} className="h-full w-full object-cover" />
                       ) : (
@@ -90,7 +97,7 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onMovimentar, onHisto
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-foreground">{i.nome}</p>
+                      <p className={`truncate font-medium ${inativo ? "text-muted-foreground" : "text-foreground"}`}>{i.nome}</p>
                       {i.descricao && (
                         <p className="truncate text-xs text-muted-foreground">{i.descricao}</p>
                       )}
@@ -122,6 +129,7 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onMovimentar, onHisto
                       variant="outline"
                       className="h-8"
                       onClick={() => onMovimentar(i)}
+                      disabled={inativo}
                     >
                       <ArrowLeftRight className="h-3.5 w-3.5" />
                       Movimentar
@@ -140,7 +148,7 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onMovimentar, onHisto
                           <History className="h-4 w-4" /> Histórico
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        {i.status === "ativo" && (
+                        {!inativo && (
                           <DropdownMenuItem
                             onClick={() => onExcluir(i)}
                             className="text-destructive focus:text-destructive"
@@ -148,15 +156,25 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onMovimentar, onHisto
                             <Trash2 className="h-4 w-4" /> Inativar
                           </DropdownMenuItem>
                         )}
+                        {podeRemoverItem && (
+                          <DropdownMenuItem
+                            onClick={() => onRemover(i)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" /> Excluir permanentemente
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
     </div>
   );
 }
+
