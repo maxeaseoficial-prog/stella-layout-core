@@ -79,6 +79,7 @@ function estadoInicial(item?: ItemEstoque | null): FormState {
       unidade: "unidade",
       quantidadeStr: "",
       minimoStr: "",
+      maximoStr: "",
       precoCompraStr: "",
       precoVendaStr: "",
       status: "ativo",
@@ -93,11 +94,13 @@ function estadoInicial(item?: ItemEstoque | null): FormState {
     unidade: item.unidade,
     quantidadeStr: item.quantidade ? String(item.quantidade) : "",
     minimoStr: item.estoqueMinimo ? String(item.estoqueMinimo) : "",
+    maximoStr: item.estoqueMaximo ? String(item.estoqueMaximo) : "",
     precoCompraStr: toStrDec(item.precoCompra),
     precoVendaStr: item.precoVenda ? toStrDec(item.precoVenda) : "",
     status: item.status,
   };
 }
+
 
 const IMG_ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
