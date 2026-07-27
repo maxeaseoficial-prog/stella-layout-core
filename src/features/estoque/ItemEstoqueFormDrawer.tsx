@@ -51,10 +51,12 @@ interface FormState {
   unidade: UnidadeMedida;
   quantidadeStr: string;
   minimoStr: string;
+  maximoStr: string;
   precoCompraStr: string;
   precoVendaStr: string;
   status: StatusItemEstoque;
 }
+
 
 function num(v: string): number {
   const s = v.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
@@ -77,6 +79,7 @@ function estadoInicial(item?: ItemEstoque | null): FormState {
       unidade: "unidade",
       quantidadeStr: "",
       minimoStr: "",
+      maximoStr: "",
       precoCompraStr: "",
       precoVendaStr: "",
       status: "ativo",
@@ -91,11 +94,13 @@ function estadoInicial(item?: ItemEstoque | null): FormState {
     unidade: item.unidade,
     quantidadeStr: item.quantidade ? String(item.quantidade) : "",
     minimoStr: item.estoqueMinimo ? String(item.estoqueMinimo) : "",
+    maximoStr: item.estoqueMaximo ? String(item.estoqueMaximo) : "",
     precoCompraStr: toStrDec(item.precoCompra),
     precoVendaStr: item.precoVenda ? toStrDec(item.precoVenda) : "",
     status: item.status,
   };
 }
+
 
 const IMG_ACCEPT = "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp";
 
@@ -145,12 +150,14 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
       unidade: form.unidade,
       quantidade: Math.max(0, num(form.quantidadeStr)),
       estoqueMinimo: Math.max(0, num(form.minimoStr)),
+      estoqueMaximo: form.maximoStr.trim() ? Math.max(0, num(form.maximoStr)) : undefined,
       precoCompra: num(form.precoCompraStr),
       precoVenda: form.precoVendaStr.trim() ? num(form.precoVendaStr) : undefined,
       status: form.status,
     };
     onSalvar(dados, item?.id);
   }
+
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : undefined)}>
@@ -296,7 +303,7 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
             {/* Controle */}
             <div className="space-y-3 rounded-xl border border-border bg-surface-muted/40 p-4">
               <p className="text-sm font-semibold text-foreground">Controle de estoque</p>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="qtd">Quantidade atual</Label>
                   <Input
@@ -317,8 +324,22 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
                     placeholder="0"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="max">Estoque máximo</Label>
+                  <Input
+                    id="max"
+                    inputMode="decimal"
+                    value={form.maximoStr}
+                    onChange={(e) => upd("maximoStr", e.target.value)}
+                    placeholder="Opcional"
+                  />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Alertas de estoque alto só são disparados quando o máximo estiver preenchido.
+              </p>
             </div>
+
 
             {/* Valores */}
             <div className="grid gap-4 sm:grid-cols-2">

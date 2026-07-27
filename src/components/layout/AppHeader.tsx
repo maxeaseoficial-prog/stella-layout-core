@@ -1,5 +1,5 @@
 import { useRouterState, useNavigate } from "@tanstack/react-router";
-import { Bell, LogOut, Search } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getPageMeta } from "@/lib/navigation";
 import { logout, useAuth } from "@/features/auth/useAuth";
+import { NotificacoesPopover } from "@/features/notificacoes";
+
 
 export function AppHeader() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
@@ -63,15 +65,8 @@ export function AppHeader() {
           />
         </div>
 
-        <Button
-          size="icon"
-          variant="ghost"
-          className="relative h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground"
-          aria-label="Notificações"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
-        </Button>
+        <NotificacoesPopover />
+
 
         <Separator orientation="vertical" className="mx-1 hidden h-6 sm:block" />
 

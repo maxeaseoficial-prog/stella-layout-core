@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
 
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -35,9 +37,16 @@ import {
   type PeriodoFiltroPedido,
 } from "@/features/pedidos";
 
+const pedidosSearchSchema = z.object({
+  highlight: z.string().optional(),
+  pedido: z.string().optional(),
+});
+
 export const Route = createFileRoute("/pedidos")({
   component: PedidosPage,
+  validateSearch: pedidosSearchSchema,
 });
+
 
 function inicioSemanaISOLocal(): string {
   const d = new Date();
@@ -55,12 +64,26 @@ function PedidosPage() {
   const { clientes } = useClientes();
   const { capacidades } = useAuth();
   const capPedidos = capacidades.pedidos;
+  const search = useSearch({ from: "/pedidos" });
+
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Pedido | null>(null);
   const [visualizando, setVisualizando] = useState<Pedido | null>(null);
   const [excluindo, setExcluindo] = useState<Pedido | null>(null);
   const [pagamentoDe, setPagamentoDe] = useState<Pedido | null>(null);
+
+  // Ao chegar via notificação (search.pedido), abre o drawer automaticamente.
+  useEffect(() => {
+    if (!hidratado) return;
+    const id = search.pedido;
+    if (!id) return;
+    const alvo = pedidos.find((p) => p.id === id);
+    if (alvo) setVisualizando(alvo);
+    // Executa apenas quando o parâmetro muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.pedido, hidratado]);
+
 
   const [termo, setTermo] = useState("");
   const [filtro, setFiltro] = useState<FiltroRapido>("todos");
@@ -208,7 +231,9 @@ function PedidosPage() {
               ? undefined
               : [filtro]
           }
+          highlightId={search.highlight && search.highlight !== "pendencias_matriz" ? search.highlight : search.pedido}
         />
+
 
       )}
 
