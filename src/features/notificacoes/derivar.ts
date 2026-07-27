@@ -14,7 +14,7 @@ import { SIGLA_UNIDADE } from "@/features/estoque/types";
 import type { Pedido } from "@/features/pedidos/types";
 import { formatarMoeda, pendenciasDoPedido } from "@/features/pedidos/utils";
 import type { Cliente } from "@/features/clientes/types";
-import { getClienteNome } from "@/features/clientes/utils";
+import { getClienteNome } from "@/features/clientes/types";
 
 import type { Notificacao } from "./types";
 
