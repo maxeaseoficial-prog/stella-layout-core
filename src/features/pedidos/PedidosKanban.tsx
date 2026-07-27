@@ -319,9 +319,11 @@ function ColunaKanban({
 function PedidoCard({
   pedido,
   onAbrir,
+  destacado,
 }: {
   pedido: Pedido;
   onAbrir: (p: Pedido) => void;
+  destacado?: boolean;
 }) {
   const { clientes } = useClientes();
   const { excluir } = usePedidos();
@@ -334,6 +336,13 @@ function PedidoCard({
   const restantes = Math.max(0, pedido.itens.length - 1);
   const qtdTotal = totalItensPedido(pedido);
   const pendencias = pendenciasDoPedido(pedido.itens);
+  const cardRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (destacado && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [destacado]);
 
   function confirmarExclusao() {
     excluir(pedido.id);
@@ -346,10 +355,16 @@ function PedidoCard({
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <button
+            ref={cardRef}
             type="button"
             onClick={() => onAbrir(pedido)}
-            className="group flex w-full flex-col gap-3 rounded-xl border border-border/70 bg-surface p-3.5 text-left shadow-[0_1px_2px_rgb(0_0_0_/_0.03)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-primary/40 hover:shadow-[0_8px_20px_-10px_color-mix(in_oklab,var(--primary)_35%,transparent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            className={cn(
+              "group flex w-full flex-col gap-3 rounded-xl border border-border/70 bg-surface p-3.5 text-left shadow-[0_1px_2px_rgb(0_0_0_/_0.03)] transition-all duration-200 ease-out hover:-translate-y-[1px] hover:border-primary/40 hover:shadow-[0_8px_20px_-10px_color-mix(in_oklab,var(--primary)_35%,transparent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              destacado &&
+                "border-primary/60 ring-2 ring-primary/40 shadow-[0_10px_28px_-14px_color-mix(in_oklab,var(--primary)_60%,transparent)]",
+            )}
           >
+
             <div className="flex items-start justify-between gap-2">
               <span className="inline-flex items-center rounded-md border border-border/60 bg-surface-muted/60 px-1.5 py-0.5 font-mono text-[10.5px] font-semibold tracking-tight text-muted-foreground">
                 {pedido.numero}
