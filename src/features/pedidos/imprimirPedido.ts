@@ -37,11 +37,25 @@ export function imprimirPedido(pedido: Pedido, cliente?: Cliente | null) {
       : "";
 
   const itensHtml = pedido.itens
-    .map(
-      (i) => `
+    .map((i) => {
+      const adicionais = i.adicionais ?? [];
+      const adicionaisHtml = adicionais.length
+        ? `<ul class="pers">${adicionais
+            .map((a) => {
+              const rotuloValor = a.pendencia
+                ? "a orçar"
+                : a.unico
+                  ? `${esc(formatarMoeda(a.valor))} (único)`
+                  : `${esc(formatarMoeda(a.valor))} / un`;
+              return `<li><strong>${esc(a.nome)}</strong> • ${rotuloValor}</li>`;
+            })
+            .join("")}</ul>`
+        : "";
+      return `
       <tr>
         <td>
           <div class="produto">${esc(i.produto)}</div>
+          ${adicionaisHtml}
           ${
             i.personalizacoes.length
               ? `<ul class="pers">${i.personalizacoes
@@ -61,8 +75,8 @@ export function imprimirPedido(pedido: Pedido, cliente?: Cliente | null) {
         <td class="c">${i.quantidade}</td>
         <td class="r">${esc(formatarMoeda(i.valorUnitario))}</td>
         <td class="r">${esc(formatarMoeda(calcularSubtotalItem(i)))}</td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join("");
 
   const html = `<!doctype html>
