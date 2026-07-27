@@ -91,6 +91,8 @@ export interface ItemEstoque {
   unidade: UnidadeMedida;
   quantidade: number;
   estoqueMinimo: number;
+  estoqueMaximo?: number;
+
   precoCompra: number;
   precoVenda?: number;
   status: StatusItemEstoque;
