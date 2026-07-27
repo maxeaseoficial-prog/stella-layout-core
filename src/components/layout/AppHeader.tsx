@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getPageMeta } from "@/lib/navigation";
 import { logout, useAuth } from "@/features/auth/useAuth";
+import { NotificacoesPopover } from "@/features/notificacoes";
+
 
 export function AppHeader() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
