@@ -45,7 +45,7 @@ export const Route = createFileRoute("/estoque")({
 });
 
 function EstoquePage() {
-  const { itens, hidratado, stats, criar, atualizar, excluir, filtrar } = useEstoque();
+  const { itens, hidratado, stats, criar, atualizar, excluir, removerPermanente, podeRemover, filtrar } = useEstoque();
   const { categoriasPorEscopo } = useConfiguracoes();
   const categoriasEstoque = categoriasPorEscopo("estoque");
 
@@ -54,6 +54,7 @@ function EstoquePage() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<ItemEstoque | null>(null);
   const [excluindo, setExcluindo] = useState<ItemEstoque | null>(null);
+  const [removendo, setRemovendo] = useState<ItemEstoque | null>(null);
   const [movimentando, setMovimentando] = useState<ItemEstoque | null>(null);
   const [historico, setHistorico] = useState<ItemEstoque | null>(null);
 
@@ -91,9 +92,22 @@ function EstoquePage() {
     setExcluindo(null);
   }
 
+  function confirmarRemocao() {
+    if (!removendo) return;
+    if (!podeRemover(removendo.id)) {
+      toast.error("Item possui movimentações vinculadas e não pode ser excluído.");
+      setRemovendo(null);
+      return;
+    }
+    removerPermanente(removendo.id);
+    toast.success("Item excluído permanentemente.");
+    setRemovendo(null);
+  }
+
   const total = itens.length;
   const listaVazia = hidratado && total === 0;
   const semResultado = hidratado && total > 0 && lista.length === 0;
+
 
   return (
     <div className="space-y-6">
