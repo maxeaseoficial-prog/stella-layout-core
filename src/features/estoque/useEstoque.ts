@@ -123,6 +123,29 @@ export function useEstoque() {
     );
   }, []);
 
+  const removerPermanente = useCallback((id: string) => {
+    const snap = getSnapshot();
+    commit(
+      {
+        itens: snap.itens.filter((i) => i.id !== id),
+        movs: snap.movs.filter((m) => m.itemId !== id),
+      },
+      { itens: true, movs: true },
+    );
+  }, []);
+
+  const podeRemover = useCallback(
+    (id: string) => {
+      const item = state.itens.find((i) => i.id === id);
+      if (!item) return false;
+      if (item.status !== "inativo") return false;
+      const temMov = state.movs.some((m) => m.itemId === id);
+      return !temMov;
+    },
+    [state.itens, state.movs],
+  );
+
+
   const movimentar = useCallback(
     (input: {
       itemId: string;
