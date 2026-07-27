@@ -241,11 +241,13 @@ export function PedidosKanban({ pedidos, onAbrir, etapasVisiveis, highlightId }:
           etapa={etapa}
           pedidos={porColuna[etapa]}
           onAbrir={onAbrir}
+          highlightId={highlightId}
         />
       ))}
     </div>
   );
 }
+
 
 function ColunaKanban({
   etapa,
