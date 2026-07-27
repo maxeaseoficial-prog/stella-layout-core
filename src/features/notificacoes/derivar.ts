@@ -156,7 +156,7 @@ function derivarOperadorMatriz(f: Fontes): Notificacao[] {
   for (const p of f.pedidos) {
     if (p.statusFinanceiro === "cancelado") continue;
     const pendencias = pendenciasDoPedido(p.itens);
-    const temMatriz = pendencias.some((x) => x === "matriz" || x === "matriz_estampa");
+    const temMatriz = pendencias.some((x) => x === "matriz");
     if (!temMatriz) continue;
     const cliente = nomeCliente(f.clientes, p.clienteId);
     lista.push({
