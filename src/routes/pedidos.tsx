@@ -231,7 +231,9 @@ function PedidosPage() {
               ? undefined
               : [filtro]
           }
+          highlightId={search.highlight && search.highlight !== "pendencias_matriz" ? search.highlight : search.pedido}
         />
+
 
       )}
 
