@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/common/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProdutosMiniDashboard } from "@/features/produtos/ProdutosMiniDashboard";
 import { ProdutosPanel } from "@/features/produtos/ProdutosPanel";
 import { AdicionaisPanel } from "@/features/adicionais/AdicionaisPanel";
 
@@ -16,6 +17,8 @@ function ProdutosPage() {
         title="Produtos"
         description="Gerencie o catálogo de produtos comercializados e os adicionais aplicáveis a cada pedido."
       />
+
+      <ProdutosMiniDashboard />
 
       <Tabs defaultValue="produtos" className="space-y-6">
         <TabsList>
