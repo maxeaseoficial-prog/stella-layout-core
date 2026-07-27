@@ -64,6 +64,8 @@ function PedidosPage() {
   const { clientes } = useClientes();
   const { capacidades } = useAuth();
   const capPedidos = capacidades.pedidos;
+  const search = useSearch({ from: "/pedidos" });
+
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Pedido | null>(null);
