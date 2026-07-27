@@ -37,9 +37,16 @@ import {
   type PeriodoFiltroPedido,
 } from "@/features/pedidos";
 
+const pedidosSearchSchema = z.object({
+  highlight: z.string().optional(),
+  pedido: z.string().optional(),
+});
+
 export const Route = createFileRoute("/pedidos")({
   component: PedidosPage,
+  validateSearch: pedidosSearchSchema,
 });
+
 
 function inicioSemanaISOLocal(): string {
   const d = new Date();
