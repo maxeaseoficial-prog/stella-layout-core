@@ -51,10 +51,12 @@ interface FormState {
   unidade: UnidadeMedida;
   quantidadeStr: string;
   minimoStr: string;
+  maximoStr: string;
   precoCompraStr: string;
   precoVendaStr: string;
   status: StatusItemEstoque;
 }
+
 
 function num(v: string): number {
   const s = v.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "");
