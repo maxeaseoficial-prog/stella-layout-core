@@ -180,9 +180,12 @@ function EstoquePage() {
           itens={lista}
           onEditar={abrirEdicao}
           onExcluir={setExcluindo}
+          onRemover={setRemovendo}
+          podeRemover={podeRemover}
           onMovimentar={setMovimentando}
           onHistorico={setHistorico}
         />
+
       )}
 
       <ItemEstoqueFormDrawer
