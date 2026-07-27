@@ -73,6 +73,18 @@ function PedidosPage() {
   const [excluindo, setExcluindo] = useState<Pedido | null>(null);
   const [pagamentoDe, setPagamentoDe] = useState<Pedido | null>(null);
 
+  // Ao chegar via notificação (search.pedido), abre o drawer automaticamente.
+  useEffect(() => {
+    if (!hidratado) return;
+    const id = search.pedido;
+    if (!id) return;
+    const alvo = pedidos.find((p) => p.id === id);
+    if (alvo) setVisualizando(alvo);
+    // Executa apenas quando o parâmetro muda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.pedido, hidratado]);
+
+
   const [termo, setTermo] = useState("");
   const [filtro, setFiltro] = useState<FiltroRapido>("todos");
   const [periodo, setPeriodo] = useState<PeriodoFiltroPedido>("todos");
