@@ -26,9 +26,12 @@ interface Props {
   itens: ItemEstoque[];
   onEditar: (i: ItemEstoque) => void;
   onExcluir: (i: ItemEstoque) => void;
+  onRemover: (i: ItemEstoque) => void;
+  podeRemover: (id: string) => boolean;
   onMovimentar: (i: ItemEstoque) => void;
   onHistorico: (i: ItemEstoque) => void;
 }
+
 
 function badgeEstoque(i: ItemEstoque) {
   if (i.quantidade <= 0) {
