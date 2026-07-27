@@ -303,7 +303,7 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
             {/* Controle */}
             <div className="space-y-3 rounded-xl border border-border bg-surface-muted/40 p-4">
               <p className="text-sm font-semibold text-foreground">Controle de estoque</p>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="qtd">Quantidade atual</Label>
                   <Input
@@ -324,8 +324,22 @@ export function ItemEstoqueFormDrawer({ aberto, onFechar, item, onSalvar }: Prop
                     placeholder="0"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="max">Estoque máximo</Label>
+                  <Input
+                    id="max"
+                    inputMode="decimal"
+                    value={form.maximoStr}
+                    onChange={(e) => upd("maximoStr", e.target.value)}
+                    placeholder="Opcional"
+                  />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Alertas de estoque alto só são disparados quando o máximo estiver preenchido.
+              </p>
             </div>
+
 
             {/* Valores */}
             <div className="grid gap-4 sm:grid-cols-2">
