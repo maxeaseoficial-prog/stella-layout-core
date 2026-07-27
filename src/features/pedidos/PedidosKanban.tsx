@@ -253,10 +253,12 @@ function ColunaKanban({
   etapa,
   pedidos,
   onAbrir,
+  highlightId,
 }: {
   etapa: EtapaKanban;
   pedidos: Pedido[];
   onAbrir: (p: Pedido) => void;
+  highlightId?: string;
 }) {
   const Icon = ICONE_ETAPA[etapa];
   const acento = ACENTO_ETAPA[etapa];
@@ -300,13 +302,19 @@ function ColunaKanban({
           </li>
         ) : (
           pedidos.map((p) => (
-            <PedidoCard key={p.id} pedido={p} onAbrir={onAbrir} />
+            <PedidoCard
+              key={p.id}
+              pedido={p}
+              onAbrir={onAbrir}
+              destacado={highlightId === p.id}
+            />
           ))
         )}
       </ul>
     </div>
   );
 }
+
 
 function PedidoCard({
   pedido,
