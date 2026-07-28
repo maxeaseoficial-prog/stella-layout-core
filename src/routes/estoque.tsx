@@ -104,7 +104,10 @@ function EstoquePage() {
     removerPermanente(removendo.id);
     toast.success("Item excluído permanentemente.");
     setRemovendo(null);
+  }
+
   function confirmarExclusaoDefinitiva() {
+
     if (!excluindoDefinitivo) return;
     if (temVinculos(excluindoDefinitivo.id)) {
       setExcluindoDefinitivo(null);
