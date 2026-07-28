@@ -24,6 +24,7 @@ interface Props {
   onRemoverItem: (itemId: string) => void;
   onEditar: () => void;
   onExcluir: () => void;
+  onVerDetalhes: () => void;
 }
 
 const PRIORIDADE_CLASSES: Record<string, string> = {
