@@ -448,6 +448,48 @@ export type Database = {
           },
         ]
       }
+      tarefas: {
+        Row: {
+          concluida: boolean
+          concluida_em: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          itens: Json
+          prioridade: string
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          itens?: Json
+          prioridade?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          concluida?: boolean
+          concluida_em?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          itens?: Json
+          prioridade?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
