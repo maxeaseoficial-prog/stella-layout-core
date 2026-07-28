@@ -269,6 +269,51 @@ function EstoquePage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog
+        open={!!excluindoDefinitivo}
+        onOpenChange={(v) => (!v ? setExcluindoDefinitivo(null) : null)}
+      >
+        <AlertDialogContent>
+          {excluindoDefinitivo && temVinculos(excluindoDefinitivo.id) ? (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Não é possível excluir</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Este item não pode ser excluído porque possui vínculos no sistema.
+                  Para preservação do histórico, utilize a opção Inativar.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction onClick={() => setExcluindoDefinitivo(null)}>
+                  Entendi
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir item</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir este item do estoque?
+                  <br />
+                  Esta ação é permanente e não poderá ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmarExclusaoDefinitiva}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+
+
     </div>
   );
 }
