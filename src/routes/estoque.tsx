@@ -55,6 +55,8 @@ function EstoquePage() {
   const [editando, setEditando] = useState<ItemEstoque | null>(null);
   const [excluindo, setExcluindo] = useState<ItemEstoque | null>(null);
   const [removendo, setRemovendo] = useState<ItemEstoque | null>(null);
+  const [excluindoDefinitivo, setExcluindoDefinitivo] = useState<ItemEstoque | null>(null);
+
   const [movimentando, setMovimentando] = useState<ItemEstoque | null>(null);
   const [historico, setHistorico] = useState<ItemEstoque | null>(null);
 
