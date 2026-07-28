@@ -145,6 +145,12 @@ export function useEstoque() {
     [state.itens, state.movs],
   );
 
+  const temVinculos = useCallback(
+    (id: string) => state.movs.some((m) => m.itemId === id),
+    [state.movs],
+  );
+
+
 
   const movimentar = useCallback(
     (input: {
