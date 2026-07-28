@@ -74,6 +74,7 @@ function TarefasPage() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Tarefa | null>(null);
   const [excluindo, setExcluindo] = useState<Tarefa | null>(null);
+  const [detalhando, setDetalhando] = useState<Tarefa | null>(null);
 
   const [termo, setTermo] = useState("");
   const [fPrioridade, setFPrioridade] = useState<FiltroPrioridade>("todos");
