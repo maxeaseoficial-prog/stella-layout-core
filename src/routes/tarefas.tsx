@@ -168,6 +168,7 @@ function TarefasPage() {
             onRemoverItem={(itemId) => removerItem(t.id, itemId)}
             onEditar={() => abrirEdicao(t)}
             onExcluir={() => setExcluindo(t)}
+            onVerDetalhes={() => setDetalhando(t)}
           />
         ))}
       </div>
