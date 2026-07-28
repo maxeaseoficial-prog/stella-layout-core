@@ -196,6 +196,8 @@ function EstoquePage() {
           onEditar={abrirEdicao}
           onExcluir={setExcluindo}
           onRemover={setRemovendo}
+          onExcluirDefinitivo={setExcluindoDefinitivo}
+
           podeRemover={podeRemover}
           onMovimentar={setMovimentando}
           onHistorico={setHistorico}
