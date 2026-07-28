@@ -28,6 +28,7 @@ import {
 import { useTarefas } from "@/features/tarefas/useTarefas";
 import { TarefaCard } from "@/features/tarefas/TarefaCard";
 import { TarefaFormDialog } from "@/features/tarefas/TarefaFormDialog";
+import { TarefaDetalhesDialog } from "@/features/tarefas/TarefaDetalhesDialog";
 import type { Prioridade, Tarefa, TarefaInput, TipoTarefa } from "@/features/tarefas/types";
 
 export const Route = createFileRoute("/tarefas")({
@@ -73,6 +74,7 @@ function TarefasPage() {
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Tarefa | null>(null);
   const [excluindo, setExcluindo] = useState<Tarefa | null>(null);
+  const [detalhando, setDetalhando] = useState<Tarefa | null>(null);
 
   const [termo, setTermo] = useState("");
   const [fPrioridade, setFPrioridade] = useState<FiltroPrioridade>("todos");
@@ -168,6 +170,7 @@ function TarefasPage() {
             onRemoverItem={(itemId) => removerItem(t.id, itemId)}
             onEditar={() => abrirEdicao(t)}
             onExcluir={() => setExcluindo(t)}
+            onVerDetalhes={() => setDetalhando(t)}
           />
         ))}
       </div>
@@ -285,6 +288,13 @@ function TarefasPage() {
         onFechar={() => setFormAberto(false)}
         onSalvar={handleSalvar}
         editando={editando}
+      />
+
+      <TarefaDetalhesDialog
+        tarefa={detalhando}
+        open={!!detalhando}
+        onOpenChange={(o) => (!o ? setDetalhando(null) : null)}
+        onEditar={(t) => abrirEdicao(t)}
       />
 
       <AlertDialog open={!!excluindo} onOpenChange={(o) => (!o ? setExcluindo(null) : null)}>

@@ -24,6 +24,7 @@ interface Props {
   onRemoverItem: (itemId: string) => void;
   onEditar: () => void;
   onExcluir: () => void;
+  onVerDetalhes: () => void;
 }
 
 const PRIORIDADE_CLASSES: Record<string, string> = {
@@ -51,6 +52,7 @@ export function TarefaCard({
   onRemoverItem,
   onEditar,
   onExcluir,
+  onVerDetalhes,
 }: Props) {
   const [novoItem, setNovoItem] = useState("");
   const totalItens = tarefa.itens.length;
@@ -84,14 +86,30 @@ export function TarefaCard({
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3
-              className={cn(
-                "text-sm font-semibold text-foreground",
-                tarefa.concluida && "line-through text-muted-foreground",
-              )}
+            <button
+              type="button"
+              onClick={onVerDetalhes}
+              className="min-w-0 flex-1 text-left"
             >
-              {tarefa.titulo}
-            </h3>
+              <h3
+                className={cn(
+                  "text-sm font-semibold text-foreground hover:text-primary transition-colors",
+                  tarefa.concluida && "line-through text-muted-foreground",
+                )}
+              >
+                {tarefa.titulo}
+              </h3>
+              {tarefa.descricao && (
+                <p
+                  className={cn(
+                    "mt-0.5 line-clamp-2 text-xs text-muted-foreground",
+                    tarefa.concluida && "line-through",
+                  )}
+                >
+                  {tarefa.descricao}
+                </p>
+              )}
+            </button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -115,16 +133,6 @@ export function TarefaCard({
             </DropdownMenu>
           </div>
 
-          {tarefa.descricao && (
-            <p
-              className={cn(
-                "mt-0.5 text-xs text-muted-foreground",
-                tarefa.concluida && "line-through",
-              )}
-            >
-              {tarefa.descricao}
-            </p>
-          )}
 
           <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
             <span
