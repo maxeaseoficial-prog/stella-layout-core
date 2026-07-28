@@ -8,6 +8,7 @@ import {
   Boxes,
   Truck,
   Sparkles,
+  ClipboardList,
   Settings,
   LogOut,
   UserCircle2,
@@ -41,6 +42,7 @@ const NAV_ITEMS = [
   { title: "Estoque", url: "/estoque", icon: Boxes },
   { title: "Fornecedores", url: "/fornecedores", icon: Truck },
   { title: "Matrizes & Logos", url: "/matrizes-logos", icon: Sparkles },
+  { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ] as const;
 

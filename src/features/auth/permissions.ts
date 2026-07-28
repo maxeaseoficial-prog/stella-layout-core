@@ -11,6 +11,7 @@ export type ModuloRota =
   | "/estoque"
   | "/fornecedores"
   | "/matrizes-logos"
+  | "/tarefas"
   | "/configuracoes";
 
 /**
@@ -34,6 +35,7 @@ export const ROTAS_PERMITIDAS: Record<Papel, ModuloRota[]> = {
     "/pedidos",
     "/clientes",
     "/matrizes-logos",
+    "/tarefas",
     "/configuracoes",
   ],
 };
