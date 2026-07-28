@@ -245,11 +245,13 @@ export function useEstoque() {
       excluir,
       removerPermanente,
       podeRemover,
+      temVinculos,
       movimentar,
       historicoDoItem,
       filtrar,
     }),
-    [state.itens, state.movs, hidratado, stats, criar, atualizar, excluir, removerPermanente, podeRemover, movimentar, historicoDoItem, filtrar],
+    [state.itens, state.movs, hidratado, stats, criar, atualizar, excluir, removerPermanente, podeRemover, temVinculos, movimentar, historicoDoItem, filtrar],
   );
+
 }
 
