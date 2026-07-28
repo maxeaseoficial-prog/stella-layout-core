@@ -158,6 +158,12 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, onExcluirD
                             <Trash2 className="h-4 w-4" /> Inativar
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          onClick={() => onExcluirDefinitivo(i)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
                         {podeRemoverItem && (
                           <DropdownMenuItem
                             onClick={() => onRemover(i)}
@@ -166,6 +172,7 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, onExcluirD
                             <Trash2 className="h-4 w-4" /> Excluir permanentemente
                           </DropdownMenuItem>
                         )}
+
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
