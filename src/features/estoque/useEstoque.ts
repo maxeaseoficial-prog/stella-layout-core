@@ -146,9 +146,16 @@ export function useEstoque() {
   );
 
   const temVinculos = useCallback(
-    (id: string) => state.movs.some((m) => m.itemId === id),
-    [state.movs],
+    (_id: string) => {
+      // Vínculos estruturais ativos: hoje não existe relação de matéria-prima
+      // entre Estoque ↔ Produtos/Pedidos. Histórico de movimentações (entradas,
+      // saídas, ajustes) NÃO é considerado vínculo — é apenas log e será
+      // removido junto com o item em `removerPermanente`.
+      return false;
+    },
+    [],
   );
+
 
 
 
