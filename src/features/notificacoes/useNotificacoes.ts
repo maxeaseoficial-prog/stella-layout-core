@@ -57,8 +57,9 @@ export function useNotificacoes(): Retorno {
       if (!user) return;
       const atual = carregarLidas(user.id);
       if (atual.has(id)) return;
-      atual.add(id);
-      salvarLidas(user.id, atual);
+      const proximo = new Set(atual);
+      proximo.add(id);
+      salvarLidas(user.id, proximo);
     },
     [user],
   );
@@ -66,9 +67,17 @@ export function useNotificacoes(): Retorno {
   const marcarTodas = useCallback(() => {
     if (!user) return;
     const atual = carregarLidas(user.id);
-    for (const n of itens) atual.add(n.id);
-    salvarLidas(user.id, atual);
+    const proximo = new Set(atual);
+    let mudou = false;
+    for (const n of itens) {
+      if (!proximo.has(n.id)) {
+        proximo.add(n.id);
+        mudou = true;
+      }
+    }
+    if (mudou) salvarLidas(user.id, proximo);
   }, [user, itens]);
+
 
   const limpar = useCallback(() => {
     if (!user) return;
