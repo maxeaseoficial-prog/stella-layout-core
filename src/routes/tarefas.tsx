@@ -28,6 +28,7 @@ import {
 import { useTarefas } from "@/features/tarefas/useTarefas";
 import { TarefaCard } from "@/features/tarefas/TarefaCard";
 import { TarefaFormDialog } from "@/features/tarefas/TarefaFormDialog";
+import { TarefaDetalhesDialog } from "@/features/tarefas/TarefaDetalhesDialog";
 import type { Prioridade, Tarefa, TarefaInput, TipoTarefa } from "@/features/tarefas/types";
 
 export const Route = createFileRoute("/tarefas")({
