@@ -14,6 +14,7 @@ const PAGE_META: Record<string, PageMeta> = {
     title: "Matrizes & Logos",
     description: "Arte, matrizes de bordado e logos",
   },
+  "/tarefas": { title: "Tarefas", description: "Sua lista pessoal de tarefas e checklists" },
   "/configuracoes": { title: "Configurações", description: "Preferências e ajustes" },
 };
 
