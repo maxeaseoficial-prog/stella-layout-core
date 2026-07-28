@@ -52,6 +52,7 @@ export function TarefaCard({
   onRemoverItem,
   onEditar,
   onExcluir,
+  onVerDetalhes,
 }: Props) {
   const [novoItem, setNovoItem] = useState("");
   const totalItens = tarefa.itens.length;
