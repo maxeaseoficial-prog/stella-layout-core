@@ -27,10 +27,12 @@ interface Props {
   onEditar: (i: ItemEstoque) => void;
   onExcluir: (i: ItemEstoque) => void;
   onRemover: (i: ItemEstoque) => void;
+  onExcluirDefinitivo: (i: ItemEstoque) => void;
   podeRemover: (id: string) => boolean;
   onMovimentar: (i: ItemEstoque) => void;
   onHistorico: (i: ItemEstoque) => void;
 }
+
 
 
 function badgeEstoque(i: ItemEstoque) {
