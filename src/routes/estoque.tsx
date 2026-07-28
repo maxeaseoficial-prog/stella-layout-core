@@ -104,7 +104,17 @@ function EstoquePage() {
     removerPermanente(removendo.id);
     toast.success("Item excluído permanentemente.");
     setRemovendo(null);
+  function confirmarExclusaoDefinitiva() {
+    if (!excluindoDefinitivo) return;
+    if (temVinculos(excluindoDefinitivo.id)) {
+      setExcluindoDefinitivo(null);
+      return;
+    }
+    removerPermanente(excluindoDefinitivo.id);
+    toast.success("Item excluído com sucesso.");
+    setExcluindoDefinitivo(null);
   }
+
 
   const total = itens.length;
   const listaVazia = hidratado && total === 0;
