@@ -290,6 +290,13 @@ function TarefasPage() {
         editando={editando}
       />
 
+      <TarefaDetalhesDialog
+        tarefa={detalhando}
+        open={!!detalhando}
+        onOpenChange={(o) => (!o ? setDetalhando(null) : null)}
+        onEditar={(t) => abrirEdicao(t)}
+      />
+
       <AlertDialog open={!!excluindo} onOpenChange={(o) => (!o ? setExcluindo(null) : null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
