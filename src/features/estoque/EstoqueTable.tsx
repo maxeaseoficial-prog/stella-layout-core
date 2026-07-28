@@ -27,10 +27,12 @@ interface Props {
   onEditar: (i: ItemEstoque) => void;
   onExcluir: (i: ItemEstoque) => void;
   onRemover: (i: ItemEstoque) => void;
+  onExcluirDefinitivo: (i: ItemEstoque) => void;
   podeRemover: (id: string) => boolean;
   onMovimentar: (i: ItemEstoque) => void;
   onHistorico: (i: ItemEstoque) => void;
 }
+
 
 
 function badgeEstoque(i: ItemEstoque) {
@@ -60,7 +62,7 @@ function badgeEstoque(i: ItemEstoque) {
   );
 }
 
-export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, podeRemover, onMovimentar, onHistorico }: Props) {
+export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, onExcluirDefinitivo, podeRemover, onMovimentar, onHistorico }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
@@ -156,6 +158,12 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, podeRemove
                             <Trash2 className="h-4 w-4" /> Inativar
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          onClick={() => onExcluirDefinitivo(i)}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" /> Excluir
+                        </DropdownMenuItem>
                         {podeRemoverItem && (
                           <DropdownMenuItem
                             onClick={() => onRemover(i)}
@@ -164,6 +172,7 @@ export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, podeRemove
                             <Trash2 className="h-4 w-4" /> Excluir permanentemente
                           </DropdownMenuItem>
                         )}
+
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>

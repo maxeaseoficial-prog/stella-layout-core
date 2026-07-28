@@ -45,7 +45,7 @@ export const Route = createFileRoute("/estoque")({
 });
 
 function EstoquePage() {
-  const { itens, hidratado, stats, criar, atualizar, excluir, removerPermanente, podeRemover, filtrar } = useEstoque();
+  const { itens, hidratado, stats, criar, atualizar, excluir, removerPermanente, podeRemover, temVinculos, filtrar } = useEstoque();
   const { categoriasPorEscopo } = useConfiguracoes();
   const categoriasEstoque = categoriasPorEscopo("estoque");
 
@@ -55,6 +55,8 @@ function EstoquePage() {
   const [editando, setEditando] = useState<ItemEstoque | null>(null);
   const [excluindo, setExcluindo] = useState<ItemEstoque | null>(null);
   const [removendo, setRemovendo] = useState<ItemEstoque | null>(null);
+  const [excluindoDefinitivo, setExcluindoDefinitivo] = useState<ItemEstoque | null>(null);
+
   const [movimentando, setMovimentando] = useState<ItemEstoque | null>(null);
   const [historico, setHistorico] = useState<ItemEstoque | null>(null);
 
@@ -103,6 +105,19 @@ function EstoquePage() {
     toast.success("Item excluído permanentemente.");
     setRemovendo(null);
   }
+
+  function confirmarExclusaoDefinitiva() {
+
+    if (!excluindoDefinitivo) return;
+    if (temVinculos(excluindoDefinitivo.id)) {
+      setExcluindoDefinitivo(null);
+      return;
+    }
+    removerPermanente(excluindoDefinitivo.id);
+    toast.success("Item excluído com sucesso.");
+    setExcluindoDefinitivo(null);
+  }
+
 
   const total = itens.length;
   const listaVazia = hidratado && total === 0;
@@ -181,6 +196,8 @@ function EstoquePage() {
           onEditar={abrirEdicao}
           onExcluir={setExcluindo}
           onRemover={setRemovendo}
+          onExcluirDefinitivo={setExcluindoDefinitivo}
+
           podeRemover={podeRemover}
           onMovimentar={setMovimentando}
           onHistorico={setHistorico}
@@ -251,6 +268,51 @@ function EstoquePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog
+        open={!!excluindoDefinitivo}
+        onOpenChange={(v) => (!v ? setExcluindoDefinitivo(null) : null)}
+      >
+        <AlertDialogContent>
+          {excluindoDefinitivo && temVinculos(excluindoDefinitivo.id) ? (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Não é possível excluir</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Este item não pode ser excluído porque possui vínculos no sistema.
+                  Para preservação do histórico, utilize a opção Inativar.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction onClick={() => setExcluindoDefinitivo(null)}>
+                  Entendi
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          ) : (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir item</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir este item do estoque?
+                  <br />
+                  Esta ação é permanente e não poderá ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmarExclusaoDefinitiva}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+
 
     </div>
   );
