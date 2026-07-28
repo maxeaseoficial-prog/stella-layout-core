@@ -62,7 +62,7 @@ function badgeEstoque(i: ItemEstoque) {
   );
 }
 
-export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, podeRemover, onMovimentar, onHistorico }: Props) {
+export function EstoqueTable({ itens, onEditar, onExcluir, onRemover, onExcluirDefinitivo, podeRemover, onMovimentar, onHistorico }: Props) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
