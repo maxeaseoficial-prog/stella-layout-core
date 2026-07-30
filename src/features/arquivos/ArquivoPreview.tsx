@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { isImagem } from "./types";
 import { iconePorExtensao } from "./utils";
+import { getPesPreview, isPes } from "./pesRender";
 
 interface Props {
   extensao: string;
@@ -78,6 +79,8 @@ export function ArquivoPreview({
   const Icon = iconePorExtensao(extensao);
   const ehImg = isImagem(extensao);
   const ehPdf = extensao.toLowerCase() === "pdf";
+  const ehPes = isPes(extensao);
+  const pesThumb = ehPes ? getPesPreview(dataUrl) : null;
   const [pdfThumb, setPdfThumb] = useState<string | null>(() =>
     ehPdf ? pdfThumbCache.get(dataUrl) ?? null : null,
   );
@@ -109,6 +112,8 @@ export function ArquivoPreview({
         <img src={dataUrl} alt={nome} className="h-full w-full object-cover" />
       ) : ehPdf && pdfThumb ? (
         <img src={pdfThumb} alt={nome} className="h-full w-full object-contain" />
+      ) : ehPes && pesThumb ? (
+        <img src={pesThumb} alt={nome} className="h-full w-full object-contain" />
       ) : (
         <div className="flex flex-col items-center gap-1 p-2 text-primary">
           <Icon className={iconSizeMap[size]} />
