@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Palette, Plus, Trash2, X } from "lucide-react";
+import { Package, Palette, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProdutos } from "@/features/produtos";
+import type { Produto } from "@/features/produtos";
 import { useAdicionais, LABEL_PENDENCIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
 import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,39 @@ import {
   somaAdicionaisItem,
 } from "./utils";
 import { PersonalizacaoModal } from "./PersonalizacaoModal";
+
+/** Miniatura do produto (foto cadastrada) ou ícone genérico. */
+function ProdutoThumb({ produto, className }: { produto: Produto; className?: string }) {
+  if (produto.imagem) {
+    return (
+      <img
+        src={produto.imagem}
+        alt={produto.nome}
+        className={cn("shrink-0 rounded-md border border-border object-cover", className)}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "grid shrink-0 place-items-center rounded-md border border-border bg-surface-muted",
+        className,
+      )}
+    >
+      <Package className="h-1/2 w-1/2 text-muted-foreground" />
+    </span>
+  );
+}
+
+/** Opção do seletor: foto + nome do produto. */
+function OpcaoProduto({ produto }: { produto: Produto }) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <ProdutoThumb produto={produto} className="h-7 w-7" />
+      <span className="truncate">{produto.nome}</span>
+    </span>
+  );
+}
 
 interface Props {
   itens: ItemPedido[];
