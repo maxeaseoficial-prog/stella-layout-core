@@ -145,21 +145,32 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
   }
 
 
+  function validarItens(): string | undefined {
+    if (form.itens.length === 0) {
+      return "Adicione pelo menos um produto.";
+    }
+    const invalido = form.itens.find(
+      (i) => !i.produto.trim() || i.quantidade <= 0 || i.valorUnitario < 0,
+    );
+    if (invalido) {
+      return "Preencha produto, quantidade e valor de cada item.";
+    }
+    const semTamanho = form.itens.find((i) => !i.tamanho?.trim());
+    if (semTamanho) {
+      return "Selecione o tamanho de cada produto do pedido.";
+    }
+    return undefined;
+  }
+
   function podeAvancar(): boolean {
     if (etapa === 1 && !form.clienteId) {
       setErro("Selecione um cliente para continuar.");
       return false;
     }
     if (etapa === 2) {
-      if (form.itens.length === 0) {
-        setErro("Adicione pelo menos um produto.");
-        return false;
-      }
-      const invalido = form.itens.find(
-        (i) => !i.produto.trim() || i.quantidade <= 0 || i.valorUnitario < 0,
-      );
-      if (invalido) {
-        setErro("Preencha produto, quantidade e valor de cada item.");
+      const msg = validarItens();
+      if (msg) {
+        setErro(msg);
         return false;
       }
     }
@@ -178,6 +189,11 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
   }
 
   function handleSalvar() {
+    const msg = validarItens();
+    if (msg) {
+      setErro(msg);
+      return;
+    }
     if (!podeAvancar()) return;
     const dados: PedidoInput = {
       clienteId: form.clienteId,
