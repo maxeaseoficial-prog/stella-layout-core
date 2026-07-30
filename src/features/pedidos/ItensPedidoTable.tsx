@@ -216,6 +216,32 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                       </SelectContent>
                     </Select>
                   )}
+                  <Select
+                    value={item.tamanho ?? "__sem_tamanho__"}
+                    onValueChange={(v) =>
+                      atualizarItem(
+                        item.id,
+                        "tamanho",
+                        v === "__sem_tamanho__" ? undefined : v,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tamanho">
+                        {item.tamanho ?? "Tamanho"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__sem_tamanho__">
+                        Sem tamanho
+                      </SelectItem>
+                      {tamanhos.map((t) => (
+                        <SelectItem key={t.id} value={t.nome}>
+                          {t.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Input
                     value={rascunho.quantidadeStr}
                     inputMode="numeric"
