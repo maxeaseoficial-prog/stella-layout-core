@@ -70,6 +70,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
     ItemPedido | null
   >(null);
   const [rascunhos, setRascunhos] = useState<Record<string, Rascunho>>({});
+  const [selecionandoPara, setSelecionandoPara] = useState<string | null>(null);
 
   function selecionarProduto(itemId: string, produtoId: string) {
     const p = produtosAtivos.find((x) => x.id === produtoId);
