@@ -11,6 +11,11 @@ import type {
 } from "./types";
 import { LABEL_STATUS_PRODUCAO } from "./types";
 import {
+  migrarPagamentosParaCaixa,
+  registrarEntradaPedido,
+} from "@/features/caixa/integracaoPedidos";
+
+import {
   carregarPedidos,
   notificarPedidosAtualizado,
   PEDIDOS_EVENT,
@@ -64,13 +69,17 @@ export function usePedidos() {
   const [hidratado, setHidratado] = useState(false);
 
   useEffect(() => {
-    setPedidos(carregarPedidos());
-    setHidratado(true);
-    function onUpdate() {
-      setPedidos(carregarPedidos());
+    function recarregar() {
+      const lista = carregarPedidos();
+      setPedidos(lista);
+      // Garante que todo recebimento registrado (inclusive parcial e os
+      // lançados antes desta integração) tenha uma entrada no Caixa.
+      migrarPagamentosParaCaixa(lista);
     }
-    window.addEventListener(PEDIDOS_EVENT, onUpdate);
-    return () => window.removeEventListener(PEDIDOS_EVENT, onUpdate);
+    recarregar();
+    setHidratado(true);
+    window.addEventListener(PEDIDOS_EVENT, recarregar);
+    return () => window.removeEventListener(PEDIDOS_EVENT, recarregar);
   }, []);
 
   const criar = useCallback((entrada: PedidoInput): Pedido => {
