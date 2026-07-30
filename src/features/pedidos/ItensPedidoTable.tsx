@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, Palette, Plus, Trash2, X } from "lucide-react";
+import { ChevronsUpDown, Package, Palette, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
   somaAdicionaisItem,
 } from "./utils";
 import { PersonalizacaoModal } from "./PersonalizacaoModal";
+import { SelecionarProdutoDialog } from "./SelecionarProdutoDialog";
 
 /** Miniatura do produto (foto cadastrada) ou ícone genérico. */
 function ProdutoThumb({ produto, className }: { produto: Produto; className?: string }) {
@@ -50,16 +51,6 @@ function ProdutoThumb({ produto, className }: { produto: Produto; className?: st
   );
 }
 
-/** Opção do seletor: foto + nome do produto. */
-function OpcaoProduto({ produto }: { produto: Produto }) {
-  return (
-    <span className="flex min-w-0 items-center gap-2">
-      <ProdutoThumb produto={produto} className="h-7 w-7" />
-      <span className="truncate">{produto.nome}</span>
-    </span>
-  );
-}
-
 interface Props {
   itens: ItemPedido[];
   onChange: (itens: ItemPedido[]) => void;
@@ -79,6 +70,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
     ItemPedido | null
   >(null);
   const [rascunhos, setRascunhos] = useState<Record<string, Rascunho>>({});
+  const [selecionandoPara, setSelecionandoPara] = useState<string | null>(null);
 
   function selecionarProduto(itemId: string, produtoId: string) {
     const p = produtosAtivos.find((x) => x.id === produtoId);
@@ -207,60 +199,25 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                 className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3"
               >
                 <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_80px_110px_120px_auto]">
-                  {item.produtoId || produtosAtivos.some((p) => p.nome === item.produto) ? (
-                    <Select
-                      value={item.produtoId ?? ""}
-                      onValueChange={(v) => selecionarProduto(item.id, v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o produto">
-                          {produtoSelecionado ? (
-                            <span className="flex min-w-0 items-center gap-2">
-                              <ProdutoThumb produto={produtoSelecionado} className="h-6 w-6" />
-                              <span className="truncate">{produtoSelecionado.nome}</span>
-                            </span>
-                          ) : (
-                            item.produto || "Selecione o produto"
-                          )}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {produtosAtivos.length === 0 ? (
-                          <div className="px-2 py-3 text-xs text-muted-foreground">
-                            Nenhum produto ativo cadastrado.
-                          </div>
-                        ) : (
-                          produtosAtivos.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              <OpcaoProduto produto={p} />
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Select
-                      value=""
-                      onValueChange={(v) => selecionarProduto(item.id, v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o produto" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {produtosAtivos.length === 0 ? (
-                          <div className="px-2 py-3 text-xs text-muted-foreground">
-                            Nenhum produto ativo cadastrado.
-                          </div>
-                        ) : (
-                          produtosAtivos.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              <OpcaoProduto produto={p} />
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelecionandoPara(item.id)}
+                    className="flex h-10 w-full min-w-0 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm shadow-xs transition-colors hover:bg-surface-muted/50 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  >
+                    {produtoSelecionado ? (
+                      <>
+                        <ProdutoThumb produto={produtoSelecionado} className="h-6 w-6" />
+                        <span className="truncate text-foreground">
+                          {produtoSelecionado.nome}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="truncate text-muted-foreground">
+                        {item.produto || "Selecione o produto"}
+                      </span>
+                    )}
+                    <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
+                  </button>
                   <Select
                     value={item.tamanho ?? ""}
                     onValueChange={(v) => atualizarItem(item.id, "tamanho", v)}
@@ -443,6 +400,17 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
           })}
         </ul>
       )}
+
+      {selecionandoPara ? (
+        <SelecionarProdutoDialog
+          aberto
+          onFechar={() => setSelecionandoPara(null)}
+          onSelecionar={(p) => {
+            selecionarProduto(selecionandoPara, p.id);
+            setSelecionandoPara(null);
+          }}
+        />
+      ) : null}
 
       <PersonalizacaoModal
         aberto={!!editandoPersonalizacao}
