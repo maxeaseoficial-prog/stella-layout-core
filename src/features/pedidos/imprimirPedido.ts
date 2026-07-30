@@ -54,7 +54,9 @@ export function imprimirPedido(pedido: Pedido, cliente?: Cliente | null) {
       return `
       <tr>
         <td>
-          <div class="produto">${esc(i.produto)}</div>
+          <div class="produto">${esc(i.produto)}${
+            i.tamanho ? ` <span class="tam">• Tam: ${esc(i.tamanho)}</span>` : ""
+          }</div>
           ${adicionaisHtml}
           ${
             i.personalizacoes.length
@@ -100,6 +102,7 @@ export function imprimirPedido(pedido: Pedido, cliente?: Cliente | null) {
   td.c { text-align: center; }
   td.r, th.r { text-align: right; white-space: nowrap; }
   .produto { font-weight: 600; }
+  .produto .tam { font-weight: 400; color: #666; font-size: 11.5px; white-space: nowrap; }
   .pers { margin: 6px 0 0; padding-left: 16px; font-size: 12px; color: #444; }
   .pers .obs { color: #666; font-style: italic; }
   .totais { margin-left: auto; margin-top: 12px; width: 260px; font-size: 13px; }

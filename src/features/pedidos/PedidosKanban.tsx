@@ -392,7 +392,10 @@ function PedidoCard({
               <div className="min-w-0 space-y-1 rounded-lg bg-surface-muted/40 px-2.5 py-2">
                 <p className="flex min-w-0 items-center gap-1.5 truncate text-[12.5px] font-medium text-foreground">
                   <Package className="h-3 w-3 shrink-0 text-muted-foreground" strokeWidth={2.25} />
-                  <span className="truncate">{primeiroItem.produto}</span>
+                  <span className="truncate">
+                    {primeiroItem.produto}
+                    {primeiroItem.tamanho ? ` (${primeiroItem.tamanho})` : ""}
+                  </span>
                   {restantes > 0 && (
                     <span className="shrink-0 text-[10.5px] font-normal text-muted-foreground">
                       +{restantes}

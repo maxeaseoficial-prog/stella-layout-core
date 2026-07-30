@@ -156,7 +156,7 @@ export async function gerarOrcamentoPDF(
 
     const linhas: Array<[string, string]> = [];
     linhas.push([
-      `Produto — ${item.produto} (Qtd: ${item.quantidade})`,
+      `Produto — ${item.produto}${item.tamanho ? ` (${item.tamanho})` : ""} (Qtd: ${item.quantidade})`,
       formatarMoeda(valorBase),
     ]);
     for (const ad of item.adicionais ?? []) {

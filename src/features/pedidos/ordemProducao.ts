@@ -299,7 +299,7 @@ export async function gerarOrdemProducaoPDF(
             },
           },
           {
-            content: `Qtd: ${item.quantidade}`,
+            content: `Qtd: ${item.quantidade}${item.tamanho ? `\nTam: ${item.tamanho}` : ""}`,
             styles: {
               halign: "right",
               fontStyle: "bold",
