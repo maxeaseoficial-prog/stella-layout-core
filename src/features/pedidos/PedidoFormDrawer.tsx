@@ -292,6 +292,7 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Quantidade: {item.quantidade}
+                            {item.tamanho ? ` • Tamanho: ${item.tamanho}` : ""}
                           </p>
                         </div>
                       </div>
