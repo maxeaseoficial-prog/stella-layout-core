@@ -251,7 +251,7 @@ export function SelecionarProdutoDialog({ aberto, onFechar, onSelecionar }: Prop
                       className={cn(
                         "flex h-full w-full flex-col gap-2 rounded-xl border border-border bg-surface p-3 text-left shadow-[var(--shadow-soft)] transition-all",
                         ativo
-                          ? "hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[var(--shadow-elegant)]"
+                          ? "hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                           : "cursor-not-allowed opacity-60",
                       )}
                     >

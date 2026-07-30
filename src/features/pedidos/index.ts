@@ -11,6 +11,7 @@ export { PedidoViewDrawer } from "./PedidoViewDrawer";
 export { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 export { PagamentoModal } from "./PagamentoModal";
 export { PersonalizacaoModal } from "./PersonalizacaoModal";
+export { SelecionarProdutoDialog } from "./SelecionarProdutoDialog";
 export { PedidoArquivosUploader } from "./PedidoArquivosUploader";
 export { ResumoFinanceiro } from "./ResumoFinanceiro";
 export { ItensPedidoTable } from "./ItensPedidoTable";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Package, Palette, Plus, Trash2, X } from "lucide-react";
+import { ChevronsUpDown, Package, Palette, Plus, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ import {
   somaAdicionaisItem,
 } from "./utils";
 import { PersonalizacaoModal } from "./PersonalizacaoModal";
+import { SelecionarProdutoDialog } from "./SelecionarProdutoDialog";
 
 /** Miniatura do produto (foto cadastrada) ou ícone genérico. */
 function ProdutoThumb({ produto, className }: { produto: Produto; className?: string }) {
@@ -46,16 +47,6 @@ function ProdutoThumb({ produto, className }: { produto: Produto; className?: st
       )}
     >
       <Package className="h-1/2 w-1/2 text-muted-foreground" />
-    </span>
-  );
-}
-
-/** Opção do seletor: foto + nome do produto. */
-function OpcaoProduto({ produto }: { produto: Produto }) {
-  return (
-    <span className="flex min-w-0 items-center gap-2">
-      <ProdutoThumb produto={produto} className="h-7 w-7" />
-      <span className="truncate">{produto.nome}</span>
     </span>
   );
 }
