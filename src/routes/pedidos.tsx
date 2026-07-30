@@ -103,7 +103,11 @@ function PedidosPage() {
     const hoje = hojeISO();
     const semana = inicioSemanaISOLocal();
     const mes = inicioMesISO();
-    const t = termo.trim().toLowerCase();
+    // Tokens alfanuméricos: permite digitar o número com ou sem traços,
+    // espaços e prefixo (ex.: "19", "000019", "2026000019", "PED-2026-000019").
+    const tokens = normalizarTextoBusca(termo)
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean);
 
     return pedidos.filter((p) => {
       const dataPedido = p.criadoEm.slice(0, 10);
