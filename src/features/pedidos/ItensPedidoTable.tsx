@@ -14,6 +14,7 @@ import {
 import { useProdutos } from "@/features/produtos";
 import { useAdicionais, LABEL_PENDENCIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
 import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
+import { cn } from "@/lib/utils";
 
 import type { ItemAdicional, ItemPedido, Personalizacao } from "./types";
 import {
@@ -217,29 +218,32 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                     </Select>
                   )}
                   <Select
-                    value={item.tamanho ?? "__sem_tamanho__"}
-                    onValueChange={(v) =>
-                      atualizarItem(
-                        item.id,
-                        "tamanho",
-                        v === "__sem_tamanho__" ? undefined : v,
-                      )
-                    }
+                    value={item.tamanho ?? ""}
+                    onValueChange={(v) => atualizarItem(item.id, "tamanho", v)}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tamanho">
-                        {item.tamanho ?? "Tamanho"}
+                    <SelectTrigger
+                      className={cn(
+                        !item.tamanho &&
+                          "border-destructive text-destructive ring-destructive/20 focus:ring-destructive/30",
+                      )}
+                      aria-invalid={!item.tamanho}
+                    >
+                      <SelectValue placeholder="Tamanho *">
+                        {item.tamanho ?? "Tamanho *"}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__sem_tamanho__">
-                        Sem tamanho
-                      </SelectItem>
-                      {tamanhos.map((t) => (
-                        <SelectItem key={t.id} value={t.nome}>
-                          {t.nome}
-                        </SelectItem>
-                      ))}
+                      {tamanhos.length === 0 ? (
+                        <div className="px-2 py-3 text-xs text-muted-foreground">
+                          Nenhum tamanho cadastrado em Configurações.
+                        </div>
+                      ) : (
+                        tamanhos.map((t) => (
+                          <SelectItem key={t.id} value={t.nome}>
+                            {t.nome}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <Input
