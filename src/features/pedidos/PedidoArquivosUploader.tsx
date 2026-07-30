@@ -76,6 +76,7 @@ export function PedidoArquivosUploader({
       extensao: i.extensao,
       tamanho: i.tamanho,
       dataUrl: i.dataUrl,
+      capaDataUrl: i.capaDataUrl,
       criadoEm: new Date().toISOString(),
     }));
     if (novos.length) onChange([...arquivos, ...novos]);
@@ -148,16 +149,21 @@ export function PedidoArquivosUploader({
         <ul className="grid gap-2 sm:grid-cols-2">
           {arquivos.map((arq) => {
             const isImg = ["png", "jpg", "jpeg", "svg"].includes(arq.extensao);
+            const thumb = arq.capaDataUrl ?? (isImg ? arq.dataUrl : undefined);
             return (
               <li
                 key={arq.id}
                 className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[var(--shadow-soft)]"
               >
-                {isImg ? (
+                {thumb ? (
                   <img
-                    src={arq.dataUrl}
+                    src={thumb}
                     alt={arq.nome}
-                    className="h-10 w-10 shrink-0 rounded-lg object-cover ring-1 ring-border"
+                    className={`h-10 w-10 shrink-0 rounded-lg ring-1 ring-border ${
+                      arq.capaDataUrl
+                        ? "bg-surface-muted object-contain"
+                        : "object-cover"
+                    }`}
                   />
                 ) : (
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary">

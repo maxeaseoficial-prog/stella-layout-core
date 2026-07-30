@@ -32,6 +32,18 @@ function subtotalAdicional(a: ItemAdicional): number {
   return a.pendencia ? 0 : a.valor || 0;
 }
 
+const EXT_IMG_RASTER = ["png", "jpg", "jpeg", "webp"];
+
+function dimensoesImagem(dataUrl: string): Promise<{ w: number; h: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ w: img.naturalWidth || 1, h: img.naturalHeight || 1 });
+    img.onerror = () => resolve({ w: 1, h: 1 });
+    img.src = dataUrl;
+  });
+}
+
 export interface OrcamentoPDFResult {
   blob: Blob;
   dataUrl: string;
@@ -146,7 +158,14 @@ export async function gerarOrcamentoPDF(
   doc.text("Produtos", margem, y);
   y += 10;
 
-  for (const item of pedido.itens) {
+  // Compatibilidade: pedidos legados podem ter arquivos apenas em pedido.arquivos.
+  const nenhumItemTemArquivos = pedido.itens.every(
+    (it) => (it.arquivos ?? []).length === 0,
+  );
+  const usarLegadoNoPrimeiroItem =
+    nenhumItemTemArquivos && (pedido.arquivos?.length ?? 0) > 0;
+
+  for (const [idxItem, item] of pedido.itens.entries()) {
     if (y > 720) {
       doc.addPage();
       y = margem;
@@ -197,6 +216,42 @@ export async function gerarOrcamentoPDF(
       },
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+
+    // Imagens do produto — capa da Matriz/Logo (ou a própria imagem enviada).
+    const arquivosDoItem =
+      (item.arquivos ?? []).length > 0
+        ? item.arquivos!
+        : usarLegadoNoPrimeiroItem && idxItem === 0
+          ? pedido.arquivos
+          : [];
+    const visuais = arquivosDoItem
+      .map((a) =>
+        a.capaDataUrl ??
+        (EXT_IMG_RASTER.includes(a.extensao.toLowerCase()) ? a.dataUrl : null),
+      )
+      .filter((v): v is string => Boolean(v))
+      .slice(0, 6);
+    if (visuais.length > 0) {
+      const alturaImg = 46;
+      if (y + alturaImg + 16 > 740) {
+        doc.addPage();
+        y = margem;
+      }
+      let x = margem;
+      for (const v of visuais) {
+        try {
+          const { w, h } = await dimensoesImagem(v);
+          const larguraImg = Math.min(Math.max(14, (w / h) * alturaImg), 96);
+          if (x + larguraImg > larg - margem) break;
+          const formato = v.startsWith("data:image/jpeg") ? "JPEG" : "PNG";
+          doc.addImage(v, formato, x, y, larguraImg, alturaImg);
+          x += larguraImg + 8;
+        } catch {
+          /* ignora imagem inválida */
+        }
+      }
+      y += alturaImg + 14;
+    }
   }
 
   if (y > 680) {

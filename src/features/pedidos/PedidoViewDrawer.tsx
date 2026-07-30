@@ -337,16 +337,22 @@ export function PedidoViewDrawer({
                                 const isImg = ["png", "jpg", "jpeg", "svg"].includes(
                                   arq.extensao,
                                 );
+                                const thumb =
+                                  arq.capaDataUrl ?? (isImg ? arq.dataUrl : undefined);
                                 return (
                                   <li
                                     key={arq.id}
                                     className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-[var(--shadow-soft)]"
                                   >
-                                    {isImg ? (
+                                    {thumb ? (
                                       <img
-                                        src={arq.dataUrl}
+                                        src={thumb}
                                         alt={arq.nome}
-                                        className="h-12 w-12 rounded-lg object-cover ring-1 ring-border"
+                                        className={`h-12 w-12 rounded-lg ring-1 ring-border ${
+                                          arq.capaDataUrl
+                                            ? "bg-surface-muted object-contain"
+                                            : "object-cover"
+                                        }`}
                                       />
                                     ) : (
                                       <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary-soft text-primary">

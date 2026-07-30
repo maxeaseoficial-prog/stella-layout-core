@@ -68,6 +68,7 @@ export function ArquivosTable({ arquivos, onVisualizar, onEditar, onExcluir }: P
                       extensao={a.extensao}
                       dataUrl={a.dataUrl}
                       nome={a.arquivoNome}
+                      capaDataUrl={a.capaDataUrl}
                       size="sm"
                     />
                   </TableCell>

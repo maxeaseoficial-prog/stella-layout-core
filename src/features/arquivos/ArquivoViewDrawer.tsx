@@ -56,6 +56,7 @@ export function ArquivoViewDrawer({ arquivo, aberto, onFechar, onEditar }: Props
                     extensao={arquivo.extensao}
                     dataUrl={arquivo.dataUrl}
                     nome={arquivo.arquivoNome}
+                    capaDataUrl={arquivo.capaDataUrl}
                     size="xl"
                     className="!h-56"
                   />

@@ -130,6 +130,7 @@ export function SelecionarArquivoDialog({
                         extensao={a.extensao}
                         dataUrl={a.dataUrl}
                         nome={a.arquivoNome}
+                        capaDataUrl={a.capaDataUrl}
                         size="md"
                       />
                       <div className="min-w-0 flex-1">
