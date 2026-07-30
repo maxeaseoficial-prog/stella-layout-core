@@ -401,6 +401,17 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
         </ul>
       )}
 
+      {selecionandoPara ? (
+        <SelecionarProdutoDialog
+          aberto
+          onFechar={() => setSelecionandoPara(null)}
+          onSelecionar={(p) => {
+            selecionarProduto(selecionandoPara, p.id);
+            setSelecionandoPara(null);
+          }}
+        />
+      ) : null}
+
       <PersonalizacaoModal
         aberto={!!editandoPersonalizacao}
         onFechar={() => setEditandoPersonalizacao(null)}
