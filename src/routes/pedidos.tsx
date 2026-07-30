@@ -58,6 +58,14 @@ function inicioSemanaISOLocal(): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+/** Remove acentos e converte para minúsculas, tornando a busca tolerante. */
+function normalizarTextoBusca(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 function PedidosPage() {
   const { pedidos, hidratado, criar, atualizar, excluir, registrarPagamento } =
     usePedidos();
@@ -95,7 +103,11 @@ function PedidosPage() {
     const hoje = hojeISO();
     const semana = inicioSemanaISOLocal();
     const mes = inicioMesISO();
-    const t = termo.trim().toLowerCase();
+    // Tokens alfanuméricos: permite digitar o número com ou sem traços,
+    // espaços e prefixo (ex.: "19", "000019", "2026000019", "PED-2026-000019").
+    const tokens = normalizarTextoBusca(termo)
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean);
 
     return pedidos.filter((p) => {
       const dataPedido = p.criadoEm.slice(0, 10);
@@ -117,13 +129,18 @@ function PedidosPage() {
         if (filtro !== "todos" && p.etapa !== filtro) return false;
       }
 
-      if (t) {
+      if (tokens.length > 0) {
         const cliente = clientes.find((c) => c.id === p.clienteId);
-        const nomeCliente = cliente ? getClienteNome(cliente).toLowerCase() : "";
-        const alvo = [p.numero, nomeCliente, p.observacoes ?? ""]
-          .join(" ")
-          .toLowerCase();
-        if (!alvo.includes(t)) return false;
+        const nomeCliente = cliente ? getClienteNome(cliente) : "";
+        const alvo = normalizarTextoBusca(
+          [p.numero, nomeCliente, p.observacoes ?? ""].join(" "),
+        );
+        // Versão compacta (sem separadores) pega formatos como "PED2026000019".
+        const alvoCompacto = alvo.replace(/[^a-z0-9]/g, "");
+        const corresponde = tokens.every(
+          (tk) => alvo.includes(tk) || alvoCompacto.includes(tk),
+        );
+        if (!corresponde) return false;
       }
 
       return true;
