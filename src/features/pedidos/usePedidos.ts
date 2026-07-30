@@ -322,14 +322,18 @@ export function usePedidos() {
 
   const registrarPagamento = useCallback(
     (id: string, dados: Omit<Pagamento, "id" | "criadoEm">) => {
+      // Criado fora do updater para o ID ser estável (StrictMode pode
+      // reexecutar o updater) e reutilizável na entrada do Caixa.
+      const pagamento: Pagamento = {
+        ...dados,
+        id: novoId(),
+        criadoEm: new Date().toISOString(),
+      };
+      let numeroPedido: string | undefined;
       commit(setPedidos, (atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;
-          const pagamento: Pagamento = {
-            ...dados,
-            id: novoId(),
-            criadoEm: new Date().toISOString(),
-          };
+          numeroPedido = p.numero;
           const totalPago = p.totalPago + pagamento.valor;
           const statusFinanceiro = statusFinanceiroCalculado(
             p.total,
@@ -355,9 +359,19 @@ export function usePedidos() {
         }),
       );
 
-      // ARQUITETURA — integração futura com o Caixa:
-      // Quando statusFinanceiro passar para "pago", gerar automaticamente
-      // uma movimentação de entrada no módulo Caixa referenciando o pedidoId.
+      // Integração com o Caixa: todo recebimento (parcial ou total) vira
+      // uma movimentação de ENTRADA vinculada ao pedido.
+      if (numeroPedido) {
+        registrarEntradaPedido({
+          pedidoId: id,
+          pedidoNumero: numeroPedido,
+          pagamentoId: pagamento.id,
+          valor: pagamento.valor,
+          forma: pagamento.forma,
+          data: pagamento.data,
+          observacoes: pagamento.observacoes,
+        });
+      }
     },
     [],
   );
