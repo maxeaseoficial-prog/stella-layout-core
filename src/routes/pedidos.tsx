@@ -129,13 +129,18 @@ function PedidosPage() {
         if (filtro !== "todos" && p.etapa !== filtro) return false;
       }
 
-      if (t) {
+      if (tokens.length > 0) {
         const cliente = clientes.find((c) => c.id === p.clienteId);
-        const nomeCliente = cliente ? getClienteNome(cliente).toLowerCase() : "";
-        const alvo = [p.numero, nomeCliente, p.observacoes ?? ""]
-          .join(" ")
-          .toLowerCase();
-        if (!alvo.includes(t)) return false;
+        const nomeCliente = cliente ? getClienteNome(cliente) : "";
+        const alvo = normalizarTextoBusca(
+          [p.numero, nomeCliente, p.observacoes ?? ""].join(" "),
+        );
+        // Versão compacta (sem separadores) pega formatos como "PED2026000019".
+        const alvoCompacto = alvo.replace(/[^a-z0-9]/g, "");
+        const corresponde = tokens.every(
+          (tk) => alvo.includes(tk) || alvoCompacto.includes(tk),
+        );
+        if (!corresponde) return false;
       }
 
       return true;
