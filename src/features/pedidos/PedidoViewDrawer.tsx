@@ -94,6 +94,8 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
+  // A aba fiscal só aparece para o Administrador.
+  const abaFiscal = cap.emitir_nfe;
   const { alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
@@ -223,6 +225,9 @@ export function PedidoViewDrawer({
                     </TabsTrigger>
 
                     <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+                    {abaFiscal && (
+                      <TabsTrigger value="nota-fiscal">Nota Fiscal</TabsTrigger>
+                    )}
                     <TabsTrigger value="historico">Histórico</TabsTrigger>
                   </TabsList>
                 </div>
@@ -500,6 +505,12 @@ export function PedidoViewDrawer({
                       )}
                     </Bloco>
                   </TabsContent>
+
+                  {abaFiscal && (
+                    <TabsContent value="nota-fiscal" className="mt-0">
+                      <NotaFiscalSection pedido={pedido} />
+                    </TabsContent>
+                  )}
 
                   <TabsContent value="historico" className="mt-0">
                     <Bloco titulo="Histórico do pedido">
