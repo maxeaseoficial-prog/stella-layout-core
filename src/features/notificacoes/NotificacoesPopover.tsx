@@ -30,6 +30,7 @@ function tempoRelativo(iso: string): string {
 
 export function NotificacoesPopover() {
   const { itens, naoLidas, lidas, marcarLida, marcarTodas } = useNotificacoes();
+  useSomNotificacao(itens, lidas);
   const navigate = useNavigate();
 
   function clicarNotificacao(n: Notificacao) {
