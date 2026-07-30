@@ -139,6 +139,7 @@ export function normalizarBusca(valor: string): string {
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
     .trim();
+
 }
 
 /** Verdadeiro quando TODOS os termos digitados aparecem no texto-alvo. */
