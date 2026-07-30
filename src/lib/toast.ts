@@ -1,6 +1,6 @@
 /**
  * Wrapper do `toast` do sonner que toca o som de notificação do sistema
- * sempre que um toast é exibido. Use no lugar de `import { toast } from "sonner"`.
+ * sempre que um toast é exibido. Use no lugar de `import { toast } from "@/lib/toast"`.
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

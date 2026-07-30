@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UserCircle2, KeyRound } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import { SectionCard } from "@/features/configuracoes/SectionCard";
 import { Input } from "@/components/ui/input";
