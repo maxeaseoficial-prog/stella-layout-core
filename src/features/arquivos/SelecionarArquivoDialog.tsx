@@ -51,14 +51,11 @@ export function SelecionarArquivoDialog({
 
   const disponiveis = useMemo(() => {
     if (!clienteId) return [];
-    const t = termo.trim().toLowerCase();
     return porCliente(clienteId).filter(
       (a) =>
         a.status === "ativo" &&
         !jaSelecionadosIds.includes(a.id) &&
-        (!t ||
-          a.nome.toLowerCase().includes(t) ||
-          a.arquivoNome.toLowerCase().includes(t)),
+        correspondeBusca(`${a.nome} ${a.arquivoNome}`, termo),
     );
   }, [clienteId, porCliente, termo, jaSelecionadosIds]);
 
