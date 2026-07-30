@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useNotificacoes } from "./useNotificacoes";
 import { useSomNotificacao } from "./useSomNotificacao";
 import type { Notificacao } from "./types";
+import type { Notificacao } from "./types";
 
 function tempoRelativo(iso: string): string {
   const alvo = new Date(iso).getTime();
