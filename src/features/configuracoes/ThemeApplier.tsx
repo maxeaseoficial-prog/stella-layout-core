@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useConfiguracoes } from "./useConfiguracoes";
+import { useAparenciaUsuario } from "./aparenciaUsuario";
 
 export function ThemeApplier() {
-  const { state } = useConfiguracoes();
-  const { tema, corPrincipal } = state.aparencia;
+  const { aparencia } = useAparenciaUsuario();
+  const { tema, corPrincipal } = aparencia;
 
   useEffect(() => {
     if (typeof document === "undefined") return;
