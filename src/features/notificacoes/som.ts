@@ -1,81 +1,72 @@
 /**
- * Som de notificação sintetizado via Web Audio API — sem arquivos de áudio.
+ * Som de notificação do sistema (arquivo MP3 hospedado na CDN).
  *
  * Navegadores bloqueiam áudio automático até o primeiro gesto do usuário
- * (clique/tecla). Por isso o AudioContext é criado de forma lazy e "destravado"
- * no primeiro pointerdown/keydown; se ainda estiver suspenso quando uma
- * notificação chegar, o som é simplesmente ignorado (sem erros no console).
+ * (clique/tecla). Por isso o elemento de áudio é criado de forma lazy e
+ * "destravado" no primeiro pointerdown/keydown; se ainda estiver bloqueado
+ * quando uma notificação chegar, o play() falha silenciosamente.
  */
 
-let ctx: AudioContext | null = null;
+import somAsset from "@/assets/notificacao-som.mp3.asset.json";
+
+const SOM_URL = somAsset.url;
+
+let audio: HTMLAudioElement | null = null;
+let desbloqueado = false;
 
 function isBrowser() {
   return typeof window !== "undefined";
 }
 
-type AudioContextCtor = new () => AudioContext;
-
-function obterContexto(): AudioContext | null {
+function obterAudio(): HTMLAudioElement | null {
   if (!isBrowser()) return null;
-  if (ctx) return ctx;
-  const w = window as unknown as {
-    AudioContext?: AudioContextCtor;
-    webkitAudioContext?: AudioContextCtor;
-  };
-  const Ctor = w.AudioContext ?? w.webkitAudioContext;
-  if (!Ctor) return null;
+  if (audio) return audio;
   try {
-    ctx = new Ctor();
+    audio = new Audio(SOM_URL);
+    audio.preload = "auto";
+    audio.volume = 0.6;
   } catch {
-    ctx = null;
+    audio = null;
   }
-  return ctx;
+  return audio;
 }
 
-function tentarRetomar() {
-  const c = obterContexto();
-  if (c && c.state === "suspended") {
-    void c.resume().catch(() => {});
-  }
+function tentarDesbloquear() {
+  if (desbloqueado) return;
+  const a = obterAudio();
+  if (!a) return;
+  // "Aquece" o áudio dentro de um gesto do usuário: toca mudo e pausa,
+  // liberando reproduções futuras (política de autoplay).
+  a.muted = true;
+  a.play()
+    .then(() => {
+      a.pause();
+      a.currentTime = 0;
+      a.muted = false;
+      desbloqueado = true;
+    })
+    .catch(() => {
+      a.muted = false;
+    });
 }
 
 // Destrava o áudio no primeiro gesto do usuário (política de autoplay).
 if (isBrowser()) {
-  window.addEventListener("pointerdown", tentarRetomar, { passive: true });
-  window.addEventListener("keydown", tentarRetomar);
+  window.addEventListener("pointerdown", tentarDesbloquear, { passive: true });
+  window.addEventListener("keydown", tentarDesbloquear);
 }
 
 /**
- * Toca um "ding-dong" curto e suave (duas notas senoidais com decay).
- * Não faz nada se o áudio ainda estiver bloqueado pelo navegador.
+ * Toca o som de notificação do sistema.
+ * Não faz nada (sem erros) se o áudio ainda estiver bloqueado pelo navegador.
  */
 export function tocarSomNotificacao() {
-  const c = obterContexto();
-  if (!c || c.state !== "running") return;
-
-  const t0 = c.currentTime + 0.01;
-  const master = c.createGain();
-  master.gain.setValueAtTime(0.22, t0);
-  master.connect(c.destination);
-
-  // Lá5 → Ré6: intervalo agradável de "notificação".
-  const notas: Array<{ freq: number; inicio: number; duracao: number }> = [
-    { freq: 880, inicio: 0, duracao: 0.16 },
-    { freq: 1174.66, inicio: 0.13, duracao: 0.42 },
-  ];
-
-  for (const nota of notas) {
-    const inicio = t0 + nota.inicio;
-    const osc = c.createOscillator();
-    const env = c.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(nota.freq, inicio);
-    env.gain.setValueAtTime(0.0001, inicio);
-    env.gain.exponentialRampToValueAtTime(1, inicio + 0.015);
-    env.gain.exponentialRampToValueAtTime(0.0001, inicio + nota.duracao);
-    osc.connect(env);
-    env.connect(master);
-    osc.start(inicio);
-    osc.stop(inicio + nota.duracao + 0.05);
+  const a = obterAudio();
+  if (!a) return;
+  try {
+    a.currentTime = 0;
+    void a.play().catch(() => {});
+  } catch {
+    // Ignora falhas de reprodução (áudio bloqueado/indisponível).
   }
 }
