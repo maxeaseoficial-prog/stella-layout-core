@@ -3,22 +3,19 @@
  * sempre que um toast é exibido. Use no lugar de `import { toast } from "sonner"`.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { toast as sonnerToast } from "sonner";
 
 import { tocarSomToast } from "./toast-som";
 
-type Fn = (...args: never[]) => unknown;
-
-function comSom<T extends Fn>(fn: T): T {
-  return ((...args: Parameters<T>) => {
+function comSom<T extends (...args: any[]) => any>(fn: T): T {
+  return ((...args: any[]) => {
     tocarSomToast();
     return fn(...args);
   }) as T;
 }
 
-const base = sonnerToast as unknown as Fn & Record<string, Fn>;
-
-export const toast = Object.assign(comSom(base.bind(sonnerToast)), {
+export const toast = Object.assign(comSom(sonnerToast as (...args: any[]) => any), {
   success: comSom(sonnerToast.success),
   error: comSom(sonnerToast.error),
   info: comSom(sonnerToast.info),
@@ -28,4 +25,4 @@ export const toast = Object.assign(comSom(base.bind(sonnerToast)), {
   loading: comSom(sonnerToast.loading),
   promise: sonnerToast.promise,
   dismiss: sonnerToast.dismiss,
-}) as typeof sonnerToast;
+}) as unknown as typeof sonnerToast;
