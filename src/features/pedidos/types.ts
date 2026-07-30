@@ -55,6 +55,12 @@ export interface ItemPedido {
   produtoId?: string;
   /** Snapshot do nome do produto no momento do pedido. */
   produto: string;
+  /**
+   * Tamanho da peça (ex.: "PP/36", "P/38"). Opcional — pedidos legados e
+   * produtos sem variação de tamanho ficam sem o campo.
+   * As opções são gerenciadas em Configurações → Categorias (escopo "tamanho").
+   */
+  tamanho?: string;
   quantidade: number;
   valorUnitario: number;
   personalizacoes: Personalizacao[];
