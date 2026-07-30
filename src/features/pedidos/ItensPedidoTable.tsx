@@ -198,6 +198,9 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                   ? item.valorUnitario.toFixed(2).replace(".", ",")
                   : "",
             };
+            const produtoSelecionado =
+              produtosAtivos.find((p) => p.id === item.produtoId) ??
+              produtosAtivos.find((p) => p.nome === item.produto);
             return (
               <li
                 key={item.id}
@@ -211,7 +214,14 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o produto">
-                          {item.produto || "Selecione o produto"}
+                          {produtoSelecionado ? (
+                            <span className="flex min-w-0 items-center gap-2">
+                              <ProdutoThumb produto={produtoSelecionado} className="h-6 w-6" />
+                              <span className="truncate">{produtoSelecionado.nome}</span>
+                            </span>
+                          ) : (
+                            item.produto || "Selecione o produto"
+                          )}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
@@ -222,7 +232,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                         ) : (
                           produtosAtivos.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.nome}
+                              <OpcaoProduto produto={p} />
                             </SelectItem>
                           ))
                         )}
@@ -244,7 +254,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                         ) : (
                           produtosAtivos.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.nome}
+                              <OpcaoProduto produto={p} />
                             </SelectItem>
                           ))
                         )}
