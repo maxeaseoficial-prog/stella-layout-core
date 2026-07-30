@@ -80,7 +80,20 @@ export function categoriasIniciais(): Categoria[] {
   CATEGORIAS_INICIAIS_ADICIONAL.forEach((nome, i) =>
     lista.push({ id: id("cat-adi", i), escopo: "adicional", nome, ordem: i, criadoEm }),
   );
+  lista.push(...tamanhosIniciais());
   return lista;
+}
+
+/** Tamanhos padrão como categorias (escopo "tamanho"). */
+export function tamanhosIniciais(): Categoria[] {
+  const criadoEm = nowISO();
+  return TAMANHOS_INICIAIS.map((nome, i) => ({
+    id: id("cat-tam", i),
+    escopo: "tamanho",
+    nome,
+    ordem: i,
+    criadoEm,
+  }));
 }
 
 export function formasPagamentoIniciais(): FormaPagamento[] {

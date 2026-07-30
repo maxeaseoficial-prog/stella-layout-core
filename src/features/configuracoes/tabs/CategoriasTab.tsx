@@ -39,13 +39,14 @@ export function CategoriasTab() {
   return (
     <SectionCard
       title="Categorias"
-      description="Categorias administráveis usadas nos cadastros de Produtos, Estoque e Adicionais. Reorganize arrastando pelo ícone à esquerda."
+      description="Listas administráveis usadas nos cadastros de Produtos, Estoque, Adicionais e na escolha de Tamanho ao montar o pedido. Reorganize arrastando pelo ícone à esquerda."
       icon={<Tag className="h-4 w-4" />}
-      contentClassName="grid gap-4 md:grid-cols-3"
+      contentClassName="grid gap-4 md:grid-cols-2"
     >
       <ListaCategorias escopo="produto" descricao="Ex: Camiseta, Polo, Jaleco, Boné." />
       <ListaCategorias escopo="estoque" descricao="Ex: Tecidos, Linhas, Botões, Etiquetas." />
       <ListaCategorias escopo="adicional" descricao="Ex: Tecido, Aviamento, Acessório." />
+      <ListaCategorias escopo="tamanho" descricao="Ex: PP/36, P/38, M/40, G/42." />
     </SectionCard>
   );
 }
