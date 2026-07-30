@@ -267,7 +267,7 @@ export function renderPesSvg(design: PesDesign): string | null {
   const vy = minY - margem;
   const vw = largura + margem * 2;
   const vh = altura + margem * 2;
-  const espessura = Math.max(2, Math.max(largura, altura) / 140);
+  const espessura = Math.max(2.5, Math.max(largura, altura) / 100);
 
   const paths = design.segmentos
     .map((seg) => {
