@@ -58,6 +58,14 @@ function inicioSemanaISOLocal(): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+/** Remove acentos e converte para minúsculas, tornando a busca tolerante. */
+function normalizarTextoBusca(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 function PedidosPage() {
   const { pedidos, hidratado, criar, atualizar, excluir, registrarPagamento } =
     usePedidos();
