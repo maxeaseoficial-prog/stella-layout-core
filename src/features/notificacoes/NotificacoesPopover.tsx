@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 import { useNotificacoes } from "./useNotificacoes";
+import { useSomNotificacao } from "./useSomNotificacao";
 import type { Notificacao } from "./types";
 
 function tempoRelativo(iso: string): string {
@@ -29,6 +30,7 @@ function tempoRelativo(iso: string): string {
 
 export function NotificacoesPopover() {
   const { itens, naoLidas, lidas, marcarLida, marcarTodas } = useNotificacoes();
+  useSomNotificacao(itens, lidas);
   const navigate = useNavigate();
 
   function clicarNotificacao(n: Notificacao) {
