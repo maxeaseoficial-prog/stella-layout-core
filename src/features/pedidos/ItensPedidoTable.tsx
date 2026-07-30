@@ -168,7 +168,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                 key={item.id}
                 className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3"
               >
-                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_90px_120px_120px_auto]">
+                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_80px_110px_120px_auto]">
                   {item.produtoId || produtosAtivos.some((p) => p.nome === item.produto) ? (
                     <Select
                       value={item.produtoId ?? ""}
