@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, ImagePlus, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import {
   Sheet,

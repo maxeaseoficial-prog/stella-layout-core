@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Plus, Puzzle, Search } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
