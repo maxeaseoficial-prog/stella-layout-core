@@ -24,7 +24,7 @@ import {
   labelPosicao,
 } from "./types";
 import { ArquivoPreview } from "./ArquivoPreview";
-import { useArquivos } from "./useArquivos";
+import { correspondeBusca, useArquivos } from "./useArquivos";
 
 interface Props {
   aberto: boolean;
