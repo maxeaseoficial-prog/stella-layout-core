@@ -4,6 +4,7 @@ import { usuarioAtual } from "@/features/auth/useAuth";
 
 import type {
   HistoricoEntrada,
+  NotaFiscalPedido,
   Pagamento,
   Pedido,
   PedidoInput,
@@ -455,6 +456,30 @@ export function usePedidos() {
     [],
   );
 
+  /**
+   * Persiste o retorno da emissão de NF-e (Spedy) no pedido.
+   * `descricaoHistorico` registra marcos (envio, autorização, rejeição,
+   * cancelamento); omita para atualizações silenciosas de status.
+   */
+  const salvarNotaFiscal = useCallback(
+    (id: string, nota: NotaFiscalPedido | undefined, descricaoHistorico?: string) => {
+      commit(setPedidos, (atual) =>
+        atual.map((p) => {
+          if (p.id !== id) return p;
+          return {
+            ...p,
+            notaFiscal: nota,
+            atualizadoEm: new Date().toISOString(),
+            historico: descricaoHistorico
+              ? [novaEntradaHistorico("nota_fiscal", descricaoHistorico), ...p.historico]
+              : p.historico,
+          };
+        }),
+      );
+    },
+    [],
+  );
+
 
 
   const buscarPorId = useCallback(
@@ -507,6 +532,7 @@ export function usePedidos() {
     registrarPagamento,
     registrarEnvioOrcamento,
     registrarOrdemProducao,
+    salvarNotaFiscal,
     cancelar,
     buscarPorId,
   };
