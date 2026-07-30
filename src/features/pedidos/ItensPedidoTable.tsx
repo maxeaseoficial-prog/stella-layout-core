@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useProdutos } from "@/features/produtos";
 import { useAdicionais, LABEL_PENDENCIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 
 import type { ItemAdicional, ItemPedido, Personalizacao } from "./types";
 import {
@@ -37,6 +38,8 @@ interface Rascunho {
 export function ItensPedidoTable({ itens, onChange }: Props) {
   const { ativos: produtosAtivos } = useProdutos();
   const { ativos: adicionaisAtivos } = useAdicionais();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const tamanhos = categoriasPorEscopo("tamanho");
   const [editandoPersonalizacao, setEditandoPersonalizacao] = useState<
     ItemPedido | null
   >(null);
