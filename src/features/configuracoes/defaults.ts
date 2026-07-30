@@ -45,6 +45,20 @@ const CATEGORIAS_INICIAIS_ADICIONAL = [
   "Outro",
 ];
 
+/**
+ * Tamanhos padrão de peças (letra/numeração), usados ao montar o pedido.
+ * Gerenciáveis em Configurações → Categorias (escopo "tamanho").
+ */
+const TAMANHOS_INICIAIS = [
+  "PP/36",
+  "P/38",
+  "M/40",
+  "G/42",
+  "GG/44",
+  "XG/46",
+  "XXG/48",
+];
+
 const FORMAS_INICIAIS = [
   "PIX",
   "Dinheiro",
