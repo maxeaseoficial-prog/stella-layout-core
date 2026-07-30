@@ -100,7 +100,7 @@ export function AdicionaisPanel() {
             value={termo}
             onChange={(e) => setTermo(e.target.value)}
             placeholder="Pesquisar por nome, tipo ou categoria"
-            className="pl-9"
+            className="border-primary/60 pl-9 focus-visible:border-primary"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">

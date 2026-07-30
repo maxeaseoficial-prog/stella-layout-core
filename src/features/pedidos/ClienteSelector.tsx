@@ -61,7 +61,7 @@ export function ClienteSelector({ clienteId, onSelecionar }: Props) {
             value={termo}
             onChange={(e) => setTermo(e.target.value)}
             placeholder="Pesquisar cliente por nome, empresa ou telefone"
-            className="pl-9"
+            className="border-primary/60 pl-9 focus-visible:border-primary"
           />
         </div>
         <Button
