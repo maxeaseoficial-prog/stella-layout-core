@@ -1,5 +1,5 @@
 import type { Categoria, ConfiguracoesState, FormaPagamento } from "./types";
-import { configuracoesIniciais } from "./defaults";
+import { configuracoesIniciais, tamanhosIniciais } from "./defaults";
 
 const STORAGE_KEY = "stella.configuracoes.v1";
 
@@ -46,9 +46,16 @@ export function carregar(): ConfiguracoesState {
       aparencia: { ...base.aparencia, ...(parsed.aparencia ?? {}) },
       // Respeita a lista salva pelo usuário: nada é re-injetado.
       // Se o usuário nunca personalizou, usa o seed inicial.
-      categorias: parsed.categorias
-        ? normalizarCategoriasSalvas(parsed.categorias as Categoria[], base.categorias)
-        : base.categorias,
+      // Exceção: o escopo "tamanho" é novo — se a config salva ainda não o
+      // possui, injeta os tamanhos padrão (o usuário pode editar/remover).
+      categorias: (() => {
+        const cats = parsed.categorias
+          ? normalizarCategoriasSalvas(parsed.categorias as Categoria[], base.categorias)
+          : base.categorias;
+        return cats.some((c) => c.escopo === "tamanho")
+          ? cats
+          : [...cats, ...tamanhosIniciais()];
+      })(),
       formasPagamento: parsed.formasPagamento
         ? normalizarOrdem(parsed.formasPagamento as FormaPagamento[])
         : base.formasPagamento,

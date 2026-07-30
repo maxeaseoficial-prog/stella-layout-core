@@ -45,6 +45,20 @@ const CATEGORIAS_INICIAIS_ADICIONAL = [
   "Outro",
 ];
 
+/**
+ * Tamanhos padrão de peças (letra/numeração), usados ao montar o pedido.
+ * Gerenciáveis em Configurações → Categorias (escopo "tamanho").
+ */
+const TAMANHOS_INICIAIS = [
+  "PP/36",
+  "P/38",
+  "M/40",
+  "G/42",
+  "GG/44",
+  "XG/46",
+  "XXG/48",
+];
+
 const FORMAS_INICIAIS = [
   "PIX",
   "Dinheiro",
@@ -66,7 +80,20 @@ export function categoriasIniciais(): Categoria[] {
   CATEGORIAS_INICIAIS_ADICIONAL.forEach((nome, i) =>
     lista.push({ id: id("cat-adi", i), escopo: "adicional", nome, ordem: i, criadoEm }),
   );
+  lista.push(...tamanhosIniciais());
   return lista;
+}
+
+/** Tamanhos padrão como categorias (escopo "tamanho"). */
+export function tamanhosIniciais(): Categoria[] {
+  const criadoEm = nowISO();
+  return TAMANHOS_INICIAIS.map((nome, i) => ({
+    id: id("cat-tam", i),
+    escopo: "tamanho",
+    nome,
+    ordem: i,
+    criadoEm,
+  }));
 }
 
 export function formasPagamentoIniciais(): FormaPagamento[] {

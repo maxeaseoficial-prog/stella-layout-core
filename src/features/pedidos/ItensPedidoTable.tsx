@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useProdutos } from "@/features/produtos";
 import { useAdicionais, LABEL_PENDENCIA_ADICIONAL, LABEL_TIPO_ADICIONAL } from "@/features/adicionais";
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 
 import type { ItemAdicional, ItemPedido, Personalizacao } from "./types";
 import {
@@ -37,6 +38,8 @@ interface Rascunho {
 export function ItensPedidoTable({ itens, onChange }: Props) {
   const { ativos: produtosAtivos } = useProdutos();
   const { ativos: adicionaisAtivos } = useAdicionais();
+  const { categoriasPorEscopo } = useConfiguracoes();
+  const tamanhos = categoriasPorEscopo("tamanho");
   const [editandoPersonalizacao, setEditandoPersonalizacao] = useState<
     ItemPedido | null
   >(null);
@@ -165,7 +168,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                 key={item.id}
                 className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3"
               >
-                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_90px_120px_120px_auto]">
+                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_80px_110px_120px_auto]">
                   {item.produtoId || produtosAtivos.some((p) => p.nome === item.produto) ? (
                     <Select
                       value={item.produtoId ?? ""}
@@ -213,6 +216,32 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                       </SelectContent>
                     </Select>
                   )}
+                  <Select
+                    value={item.tamanho ?? "__sem_tamanho__"}
+                    onValueChange={(v) =>
+                      atualizarItem(
+                        item.id,
+                        "tamanho",
+                        v === "__sem_tamanho__" ? undefined : v,
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Tamanho">
+                        {item.tamanho ?? "Tamanho"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__sem_tamanho__">
+                        Sem tamanho
+                      </SelectItem>
+                      {tamanhos.map((t) => (
+                        <SelectItem key={t.id} value={t.nome}>
+                          {t.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Input
                     value={rascunho.quantidadeStr}
                     inputMode="numeric"

@@ -295,7 +295,9 @@ export function PedidoViewDrawer({
                   <TabsContent value="arquivos" className="mt-0 space-y-3">
                     {(() => {
                       const grupos = pedido.itens.map((item) => ({
-                        titulo: item.produto?.trim() || "Produto",
+                        titulo:
+                          (item.produto?.trim() || "Produto") +
+                          (item.tamanho ? ` (${item.tamanho})` : ""),
                         quantidade: item.quantidade,
                         arquivos: item.arquivos ?? [],
                       }));
@@ -395,6 +397,7 @@ export function PedidoViewDrawer({
                                     {it.produto}
                                     <span className="ml-1 text-xs text-muted-foreground">
                                       × {it.quantidade}
+                                      {it.tamanho ? ` • Tam: ${it.tamanho}` : ""}
                                     </span>
                                   </span>
                                   <span className="font-semibold tabular-nums text-foreground">
@@ -719,6 +722,7 @@ function ItemDetalhado({
           </p>
           <p className="text-xs text-muted-foreground">
             Qtd: {item.quantidade}
+            {item.tamanho ? ` • Tam: ${item.tamanho}` : ""}
           </p>
         </div>
       </div>

@@ -44,7 +44,7 @@ export interface ConfigNumeracao {
 
 export type NumeracaoMap = Record<TipoNumeracao, ConfigNumeracao>;
 
-export type EscopoCategoria = "produto" | "estoque" | "adicional";
+export type EscopoCategoria = "produto" | "estoque" | "adicional" | "tamanho";
 
 export interface Categoria {
   id: string;
@@ -106,6 +106,7 @@ export const LABEL_ESCOPO: Record<EscopoCategoria, string> = {
   produto: "Produtos",
   estoque: "Estoque",
   adicional: "Adicionais",
+  tamanho: "Tamanhos",
 };
 
 export const LABEL_TIPO_NUMERACAO: Record<TipoNumeracao, string> = {
