@@ -57,6 +57,8 @@ export interface Capacidades {
     registrarPagamento: boolean;
     imprimir: boolean;
     alterarQualquerStatus: boolean;
+    /** Emissão de NF-e (Spedy): apenas Administrador. */
+    emitir_nfe: boolean;
   };
   clientes: {
     criar: boolean;
@@ -85,6 +87,7 @@ export function capacidadesDe(papel: Papel): Capacidades {
         registrarPagamento: true,
         imprimir: true,
         alterarQualquerStatus: true,
+        emitir_nfe: true,
       },
       clientes: { criar: true, editar: true, excluir: true },
       matrizesLogos: { upload: true, editar: true, excluir: true },
@@ -101,6 +104,7 @@ export function capacidadesDe(papel: Papel): Capacidades {
       registrarPagamento: false,
       imprimir: true,
       alterarQualquerStatus: false,
+      emitir_nfe: false,
     },
     clientes: { criar: false, editar: false, excluir: false },
     matrizesLogos: { upload: true, editar: true, excluir: true },
