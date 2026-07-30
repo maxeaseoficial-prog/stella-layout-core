@@ -32,7 +32,7 @@ export function ArquivosFiltros({ termo, onTermo, tipo, onTipo }: Props) {
           value={termo}
           onChange={(e) => onTermo(e.target.value)}
           placeholder="Pesquisar por cliente, empresa ou nome do arquivo"
-          className="pl-9"
+          className="border-primary/60 pl-9 focus-visible:border-primary"
         />
       </div>
       <div className="flex flex-wrap items-center gap-1.5">

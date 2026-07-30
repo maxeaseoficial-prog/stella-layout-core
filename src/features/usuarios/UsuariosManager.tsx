@@ -129,7 +129,7 @@ export function UsuariosManager() {
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome, usuário ou e-mail"
-            className="pl-9"
+            className="border-primary/60 pl-9 focus-visible:border-primary"
           />
         </div>
         <Select value={filtro} onValueChange={(v) => setFiltro(v as Filtro)}>

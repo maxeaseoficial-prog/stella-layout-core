@@ -1,9 +1,8 @@
 import { useRouterState, useNavigate } from "@tanstack/react-router";
-import { LogOut, Search } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -56,15 +55,6 @@ export function AppHeader() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
-        <div className="relative hidden md:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Pesquisar..."
-            className="h-9 w-56 rounded-lg border-border bg-surface-muted pl-9 text-sm shadow-none focus-visible:ring-1 lg:w-72"
-          />
-        </div>
-
         <NotificacoesPopover />
 
 

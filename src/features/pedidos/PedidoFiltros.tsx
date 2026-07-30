@@ -83,7 +83,7 @@ export function PedidoFiltros({
             value={termo}
             onChange={(e) => onTermo(e.target.value)}
             placeholder="Buscar por número, cliente ou observação…"
-            className="h-11 rounded-xl border-border/70 bg-background pl-10 text-sm shadow-[0_1px_2px_rgb(0_0_0_/_0.03)] transition placeholder:text-muted-foreground/70 focus-visible:border-primary/40 focus-visible:ring-primary/20"
+            className="h-11 rounded-xl border-primary/60 bg-background pl-10 text-sm shadow-[0_1px_2px_rgb(0_0_0_/_0.03)] transition placeholder:text-muted-foreground/70 focus-visible:border-primary focus-visible:ring-primary/20"
           />
         </div>
         <div className="flex flex-wrap gap-1.5">

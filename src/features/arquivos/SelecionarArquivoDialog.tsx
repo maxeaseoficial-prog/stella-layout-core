@@ -97,7 +97,7 @@ export function SelecionarArquivoDialog({
             value={termo}
             onChange={(e) => setTermo(e.target.value)}
             placeholder="Pesquisar arquivo"
-            className="pl-9"
+            className="border-primary/60 pl-9 focus-visible:border-primary"
           />
         </div>
 

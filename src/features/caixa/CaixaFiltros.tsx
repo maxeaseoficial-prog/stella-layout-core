@@ -54,7 +54,7 @@ export function CaixaFiltros({
             value={termo}
             onChange={(e) => onTermo(e.target.value)}
             placeholder="Buscar por descrição, categoria, valor ou forma"
-            className="pl-9"
+            className="border-primary/60 pl-9 focus-visible:border-primary"
           />
         </div>
 
