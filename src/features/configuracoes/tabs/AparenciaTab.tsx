@@ -2,7 +2,7 @@ import { Moon, Palette, Sun } from "lucide-react";
 import { toast } from "sonner";
 
 import { Label } from "@/components/ui/label";
-import { useConfiguracoes } from "../useConfiguracoes";
+import { useAparenciaUsuario } from "../aparenciaUsuario";
 import type { Tema } from "../types";
 import { SectionCard } from "../SectionCard";
 import { cn } from "@/lib/utils";
@@ -17,8 +17,7 @@ const CORES = [
 ];
 
 export function AparenciaTab() {
-  const { state, salvarAparencia } = useConfiguracoes();
-  const a = state.aparencia;
+  const { aparencia: a, salvarAparencia } = useAparenciaUsuario();
 
   function setTema(tema: Tema) {
     salvarAparencia({ ...a, tema });
@@ -33,7 +32,7 @@ export function AparenciaTab() {
   return (
     <SectionCard
       title="Aparência"
-      description="Personalize o visual do sistema."
+      description="Personalize o visual do sistema. A aparência é individual: vale apenas para o seu usuário."
       icon={<Palette className="h-4 w-4" />}
       contentClassName="space-y-6"
     >

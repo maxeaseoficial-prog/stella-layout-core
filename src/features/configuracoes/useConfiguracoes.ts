@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 import { novoId } from "@/features/clientes/utils";
+import { usuarioAtual } from "@/features/auth/useAuth";
 import { carregar, salvar } from "./storage";
+import { salvarAparenciaUsuario } from "./aparenciaUsuario";
 import { configuracoesIniciais } from "./defaults";
 import type {
-  Aparencia,
   Categoria,
   ConfigNumeracao,
   ConfiguracoesState,
@@ -247,9 +248,8 @@ export function useConfiguracoes() {
   }, []);
 
   // ---------- Aparência ----------
-  const salvarAparencia = useCallback((aparencia: Aparencia) => {
-    setState({ ...getSnapshot(), aparencia });
-  }, []);
+  // A aparência é POR USUÁRIO (ver aparenciaUsuario.ts) — não fica no
+  // estado compartilhado para não vazar entre usuários via sincronização.
 
   // ---------- Backup ----------
   const exportar = useCallback((): string => JSON.stringify(getSnapshot(), null, 2), []);
@@ -258,6 +258,13 @@ export function useConfiguracoes() {
       const parsed = JSON.parse(json) as Partial<ConfiguracoesState>;
       const base = configuracoesIniciais();
       setState({ ...base, ...parsed } as ConfiguracoesState);
+      // A aparência do backup vale apenas para quem importou.
+      if (parsed.aparencia) {
+        salvarAparenciaUsuario(usuarioAtual()?.id ?? null, {
+          ...base.aparencia,
+          ...parsed.aparencia,
+        });
+      }
       return true;
     } catch {
       return false;
@@ -265,7 +272,9 @@ export function useConfiguracoes() {
   }, []);
 
   const restaurarPadrao = useCallback(() => {
-    setState(configuracoesIniciais());
+    const base = configuracoesIniciais();
+    setState(base);
+    salvarAparenciaUsuario(usuarioAtual()?.id ?? null, base.aparencia);
   }, []);
 
   return useMemo(
@@ -286,7 +295,6 @@ export function useConfiguracoes() {
       excluirFormaPagamento,
       reordenarFormasPagamento,
       salvarUsuarios,
-      salvarAparencia,
       exportar,
       importar,
       restaurarPadrao,
@@ -308,7 +316,6 @@ export function useConfiguracoes() {
       excluirFormaPagamento,
       reordenarFormasPagamento,
       salvarUsuarios,
-      salvarAparencia,
       exportar,
       importar,
       restaurarPadrao,
