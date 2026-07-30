@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Upload } from "lucide-react";
+import { ImageIcon, Trash2, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,8 @@ interface FormState {
   mime: string;
   tamanho: number;
   dataUrl: string;
+  capaNome: string;
+  capaDataUrl: string;
 }
 
 function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState {
@@ -82,6 +84,8 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
       mime: "",
       tamanho: 0,
       dataUrl: "",
+      capaNome: "",
+      capaDataUrl: "",
     };
   }
   // Migração de campos legados
@@ -110,11 +114,15 @@ function estadoInicial(a?: Arquivo | null, clienteIdInicial?: string): FormState
     mime: a.mime,
     tamanho: a.tamanho,
     dataUrl: a.dataUrl,
+    capaNome: a.capaNome ?? "",
+    capaDataUrl: a.capaDataUrl ?? "",
   };
 }
 
 
 const ACCEPT = EXTENSOES_ACEITAS.map((e) => `.${e}`).join(",");
+const ACCEPT_CAPA = ".png,.jpg,.jpeg";
+const EXTS_CAPA = ["png", "jpg", "jpeg"];
 
 export function ArquivoFormDrawer({
   aberto,
@@ -128,6 +136,7 @@ export function ArquivoFormDrawer({
   );
   const [erros, setErros] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLInputElement>(null);
+  const capaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (aberto) {
@@ -161,6 +170,22 @@ export function ArquivoFormDrawer({
       nome: f.nome || file.name.replace(/\.[^.]+$/, ""),
     }));
     setErros((e) => ({ ...e, arquivo: "" }));
+  }
+
+  async function handleCapa(file: File | undefined) {
+    if (!file) return;
+    const ext = extensaoDoNome(file.name);
+    if (!EXTS_CAPA.includes(ext)) {
+      setErros((e) => ({ ...e, capa: "A capa deve ser uma imagem PNG ou JPG." }));
+      return;
+    }
+    const dataUrl = await fileToDataUrl(file);
+    setForm((f) => ({ ...f, capaNome: file.name, capaDataUrl: dataUrl }));
+    setErros((e) => ({ ...e, capa: "" }));
+  }
+
+  function removerCapa() {
+    setForm((f) => ({ ...f, capaNome: "", capaDataUrl: "" }));
   }
 
   function validar(): boolean {
@@ -206,6 +231,8 @@ export function ArquivoFormDrawer({
       mime: form.mime,
       tamanho: form.tamanho,
       dataUrl: form.dataUrl,
+      capaNome: form.capaNome || undefined,
+      capaDataUrl: form.capaDataUrl || undefined,
     };
     onSalvar(dados, arquivo?.id);
   }
@@ -567,6 +594,81 @@ export function ArquivoFormDrawer({
               {erros.arquivo && (
                 <p className="text-xs font-medium text-destructive">
                   {erros.arquivo}
+                </p>
+              )}
+            </section>
+
+            {/* Capa */}
+            <section className="space-y-3 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground">
+                    Capa do arquivo (opcional)
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Imagem PNG ou JPG exibida nos previews, no orçamento e na
+                    ordem de produção. O download continua sendo apenas do
+                    arquivo principal.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => capaInputRef.current?.click()}
+                >
+                  <ImageIcon className="h-4 w-4" /> Escolher capa
+                </Button>
+                <input
+                  ref={capaInputRef}
+                  type="file"
+                  accept={ACCEPT_CAPA}
+                  className="hidden"
+                  onChange={(e) => {
+                    handleCapa(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+
+              {form.capaDataUrl ? (
+                <div className="flex items-center gap-3 rounded-xl border border-border bg-surface-muted/60 p-3">
+                  <img
+                    src={form.capaDataUrl}
+                    alt={form.capaNome || "Capa do arquivo"}
+                    className="h-14 w-14 shrink-0 rounded-lg border border-border bg-surface object-contain"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {form.capaNome}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Usada como imagem de visualização deste arquivo.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    onClick={removerCapa}
+                    aria-label="Remover capa"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/70 bg-surface-muted/50 p-6 text-center">
+                  <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhuma capa selecionada. Será usado o preview padrão do
+                    arquivo.
+                  </p>
+                </div>
+              )}
+              {erros.capa && (
+                <p className="text-xs font-medium text-destructive">
+                  {erros.capa}
                 </p>
               )}
             </section>

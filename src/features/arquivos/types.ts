@@ -209,6 +209,12 @@ export interface Arquivo {
   mime: string;
   tamanho: number;
   dataUrl: string;
+  /**
+   * Capa opcional (PNG/JPG) — representação visual do arquivo exibida nos
+   * previews, orçamento e ordem de produção. Nunca é o arquivo baixado.
+   */
+  capaNome?: string;
+  capaDataUrl?: string;
   // datas
   criadoEm: string;
   atualizadoEm: string;

@@ -8,6 +8,8 @@ export interface ClienteArquivo {
   extensao: string;
   tamanho: number; // bytes
   dataUrl: string; // base64 data url
+  /** Capa visual opcional (PNG/JPG) herdada da Matriz/Logo do acervo. */
+  capaDataUrl?: string;
   criadoEm: string; // ISO date
 }
 

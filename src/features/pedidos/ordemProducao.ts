@@ -254,7 +254,11 @@ export async function gerarOrdemProducaoPDF(
 
     for (const arq of arquivos) {
       const ext = arq.extensao.toLowerCase();
-      if (EXT_IMG_RASTER.includes(ext)) {
+      if (arq.capaDataUrl) {
+        // Capa (PNG/JPG) cadastrada na Matriz/Logo: é sempre a imagem exibida.
+        const { w, h } = await dimensoesImagem(arq.capaDataUrl);
+        previews.push({ nome: arq.nome, dataUrl: arq.capaDataUrl, w, h });
+      } else if (EXT_IMG_RASTER.includes(ext)) {
         const { w, h } = await dimensoesImagem(arq.dataUrl);
         previews.push({ nome: arq.nome, dataUrl: arq.dataUrl, w, h });
       } else if (ext === "svg") {
@@ -356,7 +360,10 @@ export async function gerarOrdemProducaoPDF(
               y = margem;
             }
           }
-          doc.addImage(pv.dataUrl, "PNG", cursorX, y, renderW, renderH, undefined, "SLOW");
+          const formatoImg = pv.dataUrl.startsWith("data:image/jpeg")
+            ? "JPEG"
+            : "PNG";
+          doc.addImage(pv.dataUrl, formatoImg, cursorX, y, renderW, renderH, undefined, "SLOW");
           // Legenda com nome do arquivo
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8);

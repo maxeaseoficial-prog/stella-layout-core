@@ -203,6 +203,7 @@ export function ClienteViewDrawer({
                             extensao={a.extensao}
                             dataUrl={a.dataUrl}
                             nome={a.arquivoNome}
+                            capaDataUrl={a.capaDataUrl}
                             size="sm"
                           />
                           <div className="min-w-0 flex-1">

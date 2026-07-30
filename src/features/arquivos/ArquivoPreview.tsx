@@ -8,6 +8,8 @@ interface Props {
   extensao: string;
   dataUrl: string;
   nome: string;
+  /** Capa opcional (PNG/JPG) — quando presente, é sempre a imagem exibida. */
+  capaDataUrl?: string;
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
 }
@@ -73,6 +75,7 @@ export function ArquivoPreview({
   extensao,
   dataUrl,
   nome,
+  capaDataUrl,
   className,
   size = "md",
 }: Props) {
@@ -108,7 +111,9 @@ export function ArquivoPreview({
         className,
       )}
     >
-      {ehImg ? (
+      {capaDataUrl ? (
+        <img src={capaDataUrl} alt={nome} className="h-full w-full object-contain" />
+      ) : ehImg ? (
         <img src={dataUrl} alt={nome} className="h-full w-full object-cover" />
       ) : ehPdf && pdfThumb ? (
         <img src={pdfThumb} alt={nome} className="h-full w-full object-contain" />
