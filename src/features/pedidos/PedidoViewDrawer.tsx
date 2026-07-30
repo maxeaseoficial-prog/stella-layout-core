@@ -39,6 +39,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
 import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
 import { usePedidos } from "./usePedidos";
+import { NotaFiscalSection } from "@/features/fiscal/NotaFiscalSection";
 import { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 import {
   abrirWhatsApp,

@@ -1,7 +1,9 @@
 import type { ClienteArquivo } from "@/features/clientes";
 import type { PendenciaAdicional } from "@/features/adicionais/types";
+import type { NotaFiscalPedido } from "@/features/fiscal/types";
 
 export type { PendenciaAdicional };
+export type { NotaFiscalPedido };
 
 export type TipoPersonalizacao =
   | "bordado"
@@ -127,6 +129,7 @@ export type OrigemHistorico =
   | "orcamento_pendente"
   | "envio_orcamento"
   | "ordem_producao"
+  | "nota_fiscal"
   | "cancelamento";
 
 
@@ -169,6 +172,8 @@ export interface Pedido {
   etapa: EtapaKanban;
   /** Badges livres (nota fiscal, prioridade, retirada, etc.). */
   badges?: PedidoBadge[];
+  /** Retorno da emissão de NF-e (Spedy). Ausente = "Não emitida". */
+  notaFiscal?: NotaFiscalPedido;
   previsaoEntrega?: string; // ISO date
   observacoes?: string;
   pagamentos: Pagamento[];
