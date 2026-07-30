@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { isImagem } from "./types";
 import { iconePorExtensao } from "./utils";
+import { getPesPreview, isPes } from "./pesRender";
 
 interface Props {
   extensao: string;
