@@ -129,6 +129,26 @@ export function useArquivos() {
   );
 }
 
+/**
+ * Padroniza texto para busca: minúsculas, sem acentos e sem espaços extras.
+ * Assim "joao" encontra "João", "agata" encontra "Ágatha", etc.
+ */
+export function normalizarBusca(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/** Verdadeiro quando TODOS os termos digitados aparecem no texto-alvo. */
+export function correspondeBusca(alvo: string, termo: string): boolean {
+  const tokens = normalizarBusca(termo).split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+  const alvoNorm = normalizarBusca(alvo);
+  return tokens.every((t) => alvoNorm.includes(t));
+}
+
 export function filtrarArquivos(
   arquivos: Arquivo[],
   opcoes: {
@@ -138,16 +158,13 @@ export function filtrarArquivos(
     nomeCliente?: (id: string) => string;
   },
 ): Arquivo[] {
-  const t = (opcoes.termo ?? "").trim().toLowerCase();
+  const termo = opcoes.termo ?? "";
   return arquivos.filter((a) => {
     if (opcoes.clienteId && a.clienteId !== opcoes.clienteId) return false;
     if (opcoes.tipo && opcoes.tipo !== "todos" && a.tipo !== opcoes.tipo) return false;
-    if (!t) return true;
-    const nomeCli = opcoes.nomeCliente?.(a.clienteId).toLowerCase() ?? "";
-    return (
-      a.nome.toLowerCase().includes(t) ||
-      a.arquivoNome.toLowerCase().includes(t) ||
-      nomeCli.includes(t)
-    );
+    const alvo = `${a.nome} ${a.arquivoNome} ${
+      opcoes.nomeCliente?.(a.clienteId) ?? ""
+    }`;
+    return correspondeBusca(alvo, termo);
   });
 }
