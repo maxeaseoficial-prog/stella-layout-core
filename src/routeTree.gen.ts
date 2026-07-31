@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as TarefasRouteImport } from './routes/tarefas'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as PrecificacaoRouteImport } from './routes/precificacao'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MatrizesLogosRouteImport } from './routes/matrizes-logos'
 import { Route as LoginRouteImport } from './routes/login'
@@ -35,6 +36,11 @@ const TarefasRoute = TarefasRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecificacaoRoute = PrecificacaoRouteImport.update({
+  id: '/precificacao',
+  path: '/precificacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PedidosRoute = PedidosRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
+  '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
   '/tarefas': typeof TarefasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
+  '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
   '/tarefas': typeof TarefasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
   '/pedidos': typeof PedidosRoute
+  '/precificacao': typeof PrecificacaoRoute
   '/produtos': typeof ProdutosRoute
   '/tarefas': typeof TarefasRoute
   '/trocar-senha': typeof TrocarSenhaRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/matrizes-logos'
     | '/pedidos'
+    | '/precificacao'
     | '/produtos'
     | '/tarefas'
     | '/trocar-senha'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/matrizes-logos'
     | '/pedidos'
+    | '/precificacao'
     | '/produtos'
     | '/tarefas'
     | '/trocar-senha'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/matrizes-logos'
     | '/pedidos'
+    | '/precificacao'
     | '/produtos'
     | '/tarefas'
     | '/trocar-senha'
@@ -181,6 +193,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MatrizesLogosRoute: typeof MatrizesLogosRoute
   PedidosRoute: typeof PedidosRoute
+  PrecificacaoRoute: typeof PrecificacaoRoute
   ProdutosRoute: typeof ProdutosRoute
   TarefasRoute: typeof TarefasRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precificacao': {
+      id: '/precificacao'
+      path: '/precificacao'
+      fullPath: '/precificacao'
+      preLoaderRoute: typeof PrecificacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pedidos': {
@@ -285,6 +305,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MatrizesLogosRoute: MatrizesLogosRoute,
   PedidosRoute: PedidosRoute,
+  PrecificacaoRoute: PrecificacaoRoute,
   ProdutosRoute: ProdutosRoute,
   TarefasRoute: TarefasRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,

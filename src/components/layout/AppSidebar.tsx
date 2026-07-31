@@ -9,6 +9,7 @@ import {
   Truck,
   Sparkles,
   ClipboardList,
+  Calculator,
   Settings,
   LogOut,
   UserCircle2,
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
   { title: "Fornecedores", url: "/fornecedores", icon: Truck },
   { title: "Matrizes & Logos", url: "/matrizes-logos", icon: Sparkles },
   { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
+  { title: "Formação de Preço", url: "/precificacao", icon: Calculator },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ] as const;
 

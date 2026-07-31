@@ -27,6 +27,7 @@ export const COLLECTIONS: CollectionDescriptor[] = [
   { key: "stella.estoque.itens.v1",         table: "itens_estoque",         kind: "collection", events: ["stella:estoque:updated"] },
   { key: "stella.estoque.movimentacoes.v1", table: "movimentacoes_estoque", kind: "collection", events: ["stella:estoque:updated"] },
   { key: "stella.configuracoes.v1",         table: "configuracoes",         kind: "singleton",  events: ["stella:configuracoes:updated"] },
+  { key: "stella.precificacao.historico.v1", table: "precificacao_historico", kind: "collection", events: ["stella:precificacao:updated"] },
 ];
 
 export function byKey(key: string): CollectionDescriptor | undefined {
