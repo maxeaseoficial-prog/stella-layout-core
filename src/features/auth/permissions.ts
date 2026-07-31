@@ -12,6 +12,7 @@ export type ModuloRota =
   | "/fornecedores"
   | "/matrizes-logos"
   | "/tarefas"
+  | "/precificacao"
   | "/configuracoes";
 
 /**
@@ -28,6 +29,7 @@ export const ROTAS_PERMITIDAS: Record<Papel, ModuloRota[]> = {
     "/estoque",
     "/fornecedores",
     "/matrizes-logos",
+    "/precificacao",
     "/configuracoes",
   ],
   operador_matriz: [
