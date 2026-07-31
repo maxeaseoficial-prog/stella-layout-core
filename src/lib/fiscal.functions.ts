@@ -35,7 +35,8 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     if (!apiKey) {
       return {
         ok: false as const,
-        mensagem: `Preencha e salve a API Key do ambiente ${config.ambiente === "sandbox" ? "Sandbox" : "Produção"} antes de testar.`,
+        mensagem:
+          "A API Key da Spedy não está configurada no cofre de segredos do sistema.",
       };
     }
     try {

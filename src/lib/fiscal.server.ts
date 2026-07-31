@@ -88,12 +88,17 @@ export function apiKeyParaAmbiente(
   config: FiscalConfig,
   ambiente: AmbienteSpedy,
 ): string {
+  // A Spedy emite uma única chave por conta. Ela fica salva como segredo
+  // de servidor (SPEDY_API_KEY) e nunca aparece no código nem no banco.
+  // Fallback: chaves legadas salvas na configuração fiscal.
+  const envKey = process.env["SPEDY_API_KEY"]?.trim();
+  if (envKey) return envKey;
   return (ambiente === "sandbox" ? config.apiKeySandbox : config.apiKeyProducao).trim();
 }
 
 export function validarConfigFiscal(config: FiscalConfig): string | null {
   if (!apiKeyParaAmbiente(config, config.ambiente)) {
-    return `Informe e salve a API Key do ambiente ${config.ambiente === "sandbox" ? "Sandbox" : "Produção"} em Configurações → Fiscal.`;
+    return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
   if (apenasDigitos(config.tributacao.ncm).length !== 8) {
     return "Informe um NCM válido (8 dígitos) na tributação padrão (Configurações → Fiscal).";
