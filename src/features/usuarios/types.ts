@@ -1,4 +1,4 @@
-import type { Papel } from "@/features/auth/permissions";
+import type { ModuloRota, Papel } from "@/features/auth/permissions";
 
 export type StatusUsuario = "ativo" | "inativo";
 
@@ -33,6 +33,8 @@ export interface Usuario {
   atualizadoEm: string;
   ultimoAcesso?: string;
   historico: HistoricoUsuario[];
+  /** true para contas semente (não podem ser excluídas) */
+  padrao?: boolean;
   /** abas de navegação permitidas para este usuário específico */
   permissoesAbas?: ModuloRota[];
 }

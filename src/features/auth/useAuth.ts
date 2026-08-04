@@ -2,8 +2,8 @@ import { useSyncExternalStore } from "react";
 
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Capacidades, Papel } from "./permissions";
-import { capacidadesDe } from "./permissions";
+import type { Capacidades, ModuloRota, Papel } from "./permissions";
+import { capacidadesDe, ROTAS_PERMITIDAS } from "./permissions";
 
 /**
  * Autenticação real via Supabase Auth. Mantém a MESMA superfície pública
@@ -34,6 +34,7 @@ export const CONTA_TESTE = {
 const PAPEL_LABEL: Record<Papel, string> = {
   administrador: "Administrador",
   operador_matriz: "Operador Matriz",
+  caixa: "Caixa",
 };
 
 const APELIDOS_EMAIL: Record<string, string> = {
