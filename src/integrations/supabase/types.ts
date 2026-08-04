@@ -569,9 +569,6 @@ export type Database = {
     }
     Enums: {
       app_role: "administrador" | "operador_matriz" | "caixa"
-      chat_status_mensagem: "enviada" | "entregue" | "lida"
-      chat_tipo_conversa: "privada" | "grupo"
-      chat_tipo_mensagem: "texto" | "arquivo" | "sistema"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -700,9 +697,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["administrador", "operador_matriz", "caixa"],
-      chat_status_mensagem: ["enviada", "entregue", "lida"],
-      chat_tipo_conversa: ["privada", "grupo"],
-      chat_tipo_mensagem: ["texto", "arquivo", "sistema"],
     },
   },
 } as const
