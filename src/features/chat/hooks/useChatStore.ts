@@ -12,9 +12,13 @@ interface ChatStore {
   addMensagem: (mensagem: ChatMensagem) => void;
   setMensagens: (conversaId: string, mensagens: ChatMensagem[]) => void;
   setNaoLidasTotais: (total: number) => void;
+  
+  // New actions
+  sendMessage: (conversaId: string, texto: string) => Promise<void>;
+  createGroup: (nome: string, participantes: string[]) => Promise<void>;
 }
 
-const storeApi: StateCreator<ChatStore> = (set) => ({
+const storeApi: StateCreator<ChatStore> = (set, get) => ({
   conversas: [],
   conversaAtivaId: null,
   mensagens: {},
@@ -38,6 +42,13 @@ const storeApi: StateCreator<ChatStore> = (set) => ({
     }
   })),
   setNaoLidasTotais: (total) => set({ naoLidasTotais: total }),
+  
+  sendMessage: async (conversaId, texto) => {
+      // Implement logic in a later step
+  },
+  createGroup: async (nome, participantes) => {
+      // Implement logic in a later step
+  }
 });
 
 export const useChatStore = create<ChatStore>(storeApi);
