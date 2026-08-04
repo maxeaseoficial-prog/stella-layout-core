@@ -1,0 +1,21 @@
+{
+  "name": "Stella — Espaço dos Uniformes",
+  "short_name": "Stella",
+  "description": "Sistema interno da Stella Espaço dos Uniformes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#EC4899",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
