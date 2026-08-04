@@ -134,7 +134,7 @@ export function registrarAcesso(usuarioId: string) {
   commit(nova);
 }
 
-export function criarUsuario(input: Usuario, responsavel: string): { ok: boolean; erro?: string; id?: string } {
+export function criarUsuario(input: NovoUsuarioInput, responsavel: string): { ok: boolean; erro?: string; id?: string } {
   const lista = garantirSeed();
   const usernameNorm = input.usuario.trim().toLowerCase();
   const emailNorm = input.email.trim().toLowerCase();
@@ -165,7 +165,7 @@ export function criarUsuario(input: Usuario, responsavel: string): { ok: boolean
 
 export function atualizarUsuario(
   id: string,
-  patch: Partial<Usuario>,
+  patch: Partial<Omit<Usuario, "id" | "criadoEm" | "historico">>,
   responsavel: string,
 ): { ok: boolean; erro?: string } {
   const lista = garantirSeed();

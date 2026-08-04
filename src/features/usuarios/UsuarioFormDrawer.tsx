@@ -15,11 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  CustomSelect as Select,
-  CustomSelectContent as SelectContent,
-  CustomSelectItem as SelectItem,
-  CustomSelectTrigger as SelectTrigger,
-  CustomSelectValue as SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/custom-select";
 import type { ModuloRota, Papel } from "@/features/auth/permissions";
 import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
@@ -321,7 +321,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
                   <Label>Status</Label>
                   <Select
                     value={form.status}
-                    onValueChange={(v) => setForm({ ...form, status: v as StatusUsuario })}
+                    onValueChange={(v: StatusUsuario) => setForm({ ...form, status: v })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -355,7 +355,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
                   >
                     <Checkbox
                       checked={form.permissoesAbas.includes(aba.rota)}
-                      onCheckedChange={(v) => {
+                      onCheckedChange={(v: boolean) => {
                         const novaLista = v
                           ? [...form.permissoesAbas, aba.rota]
                           : form.permissoesAbas.filter((r) => r !== aba.rota);
