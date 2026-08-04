@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ChatConversa, ChatMensagem } from "../types";
+import { AuthUser } from "@/features/auth/useAuth";
 
 // Helper to map DB row to ChatMensagem
 const mapMensagem = (m: any): ChatMensagem => ({
@@ -117,12 +118,12 @@ export const chatService = {
     return conv.id;
   },
 
-  async criarGrupo(tenantId: string, nome: string, criadorId: string, participantesIds: string[]) {
-    const { data: conv, error: convErr } = await supabase
-      .from("chat_conversas")
-      .insert({
-        tenant_id: tenantId,
-        tipo: "grupo",
+  getChatName(c: ChatConversa, currentUser: AuthUser | null, usuarios: any[]) {
+    if (c.tipo === 'grupo') return c.nome || "Grupo";
+    const otherId = c.participantes.find((id: string) => id !== currentUser?.id);
+    const otherUser = usuarios.find(u => u.id === otherId);
+    return otherUser?.nome || otherUser?.usuario || "Usuário";
+  },
         nome,
         criado_por: criadorId
       })
