@@ -27,9 +27,31 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   const { papel } = useAuth();
+  const { totais } = useCaixa();
+
   if (papel === "operador_matriz") {
     return <MatrizDashboard />;
   }
+
+  if (papel === "caixa") {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Resumo do Dia"
+          description="Acompanhe o faturamento de hoje."
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Faturamento do Dia"
+            value={formatarMoeda(totais.entradas)}
+            hint="Entradas registradas hoje"
+            icon={DollarSign}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return <AdminDashboard />;
 }
 

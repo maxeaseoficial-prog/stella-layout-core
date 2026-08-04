@@ -1,6 +1,6 @@
 import type { StatusProducao } from "@/features/pedidos/types";
 
-export type Papel = "administrador" | "operador_matriz";
+export type Papel = "administrador" | "operador_matriz" | "caixa";
 
 export type ModuloRota =
   | "/"
@@ -40,10 +40,21 @@ export const ROTAS_PERMITIDAS: Record<Papel, ModuloRota[]> = {
     "/tarefas",
     "/configuracoes",
   ],
+  caixa: [
+    "/",
+    "/caixa",
+    "/clientes",
+    "/pedidos",
+    "/produtos",
+    "/configuracoes",
+  ],
 };
 
-export function podeAcessarRota(papel: Papel, pathname: string): boolean {
-  const permitidas = ROTAS_PERMITIDAS[papel];
+export function podeAcessarRota(papel: Papel, pathname: string, permissoesUsuario?: ModuloRota[]): boolean {
+  const permitidas = permissoesUsuario ?? ROTAS_PERMITIDAS[papel];
+  // Configurações é sempre permitida
+  if (pathname === "/configuracoes" || pathname.startsWith("/configuracoes/")) return true;
+
   return permitidas.some((r) =>
     r === "/" ? pathname === "/" : pathname === r || pathname.startsWith(`${r}/`),
   );
@@ -94,6 +105,23 @@ export function capacidadesDe(papel: Papel): Capacidades {
       clientes: { criar: true, editar: true, excluir: true },
       matrizesLogos: { upload: true, editar: true, excluir: true },
       configuracoes: { admin: true },
+    };
+  }
+  if (papel === "caixa") {
+    return {
+      pedidos: {
+        criar: true,
+        editar: true,
+        excluir: false,
+        cancelar: false,
+        registrarPagamento: true,
+        imprimir: true,
+        alterarQualquerStatus: false,
+        emitir_nfe: false,
+      },
+      clientes: { criar: true, editar: true, excluir: false },
+      matrizesLogos: { upload: false, editar: false, excluir: false },
+      configuracoes: { admin: false },
     };
   }
   // Operador Matriz

@@ -149,6 +149,7 @@ export function useAuth(): {
   isAuthenticated: boolean;
   papel: Papel | null;
   capacidades: Capacidades;
+  permissoesAbas: ModuloRota[];
 } {
   const state = useSyncExternalStore<AuthState>(
     (cb) => {
@@ -165,11 +166,15 @@ export function useAuth(): {
     () => EMPTY_SNAPSHOT,
   );
   const papel = state.user?.papel ?? null;
+  // Fallback para as rotas padrão se as permissões customizadas não existirem (usuários antigos/migração)
+  const permissoesAbas = (state.user as any)?.permissoesAbas ?? (papel ? ROTAS_PERMITIDAS[papel] : []);
+
   return {
     user: state.user,
     isAuthenticated: !!state.user,
     papel,
     capacidades: capacidadesDe(papel ?? "administrador"),
+    permissoesAbas,
   };
 }
 

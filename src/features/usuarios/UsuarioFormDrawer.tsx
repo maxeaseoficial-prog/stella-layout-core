@@ -21,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Papel } from "@/features/auth/permissions";
+import type { ModuloRota, Papel } from "@/features/auth/permissions";
+import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 import { UsuarioAvatar } from "./UsuarioAvatar";
 import { atualizarUsuario, criarUsuario } from "./useUsuarios";
 import { PAPEL_LABEL, type StatusUsuario, type Usuario } from "./types";
@@ -44,6 +45,7 @@ interface FormState {
   papel: Papel;
   status: StatusUsuario;
   precisaTrocarSenha: boolean;
+  permissoesAbas: ModuloRota[];
 }
 
 function initialState(u: Usuario | null): FormState {
@@ -58,10 +60,24 @@ function initialState(u: Usuario | null): FormState {
     papel: u?.papel ?? "operador_matriz",
     status: u?.status ?? "ativo",
     precisaTrocarSenha: u?.precisaTrocarSenha ?? true,
+    permissoesAbas: u?.permissoesAbas ?? ROTAS_PERMITIDAS[u?.papel ?? "operador_matriz"],
   };
 }
 
-const PAPEIS: Papel[] = ["administrador", "operador_matriz"];
+const PAPEIS: Papel[] = ["administrador", "operador_matriz", "caixa"];
+
+const ABAS_DISPONIVEIS: { rota: ModuloRota; label: string }[] = [
+  { rota: "/", label: "Dashboard" },
+  { rota: "/caixa", label: "Caixa" },
+  { rota: "/clientes", label: "Clientes" },
+  { rota: "/pedidos", label: "Pedidos" },
+  { rota: "/produtos", label: "Produtos" },
+  { rota: "/estoque", label: "Estoque" },
+  { rota: "/fornecedores", label: "Fornecedores" },
+  { rota: "/matrizes-logos", label: "Matrizes & Logos" },
+  { rota: "/tarefas", label: "Tarefas" },
+  { rota: "/precificacao", label: "Formação de Preço" },
+];
 
 export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsavel }: Props) {
   const isEdit = !!usuarioAtual;
@@ -109,6 +125,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
           papel: form.papel,
           status: form.status,
           precisaTrocarSenha: form.precisaTrocarSenha,
+          permissoesAbas: form.permissoesAbas,
         },
         responsavel,
       );
@@ -133,6 +150,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         papel: form.papel,
         status: form.status,
         precisaTrocarSenha: form.precisaTrocarSenha,
+        permissoesAbas: form.permissoesAbas,
       },
       responsavel,
     );
@@ -278,7 +296,14 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
                   <Label>Perfil</Label>
                   <Select
                     value={form.papel}
-                    onValueChange={(v) => setForm({ ...form, papel: v as Papel })}
+                    onValueChange={(v) => {
+                      const novoPapel = v as Papel;
+                      setForm({
+                        ...form,
+                        papel: novoPapel,
+                        permissoesAbas: ROTAS_PERMITIDAS[novoPapel],
+                      });
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -315,6 +340,35 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
                 />
                 <span>Exigir troca de senha no primeiro login</span>
               </label>
+            </section>
+
+            {/* Permissões de Abas */}
+            <section className="space-y-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Acesso às abas
+              </h3>
+              <div className="grid grid-cols-2 gap-2 rounded-md border border-border bg-muted/20 p-4">
+                {ABAS_DISPONIVEIS.map((aba) => (
+                  <label
+                    key={aba.rota}
+                    className="flex items-center gap-2 text-sm text-foreground/80 hover:text-foreground"
+                  >
+                    <Checkbox
+                      checked={form.permissoesAbas.includes(aba.rota)}
+                      onCheckedChange={(v) => {
+                        const novaLista = v
+                          ? [...form.permissoesAbas, aba.rota]
+                          : form.permissoesAbas.filter((r) => r !== aba.rota);
+                        setForm({ ...form, permissoesAbas: novaLista });
+                      }}
+                    />
+                    <span>{aba.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                A aba de Configurações é padrão para todos os usuários.
+              </p>
             </section>
           </div>
 
