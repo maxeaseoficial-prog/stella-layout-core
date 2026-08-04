@@ -12,6 +12,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/custom-select";
 import { cn } from "@/lib/utils";
 
 import {
@@ -169,29 +176,39 @@ export function MovimentacaoFormDrawer({
             <section className="space-y-4 rounded-xl border border-border bg-surface p-4 shadow-[var(--shadow-soft)]">
               <div className="grid gap-4 sm:grid-cols-2">
                 <Campo label="Categoria" obrigatorio>
-                  <SelectNativo
+                  <Select
                     value={form.categoria}
-                    onChange={(v) => up("categoria", v as CategoriaMovimentacao)}
+                    onValueChange={(v) => up("categoria", v as CategoriaMovimentacao)}
                   >
-                    {categorias.map((c) => (
-                      <option key={c} value={c}>
-                        {LABEL_CATEGORIA[c]}
-                      </option>
-                    ))}
-                  </SelectNativo>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categorias.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {LABEL_CATEGORIA[c]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Campo>
 
                 <Campo label="Forma de pagamento" obrigatorio>
-                  <SelectNativo
+                  <Select
                     value={form.formaPagamento}
-                    onChange={(v) => up("formaPagamento", v as FormaPagamento)}
+                    onValueChange={(v) => up("formaPagamento", v as FormaPagamento)}
                   >
-                    {FORMAS_PAGAMENTO.map((f) => (
-                      <option key={f} value={f}>
-                        {LABEL_FORMA_PAGAMENTO[f]}
-                      </option>
-                    ))}
-                  </SelectNativo>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FORMAS_PAGAMENTO.map((f) => (
+                        <SelectItem key={f} value={f}>
+                          {LABEL_FORMA_PAGAMENTO[f]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Campo>
 
                 <Campo
@@ -275,25 +292,6 @@ function Campo({
   );
 }
 
-function SelectNativo({
-  value,
-  onChange,
-  children,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-    >
-      {children}
-    </select>
-  );
-}
 
 function TipoCard({
   ativo,

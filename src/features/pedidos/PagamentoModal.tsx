@@ -12,6 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/custom-select";
 
 import {
   FORMAS_PAGAMENTO_PEDIDO,
@@ -101,17 +108,21 @@ export function PagamentoModal({ aberto, onFechar, pedido, onConfirmar }: Props)
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Forma de pagamento</Label>
-                <select
+                <Select
                   value={forma}
-                  onChange={(e) => setForma(e.target.value as FormaPagamentoPedido)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  onValueChange={(v) => setForma(v as FormaPagamentoPedido)}
                 >
-                  {FORMAS_PAGAMENTO_PEDIDO.map((f) => (
-                    <option key={f} value={f}>
-                      {LABEL_FORMA_PAGAMENTO_PEDIDO[f]}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FORMAS_PAGAMENTO_PEDIDO.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {LABEL_FORMA_PAGAMENTO_PEDIDO[f]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1.5">
