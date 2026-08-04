@@ -48,7 +48,7 @@ export interface AuthUser {
   nome: string;
   papel: Papel;
   papelLabel: string;
-  foto?: string;
+  foto: string | null;
   permissoesAbas: ModuloRota[];
   logadoEm: string;
   precisaTrocarSenha: boolean;
@@ -126,7 +126,6 @@ async function sincronizarSessao() {
     usuario?: string;
     papel?: Papel;
     permissoes?: ModuloRota[];
-    foto?: string;
   };
   const nome = meta.nome ?? (u.email?.split("@")[0] ?? "Usuário");
   const authUser: AuthUser = {
@@ -135,7 +134,7 @@ async function sincronizarSessao() {
     nome,
     papel,
     papelLabel: PAPEL_LABEL[papel],
-    foto: meta.foto,
+    foto: u.user_metadata?.avatar_url || u.user_metadata?.picture,
     permissoesAbas: permissoes || meta.permissoes || ROTAS_PERMITIDAS[papel],
     logadoEm: new Date().toISOString(),
     precisaTrocarSenha: false,
