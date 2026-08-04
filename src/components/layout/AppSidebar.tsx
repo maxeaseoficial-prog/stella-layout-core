@@ -48,18 +48,18 @@ const NAV_ITEMS = [
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ] as const;
 
-function itensPara(papel: Papel) {
-  const permitidas = new Set<string>(ROTAS_PERMITIDAS[papel]);
-  return NAV_ITEMS.filter((i) => permitidas.has(i.url));
+function itensPara(papel: Papel, permissoesAbas?: string[]) {
+  const permitidas = new Set<string>(permissoesAbas ?? ROTAS_PERMITIDAS[papel]);
+  return NAV_ITEMS.filter((i) => i.url === "/configuracoes" || permitidas.has(i.url));
 }
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const { user, papel } = useAuth();
+  const { user, papel, permissoesAbas } = useAuth();
 
-  const items = itensPara(papel ?? "administrador");
+  const items = itensPara(papel ?? "administrador", permissoesAbas);
 
   const isActive = (url: string) =>
     url === "/" ? pathname === "/" : pathname === url || pathname.startsWith(`${url}/`);

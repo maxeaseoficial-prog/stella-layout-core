@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 import { carregarUsuarios, salvarUsuarios, USUARIOS_EVENT } from "./storage";
 import type { HistoricoUsuario, NovoUsuarioInput, Usuario } from "./types";
 
@@ -27,6 +28,7 @@ const SEED: Usuario[] = [
       { id: uid(), data: nowIso(), acao: "criado", responsavel: "Sistema" },
     ],
     padrao: true,
+    permissoesAbas: ROTAS_PERMITIDAS["administrador"],
   },
   {
     id: "seed_matriz",
