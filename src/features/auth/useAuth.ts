@@ -48,6 +48,7 @@ export interface AuthUser {
   nome: string;
   papel: Papel;
   papelLabel: string;
+  foto?: string;
   permissoesAbas: ModuloRota[];
   logadoEm: string;
   precisaTrocarSenha: boolean;
@@ -100,15 +101,16 @@ function identificadorParaEmail(id: string): string {
   return APELIDOS_EMAIL[key] ?? key;
 }
 
-async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null }> {
+async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null; foto?: string }> {
   const { data } = await supabase
     .from("empresa_usuarios")
-    .select("papel, permissoes")
+    .select("papel, permissoes, foto")
     .eq("user_id", userId)
     .maybeSingle();
   const papel = ((data?.papel as Papel | undefined) ?? "administrador") as Papel;
   const permissoes = data?.permissoes as ModuloRota[] | null;
-  return { papel, permissoes };
+  const foto = data?.foto as string | undefined;
+  return { papel, permissoes, foto };
 }
 
 async function sincronizarSessao() {
@@ -118,12 +120,13 @@ async function sincronizarSessao() {
     escrever({ user: null });
     return;
   }
-  const { papel, permissoes } = await papelEPermissoesDoUsuario(u.id);
+  const { papel, permissoes, foto } = await papelEPermissoesDoUsuario(u.id);
   const meta = (u.user_metadata ?? {}) as {
     nome?: string;
     usuario?: string;
     papel?: Papel;
     permissoes?: ModuloRota[];
+    foto?: string;
   };
   const nome = meta.nome ?? (u.email?.split("@")[0] ?? "Usuário");
   const authUser: AuthUser = {
@@ -132,6 +135,7 @@ async function sincronizarSessao() {
     nome,
     papel,
     papelLabel: PAPEL_LABEL[papel],
+    foto: foto || meta.foto,
     permissoesAbas: permissoes || meta.permissoes || ROTAS_PERMITIDAS[papel],
     logadoEm: new Date().toISOString(),
     precisaTrocarSenha: false,
