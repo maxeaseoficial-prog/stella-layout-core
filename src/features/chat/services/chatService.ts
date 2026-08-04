@@ -104,7 +104,10 @@ export const chatService = {
       .select()
       .single();
 
-    if (convErr) throw convErr;
+    if (convErr) {
+      console.error("ERRO CRÍTICO INSERT CONVERSA:", convErr);
+      throw convErr;
+    }
 
     const { error: partErr } = await supabase
       .from("chat_participantes")
@@ -113,7 +116,10 @@ export const chatService = {
         { conversa_id: conv.id, user_id: user2Id }
       ]);
 
-    if (partErr) throw partErr;
+    if (partErr) {
+      console.error("ERRO CRÍTICO INSERT PARTICIPANTES:", partErr);
+      throw partErr;
+    }
 
     return conv.id;
   },
