@@ -94,7 +94,6 @@ export const chatService = {
 
     if (match) return match.id;
 
-    console.log("Iniciando criação de conversa:", { tenantId, user1Id });
     const { data: conv, error: convErr } = await supabase
       .from("chat_conversas")
       .insert({
@@ -127,7 +126,6 @@ export const chatService = {
   },
 
   async criarGrupo(tenantId: string, nome: string, criadorId: string, participantesIds: string[]) {
-    console.log("Iniciando criação de grupo:", { tenantId, nome, criadorId });
     const { data: conv, error: convErr } = await supabase
       .from("chat_conversas")
       .insert({
