@@ -13,6 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/custom-select";
 
 import {
   LABEL_POSICAO_PERSONALIZACAO,
@@ -114,13 +121,18 @@ export function PersonalizacaoModal({
                   <Label className="text-xs">Tipo</Label>
                   <Select
                     value={p.tipo}
-                    onChange={(v) => atualizar(p.id, "tipo", v as TipoPersonalizacao)}
+                    onValueChange={(v) => atualizar(p.id, "tipo", v as TipoPersonalizacao)}
                   >
-                    {TIPOS_PERSONALIZACAO.map((t) => (
-                      <option key={t} value={t}>
-                        {LABEL_TIPO_PERSONALIZACAO[t]}
-                      </option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIPOS_PERSONALIZACAO.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {LABEL_TIPO_PERSONALIZACAO[t]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
 
@@ -128,15 +140,20 @@ export function PersonalizacaoModal({
                   <Label className="text-xs">Posição</Label>
                   <Select
                     value={p.posicao}
-                    onChange={(v) =>
+                    onValueChange={(v) =>
                       atualizar(p.id, "posicao", v as PosicaoPersonalizacao)
                     }
                   >
-                    {POSICOES_PERSONALIZACAO.map((pos) => (
-                      <option key={pos} value={pos}>
-                        {LABEL_POSICAO_PERSONALIZACAO[pos]}
-                      </option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {POSICOES_PERSONALIZACAO.map((pos) => (
+                        <SelectItem key={pos} value={pos}>
+                          {LABEL_POSICAO_PERSONALIZACAO[pos]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
 
@@ -185,22 +202,3 @@ export function PersonalizacaoModal({
   );
 }
 
-function Select({
-  value,
-  onChange,
-  children,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-    >
-      {children}
-    </select>
-  );
-}

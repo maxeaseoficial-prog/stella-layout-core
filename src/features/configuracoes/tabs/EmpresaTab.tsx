@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/custom-select";
 import { fileToDataUrl, formatarCNPJ, formatarTelefone } from "@/features/clientes/utils";
 import { useConfiguracoes } from "../useConfiguracoes";
 import type { DadosEmpresa } from "../types";
@@ -178,17 +185,20 @@ export function EmpresaTab() {
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="end-uf">Estado</Label>
-            <select
+            <Select
               id="end-uf"
               value={form.endereco.estado}
-              onChange={(e) => updateEndereco("estado", e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              onValueChange={(v) => updateEndereco("estado", v)}
             >
-              <option value="">Selecione</option>
-              {ESTADOS.map((uf) => (
-                <option key={uf} value={uf}>{uf}</option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {ESTADOS.map((uf) => (
+                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </SectionCard>

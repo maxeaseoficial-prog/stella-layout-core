@@ -13,6 +13,13 @@ import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/custom-select";
 import { Separator } from "@/components/ui/separator";
 import { formatarCNPJ } from "@/features/clientes/utils";
 
@@ -45,8 +52,6 @@ const num = (v: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const selectClass =
-  "flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring";
 
 export function FiscalTab() {
   const { config, carregando, salvando, erro, salvar } = useFiscalConfig();
@@ -270,17 +275,20 @@ export function FiscalTab() {
           </div>
           <div className="space-y-1.5 sm:col-span-1">
             <Label htmlFor="fis-uf">Estado</Label>
-            <select
+            <Select
               id="fis-uf"
               value={form.empresa.estado}
-              onChange={(e) => updateEmpresa("estado", e.target.value)}
-              className={selectClass}
+              onValueChange={(v) => updateEmpresa("estado", v)}
             >
-              <option value="">UF</option>
-              {ESTADOS.map((uf) => (
-                <option key={uf} value={uf}>{uf}</option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="UF" />
+              </SelectTrigger>
+              <SelectContent>
+                {ESTADOS.map((uf) => (
+                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </SectionCard>
@@ -293,15 +301,19 @@ export function FiscalTab() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="fis-ambiente">Ambiente de emissão</Label>
-            <select
+            <Select
               id="fis-ambiente"
               value={form.ambiente}
-              onChange={(e) => updateAmbiente(e.target.value as AmbienteSpedy)}
-              className={selectClass}
+              onValueChange={(v) => updateAmbiente(v as AmbienteSpedy)}
             >
-              <option value="sandbox">{LABEL_AMBIENTE_SPEDY.sandbox}</option>
-              <option value="producao">{LABEL_AMBIENTE_SPEDY.producao}</option>
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sandbox">{LABEL_AMBIENTE_SPEDY.sandbox}</SelectItem>
+                <SelectItem value="producao">{LABEL_AMBIENTE_SPEDY.producao}</SelectItem>
+              </SelectContent>
+            </Select>
             <p className="break-all text-xs text-muted-foreground">
               Endpoint: {SPEDY_BASE_URLS[form.ambiente]}
             </p>
@@ -378,15 +390,19 @@ export function FiscalTab() {
         <div className="grid gap-4 sm:grid-cols-4">
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="fis-regime">Regime tributário</Label>
-            <select
+            <Select
               id="fis-regime"
               value={t.regime}
-              onChange={(e) => updateRegime(e.target.value as RegimeTributarioFiscal)}
-              className={selectClass}
+              onValueChange={(v) => updateRegime(v as RegimeTributarioFiscal)}
             >
-              <option value="simplesNacional">Simples Nacional</option>
-              <option value="regimeNormal">Regime Normal (Lucro Presumido/Real)</option>
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simplesNacional">Simples Nacional</SelectItem>
+                <SelectItem value="regimeNormal">Regime Normal (Lucro Presumido/Real)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="fis-ncm">NCM padrão</Label>

@@ -12,6 +12,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/custom-select";
 import { cn } from "@/lib/utils";
 import { fileToDataUrl, formatarTamanho, hojeISO } from "@/features/clientes/utils";
 
@@ -281,17 +288,21 @@ export function ArquivoFormDrawer({
               </h4>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Campo label="Tipo do arquivo" obrigatorio>
-                  <select
+                  <Select
                     value={form.tipo}
-                    onChange={(e) => up("tipo", e.target.value as TipoArquivo)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    onValueChange={(v) => up("tipo", v as TipoArquivo)}
                   >
-                    {(Object.keys(LABEL_TIPO_ARQUIVO) as TipoArquivo[]).map((t) => (
-                      <option key={t} value={t}>
-                        {LABEL_TIPO_ARQUIVO[t]}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(Object.keys(LABEL_TIPO_ARQUIVO) as TipoArquivo[]).map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {LABEL_TIPO_ARQUIVO[t]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Campo>
                 <Campo
                   label="Nome do arquivo"
@@ -319,62 +330,61 @@ export function ArquivoFormDrawer({
               </div>
 
               <Campo label="Tipo de aplicação">
-                <select
+                <Select
                   value={form.tipoAplicacao}
-                  onChange={(e) => {
-                    const novoTipo = e.target.value as TipoAplicacao | "";
+                  onValueChange={(v) => {
+                    const novoTipo = v as TipoAplicacao | "";
                     setForm((f) => ({
                       ...f,
                       tipoAplicacao: novoTipo,
                       posicaoAplicacao: "",
                     }));
                   }}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <option value="">— Não definido —</option>
-                  {(Object.keys(LABEL_TIPO_APLICACAO) as TipoAplicacao[]).map(
-                    (t) => (
-                      <option key={t} value={t}>
-                        {LABEL_TIPO_APLICACAO[t]}
-                      </option>
-                    ),
-                  )}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="— Não definido —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(LABEL_TIPO_APLICACAO) as TipoAplicacao[]).map(
+                      (t) => (
+                        <SelectItem key={t} value={t}>
+                          {LABEL_TIPO_APLICACAO[t]}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
               </Campo>
 
               <Campo label="Posição da aplicação">
-                <select
+                <Select
                   value={form.posicaoAplicacao}
-                  onChange={(e) => up("posicaoAplicacao", e.target.value)}
+                  onValueChange={(v) => up("posicaoAplicacao", v)}
                   disabled={!form.tipoAplicacao}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <option value="">
-                    {form.tipoAplicacao
-                      ? "— Selecione a posição —"
-                      : "Selecione primeiro o tipo de aplicação"}
-                  </option>
-                  {form.tipoAplicacao &&
-                    (() => {
-                      const opcoes = posicoesParaTipo(
-                        form.tipoAplicacao as TipoAplicacao,
-                      );
-                      const grupos = Array.from(
-                        new Set(opcoes.map((o) => o.grupo)),
-                      );
-                      return grupos.map((g) => (
-                        <optgroup key={g} label={LABEL_GRUPO_POSICAO[g]}>
-                          {opcoes
-                            .filter((o) => o.grupo === g)
-                            .map((o) => (
-                              <option key={o.id} value={o.id}>
-                                {o.label}
-                              </option>
-                            ))}
-                        </optgroup>
-                      ));
-                    })()}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        form.tipoAplicacao
+                          ? "— Selecione a posição —"
+                          : "Selecione primeiro o tipo de aplicação"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {form.tipoAplicacao &&
+                      (() => {
+                        const opcoes = posicoesParaTipo(
+                          form.tipoAplicacao as TipoAplicacao,
+                        );
+                        return opcoes.map((o) => (
+                          <SelectItem key={o.id} value={o.id}>
+                            {o.label}
+                          </SelectItem>
+                        ));
+                      })()}
+                  </SelectContent>
+                </Select>
               </Campo>
 
               <Campo
