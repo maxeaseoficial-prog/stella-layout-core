@@ -81,8 +81,8 @@ export function ChatDrawer() {
 
   const filteredUsers = usuarios.filter(u => 
     u.id !== currentUser?.id && 
-    (u.nome.toLowerCase().includes(search.toLowerCase()) || 
-     u.usuario.toLowerCase().includes(search.toLowerCase()))
+    (u.nome?.toLowerCase().includes(search.toLowerCase()) || 
+     u.usuario?.toLowerCase().includes(search.toLowerCase()))
   );
 
   const conversaAtiva = conversas.find(c => c.id === conversaAtivaId);
