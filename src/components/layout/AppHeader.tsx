@@ -16,6 +16,7 @@ import {
 import { getPageMeta } from "@/lib/navigation";
 import { logout, useAuth } from "@/features/auth/useAuth";
 import { NotificacoesPopover } from "@/features/notificacoes";
+import { ChatDrawer } from "@/features/chat/components/ChatDrawer";
 import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 
 export function AppHeader() {
@@ -56,6 +57,7 @@ export function AppHeader() {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <ChatDrawer />
         <NotificacoesPopover />
 
 
