@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getPageMeta } from "@/lib/navigation";
 import { logout, useAuth } from "@/features/auth/useAuth";
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 import { NotificacoesPopover } from "@/features/notificacoes";
 
 
@@ -22,6 +23,7 @@ export function AppHeader() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const meta = getPageMeta(pathname);
   const { user } = useAuth();
+  const { state: config } = useConfiguracoes();
   const navigate = useNavigate();
 
   const iniciais = (user?.nome ?? "AD")
@@ -41,7 +43,16 @@ export function AppHeader() {
       <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
       <Separator orientation="vertical" className="h-6" />
 
-      <div className="flex min-w-0 flex-1 items-center gap-4">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        {config.empresa.logo && (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white p-0.5">
+            <img 
+              src={config.empresa.logo} 
+              alt={config.empresa.nomeFantasia || "Logo"} 
+              className="h-full w-full object-contain"
+            />
+          </div>
+        )}
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">
             {meta.title}
