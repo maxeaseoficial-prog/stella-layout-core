@@ -69,7 +69,7 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
             
             // Re-fetch conversations if it's a new one or just find existing
             const state = get();
-            let conversation = state.conversas.find(c => c.id === newMsgRaw.conversa_id);
+            let conversation = state.conversas.find((c: ChatConversa) => c.id === newMsgRaw.conversa_id);
             
             if (!conversation) {
                 // Check if user is participant (maybe newly added to a group)
