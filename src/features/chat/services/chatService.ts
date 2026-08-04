@@ -3,8 +3,8 @@ import { ChatConversa, ChatMensagem } from "../types";
 
 export const chatService = {
   async listarConversas(userId: string) {
-    const { data, error } = await supabase
-      .from("chat_conversas" as any)
+    const { data, error } = await (supabase as any)
+      .from("chat_conversas")
       .select(`
         *,
         participantes:chat_participantes(*)
@@ -16,15 +16,15 @@ export const chatService = {
   },
 
   async enviarMensagem(conversaId: string, remetenteId: string, texto: string) {
-    const { data, error } = await supabase
-      .from("chat_mensagens" as any)
+    const { data, error } = await (supabase as any)
+      .from("chat_mensagens")
       .insert({
         conversa_id: conversaId,
         remetente_id: remetenteId,
         texto,
         tipo: "texto",
         status: "enviada"
-      } as any)
+      })
       .select()
       .single();
 
@@ -33,7 +33,6 @@ export const chatService = {
   },
 
   async criarConversaPrivada(user1Id: string, user2Id: string) {
-    // Lógica para criar ou retornar conversa existente
     console.log("Criar conversa privada entre", user1Id, user2Id);
     return null;
   }
