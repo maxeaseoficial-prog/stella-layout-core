@@ -75,7 +75,7 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
                 // Check if user is participant (maybe newly added to a group)
                 const freshConvs = await chatService.listarConversas(userId);
                 set({ conversas: freshConvs });
-                conversation = freshConvs.find(c => c.id === newMsgRaw.conversa_id);
+                conversation = freshConvs.find((c: ChatConversa) => c.id === newMsgRaw.conversa_id);
             }
             
             if (conversation) {
