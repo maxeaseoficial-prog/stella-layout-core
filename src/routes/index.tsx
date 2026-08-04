@@ -34,6 +34,19 @@ function DashboardPage() {
   }
 
   if (papel === "caixa") {
+    const hoje = new Date().toISOString().split("T")[0];
+    const faturamentoHoje = (totais as any).movimentacoes
+      ? (totais as any).movimentacoes
+          .filter((m: any) => m.data === hoje && m.tipo === "entrada" && m.status !== "cancelada")
+          .reduce((acc: number, m: any) => acc + m.valor, 0)
+      : 0;
+
+    // Se useCaixa não expõe as movimentações nos totais, pegamos do hook principal
+    const { movimentacoes } = useCaixa();
+    const faturamentoReal = movimentacoes
+      .filter((m) => m.data === hoje && m.tipo === "entrada" && m.status !== "cancelada")
+      .reduce((acc, m) => acc + m.valor, 0);
+
     return (
       <div className="space-y-6">
         <PageHeader
@@ -42,9 +55,9 @@ function DashboardPage() {
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            label="Faturamento do Dia"
-            value={formatarMoeda(totais.entradas)}
-            hint="Entradas registradas hoje"
+            label="Faturamento de Hoje"
+            value={formatarMoeda(faturamentoReal)}
+            hint={new Date().toLocaleDateString("pt-BR")}
             icon={DollarSign}
           />
         </div>
