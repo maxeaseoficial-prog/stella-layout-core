@@ -112,7 +112,11 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip={user?.nome ?? "Perfil"} className="h-11 rounded-lg hover:bg-sidebar-accent">
+            <SidebarMenuButton
+              tooltip="Sair"
+              onClick={() => logout()}
+              className="h-11 rounded-lg text-sm text-muted-foreground hover:bg-sidebar-accent"
+            >
               <Avatar className="h-7 w-7">
                 {user?.foto ? (
                   <img src={user.foto} alt={user.nome} className="h-full w-full object-cover" />
@@ -123,39 +127,11 @@ export function AppSidebar() {
                 )}
               </Avatar>
               {!collapsed && (
-                <div className="flex min-w-0 flex-1 flex-col text-left">
-                  <span className="truncate text-xs font-semibold text-foreground">
-                    {user?.nome ?? "—"}
-                  </span>
-                  <span className="truncate text-[11px] text-muted-foreground">
-                    {user?.papelLabel ?? ""}
-                  </span>
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="truncate text-sm font-medium">Sair</span>
+                  <LogOut className="h-4 w-4 ml-auto" />
                 </div>
               )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Minha conta"
-              className="h-9 rounded-lg text-sm hover:bg-sidebar-accent"
-              asChild
-            >
-              <Link to="/configuracoes">
-                <UserCircle2 className="h-4 w-4" />
-                <span>Minha conta</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Sair"
-              onClick={() => logout()}
-              className="h-9 rounded-lg text-sm text-muted-foreground hover:bg-sidebar-accent"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
