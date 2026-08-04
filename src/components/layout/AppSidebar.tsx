@@ -31,6 +31,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StellaLogo } from "@/components/brand/StellaLogo";
 import { logout, useAuth } from "@/features/auth/useAuth";
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 import type { Papel } from "@/features/auth/permissions";
 import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 
@@ -58,6 +59,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { user, papel, permissoesAbas } = useAuth();
+  const { state: config } = useConfiguracoes();
 
   const items = itensPara(papel ?? "administrador", permissoesAbas);
 
@@ -75,7 +77,24 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex h-14 items-center gap-2 px-2">
-          <StellaLogo collapsed={collapsed} />
+          {config.empresa.logo ? (
+            <div className={`flex items-center gap-2 overflow-hidden ${collapsed ? 'justify-center w-full' : ''}`}>
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded border border-sidebar-border bg-white p-0.5">
+                <img 
+                  src={config.empresa.logo} 
+                  alt={config.empresa.nomeFantasia} 
+                  className="h-full w-full object-contain"
+                />
+              </div>
+              {!collapsed && (
+                <span className="truncate text-sm font-bold tracking-tight text-foreground uppercase">
+                  {config.empresa.nomeFantasia || "Stella"}
+                </span>
+              )}
+            </div>
+          ) : (
+            <StellaLogo collapsed={collapsed} />
+          )}
         </div>
       </SidebarHeader>
 
