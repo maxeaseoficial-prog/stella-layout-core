@@ -45,6 +45,7 @@ const SEED: Usuario[] = [
       { id: uid(), data: nowIso(), acao: "criado", responsavel: "Sistema" },
     ],
     padrao: true,
+    permissoesAbas: ROTAS_PERMITIDAS["operador_matriz"],
   },
 ];
 
@@ -119,6 +120,9 @@ export function encontrarPorCredencial(identificador: string, senha: string): Us
       (x.usuario.toLowerCase() === id || x.email.toLowerCase() === id) &&
       x.senha === senha,
   );
+  if (u && !u.permissoesAbas) {
+    u.permissoesAbas = ROTAS_PERMITIDAS[u.papel];
+  }
   return u ?? null;
 }
 
