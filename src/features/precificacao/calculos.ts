@@ -3,10 +3,13 @@ import type { PrecificacaoEntrada, PrecificacaoResultado } from "./types";
 /** Valores iniciais exibidos ao abrir a tela (espelham a planilha atual). */
 export const ENTRADA_PADRAO: PrecificacaoEntrada = {
   taxaCartaoPct: 2.5,
+  taxaCartaoModo: "percentual",
   impostoModo: "percentual",
   impostos: 6,
   lucroPct: 30,
+  lucroModo: "percentual",
   reinvestimentoPct: 5,
+  reinvestimentoModo: "percentual",
   materiaPrima: 0,
   tempoProducaoHoras: 1,
   maoDeObra: 0,
@@ -44,19 +47,33 @@ export function calcularPrecificacao(e: PrecificacaoEntrada): PrecificacaoResult
     e.materiaPrima + e.maoDeObra + e.outrosCustos + e.frete + e.despesasExtras,
   );
 
-  // Se o imposto for valor fixo, ele soma ao custo. Se for %, entra na fórmula do divisor.
-  const custoComImpostoFixo = e.impostoModo === "valor" ? custoProducao + e.impostos : custoProducao;
-  const impostosPct = e.impostoModo === "percentual" ? e.impostos : 0;
+  // Tratamento de valores fixos vs percentuais
+  const impostoValorFixo = e.impostoModo === "valor" ? e.impostos : 0;
+  const impostoPct = e.impostoModo === "percentual" ? e.impostos : 0;
 
-  const somaPercentuais = impostosPct + e.taxaCartaoPct + e.lucroPct + e.reinvestimentoPct;
-  const valido = somaPercentuais < 100 && custoComImpostoFixo > 0;
-  const precoVenda = valido ? custoComImpostoFixo / (1 - somaPercentuais / 100) : 0;
+  const taxaCartaoValorFixo = e.taxaCartaoModo === "valor" ? e.taxaCartaoPct : 0;
+  const taxaCartaoPct = e.taxaCartaoModo === "percentual" ? e.taxaCartaoPct : 0;
 
-  const valorImpostos =
-    e.impostoModo === "valor" ? e.impostos : (precoVenda * impostosPct) / 100;
-  const valorTaxaCartao = (precoVenda * e.taxaCartaoPct) / 100;
-  const valorLucro = (precoVenda * e.lucroPct) / 100;
-  const valorReinvestimento = (precoVenda * e.reinvestimentoPct) / 100;
+  const lucroValorFixo = e.lucroModo === "valor" ? e.lucroPct : 0;
+  const lucroPct = e.lucroModo === "percentual" ? e.lucroPct : 0;
+
+  const reinvestimentoValorFixo = e.reinvestimentoModo === "valor" ? e.reinvestimentoPct : 0;
+  const reinvestimentoPct = e.reinvestimentoModo === "percentual" ? e.reinvestimentoPct : 0;
+
+  // Custo base + todos os valores fixos
+  const custoTotalFixo = custoProducao + impostoValorFixo + taxaCartaoValorFixo + lucroValorFixo + reinvestimentoValorFixo;
+
+  // Soma de todos os percentuais incidentes sobre o preço final
+  const somaPercentuais = impostoPct + taxaCartaoPct + lucroPct + reinvestimentoPct;
+  
+  const valido = somaPercentuais < 100 && custoTotalFixo > 0;
+  const precoVenda = valido ? custoTotalFixo / (1 - somaPercentuais / 100) : 0;
+
+  const valorImpostos = e.impostoModo === "valor" ? e.impostos : (precoVenda * impostoPct) / 100;
+  const valorTaxaCartao = e.taxaCartaoModo === "valor" ? e.taxaCartaoPct : (precoVenda * taxaCartaoPct) / 100;
+  const valorLucro = e.lucroModo === "valor" ? e.lucroPct : (precoVenda * lucroPct) / 100;
+  const valorReinvestimento = e.reinvestimentoModo === "valor" ? e.reinvestimentoPct : (precoVenda * reinvestimentoPct) / 100;
+  
   const sobra = precoVenda - valorImpostos - valorTaxaCartao - custoProducao;
 
   return {

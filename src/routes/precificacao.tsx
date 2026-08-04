@@ -57,7 +57,7 @@ function paraCampos(e: PrecificacaoEntrada): Campos {
 
 function paraEntrada(c: Campos): PrecificacaoEntrada {
   return Object.fromEntries(
-    Object.entries(c).map(([k, v]) => [k, k === "impostoModo" ? v : parseNumero(v)]),
+    Object.entries(c).map(([k, v]) => [k, k.endsWith("Modo") ? v : parseNumero(v)]),
   ) as unknown as PrecificacaoEntrada;
 }
 
@@ -170,9 +170,15 @@ function PrecificacaoPage() {
             <CardContent className="grid grid-cols-2 gap-4">
               <CampoValor
                 label="Taxa de Cartão"
-                tipo="percentual"
+                tipo={campos.taxaCartaoModo === "percentual" ? "percentual" : "moeda"}
                 valor={campos.taxaCartaoPct}
                 onChange={(v: string) => setCampo("taxaCartaoPct", v)}
+                onToggleTipo={() =>
+                  setCampos((p) => ({
+                    ...p,
+                    taxaCartaoModo: p.taxaCartaoModo === "percentual" ? "valor" : "percentual",
+                  }))
+                }
               />
               <CampoValor
                 label="Impostos"
@@ -188,15 +194,27 @@ function PrecificacaoPage() {
               />
               <CampoValor
                 label="Lucro Desejado"
-                tipo="percentual"
+                tipo={campos.lucroModo === "percentual" ? "percentual" : "moeda"}
                 valor={campos.lucroPct}
                 onChange={(v: string) => setCampo("lucroPct", v)}
+                onToggleTipo={() =>
+                  setCampos((p) => ({
+                    ...p,
+                    lucroModo: p.lucroModo === "percentual" ? "valor" : "percentual",
+                  }))
+                }
               />
               <CampoValor
                 label="Reinvestimento"
-                tipo="percentual"
+                tipo={campos.reinvestimentoModo === "percentual" ? "percentual" : "moeda"}
                 valor={campos.reinvestimentoPct}
                 onChange={(v: string) => setCampo("reinvestimentoPct", v)}
+                onToggleTipo={() =>
+                  setCampos((p) => ({
+                    ...p,
+                    reinvestimentoModo: p.reinvestimentoModo === "percentual" ? "valor" : "percentual",
+                  }))
+                }
               />
             </CardContent>
           </Card>
@@ -256,6 +274,9 @@ function PrecificacaoPage() {
               lucroPct: campos.lucroPct,
               taxaCartaoPct: campos.taxaCartaoPct,
               impostos: campos.impostos,
+              lucroModo: campos.lucroModo,
+              taxaCartaoModo: campos.taxaCartaoModo,
+              impostoModo: campos.impostoModo,
             }}
             onAplicar={setCampo}
           />
