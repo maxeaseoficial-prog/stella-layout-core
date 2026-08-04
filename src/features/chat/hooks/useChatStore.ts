@@ -127,9 +127,10 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
       get().addMensagem(msg);
       // Update last message in list locally too for immediate feedback
       const state = get();
-      const updatedConvs = state.conversas.map(c => 
+      const updatedConvs = state.conversas.map((c: ChatConversa) => 
           c.id === msg.conversaId ? { ...c, ultimaMensagem: msg, atualizadoEm: msg.criadoEm } : c
-      ).sort((a,b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
+      ).sort((a: ChatConversa, b: ChatConversa) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
+
       set({ conversas: updatedConvs });
   },
 
