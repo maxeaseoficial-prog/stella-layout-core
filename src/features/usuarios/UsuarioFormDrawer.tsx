@@ -15,12 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  CustomSelect as Select,
+  CustomSelectContent as SelectContent,
+  CustomSelectItem as SelectItem,
+  CustomSelectTrigger as SelectTrigger,
+  CustomSelectValue as SelectValue,
+} from "@/components/ui/custom-select";
 import type { ModuloRota, Papel } from "@/features/auth/permissions";
 import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 import { UsuarioAvatar } from "./UsuarioAvatar";
