@@ -127,6 +127,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="pt-BR">
       <head>
         <HeadContent />
+        <meta name="theme-color" content="#EC4899" />
       </head>
       <body>
         {children}
@@ -136,6 +137,26 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function ServiceWorkerRegister() {
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((registration) => {
+            console.log("SW registrado com sucesso: ", registration);
+          })
+          .catch((registrationError) => {
+            console.log("Falha ao registrar o SW: ", registrationError);
+          });
+      });
+    }
+  }, []);
+
+  return null;
+}
+
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -143,6 +164,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={200}>
         <ThemeApplier />
+        <ServiceWorkerRegister />
         <AuthGate />
         <Toaster />
       </TooltipProvider>
