@@ -274,6 +274,9 @@ function PrecificacaoPage() {
               lucroPct: campos.lucroPct,
               taxaCartaoPct: campos.taxaCartaoPct,
               impostos: campos.impostos,
+              lucroModo: campos.lucroModo,
+              taxaCartaoModo: campos.taxaCartaoModo,
+              impostoModo: campos.impostoModo,
             }}
             onAplicar={setCampo}
           />

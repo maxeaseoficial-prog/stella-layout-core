@@ -4,8 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface CenariosBlocoProps {
-  valores: { lucroPct: string; taxaCartaoPct: string; impostos: string };
-  onAplicar: (campo: "lucroPct" | "taxaCartaoPct" | "impostos", valor: string) => void;
+  valores: { 
+    lucroPct: string; 
+    taxaCartaoPct: string; 
+    impostos: string;
+    lucroModo?: string;
+    taxaCartaoModo?: string;
+    impostoModo?: string;
+  };
+  onAplicar: (campo: any, valor: string) => void;
 }
 
 const GRUPOS = [
@@ -32,12 +39,18 @@ export function CenariosBloco({ valores, onAplicar }: CenariosBlocoProps) {
             <span className="w-24 text-xs font-medium text-muted-foreground">{g.rotulo}</span>
             <div className="flex flex-wrap gap-1.5">
               {g.opcoes.map((op) => {
-                const ativo = Number(valores[g.campo]) === op;
+                const modoCampo = g.campo === 'impostos' ? 'impostoModo' : g.campo.replace('Pct', 'Modo');
+                const isPercentual = valores[modoCampo as keyof typeof valores] !== 'valor';
+                const ativo = Number(valores[g.campo]) === op && isPercentual;
+                
                 return (
                   <button
                     key={op}
                     type="button"
-                    onClick={() => onAplicar(g.campo, String(op))}
+                    onClick={() => {
+                      onAplicar(g.campo, String(op));
+                      onAplicar(modoCampo, 'percentual');
+                    }}
                     className={cn(
                       "rounded-full border px-3 py-1.5 text-xs font-semibold tabular-nums transition-colors",
                       ativo
