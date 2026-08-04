@@ -61,7 +61,7 @@ function gerarPdf({ entrada: e, resultado: r, adminNome }: PdfContexto): jsPDF {
   // Informações financeiras
   y = tituloSessao(doc, "Informações Financeiras", y);
   y = linhaRotuloValor(doc, "Taxa de Cartão", pct(e.taxaCartaoPct), y);
-  y = linhaRotuloValor(doc, "Impostos", pct(e.impostosPct), y);
+  y = linhaRotuloValor(doc, "Impostos", e.impostoModo === "percentual" ? pct(e.impostos) : brl(e.impostos), y);
   y = linhaRotuloValor(doc, "Lucro Desejado", pct(e.lucroPct), y);
   y = linhaRotuloValor(doc, "Reinvestimento", pct(e.reinvestimentoPct), y);
   y += 5;

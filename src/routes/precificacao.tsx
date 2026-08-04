@@ -57,7 +57,7 @@ function paraCampos(e: PrecificacaoEntrada): Campos {
 
 function paraEntrada(c: Campos): PrecificacaoEntrada {
   return Object.fromEntries(
-    Object.entries(c).map(([k, v]) => [k, parseNumero(v)]),
+    Object.entries(c).map(([k, v]) => [k, k === "impostoModo" ? v : parseNumero(v)]),
   ) as unknown as PrecificacaoEntrada;
 }
 
@@ -255,7 +255,7 @@ function PrecificacaoPage() {
             valores={{
               lucroPct: campos.lucroPct,
               taxaCartaoPct: campos.taxaCartaoPct,
-              impostosPct: entrada.impostoModo === "percentual" ? entrada.impostos : 0,
+              impostos: campos.impostos,
             }}
             onAplicar={setCampo}
           />
