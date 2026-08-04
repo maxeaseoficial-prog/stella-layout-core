@@ -104,13 +104,13 @@ function identificadorParaEmail(id: string): string {
 async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null; foto?: string }> {
   const { data } = await supabase
     .from("empresa_usuarios")
-    .select("papel, permissoes, foto")
+    .select("papel, permissoes")
     .eq("user_id", userId)
     .maybeSingle();
   const papel = ((data?.papel as Papel | undefined) ?? "administrador") as Papel;
   const permissoes = data?.permissoes as ModuloRota[] | null;
-  const foto = data?.foto as string | undefined;
-  return { papel, permissoes, foto };
+  // A coluna 'foto' ainda não existe no banco, então pegamos do metadados por enquanto
+  return { papel, permissoes };
 }
 
 async function sincronizarSessao() {
@@ -120,7 +120,7 @@ async function sincronizarSessao() {
     escrever({ user: null });
     return;
   }
-  const { papel, permissoes, foto } = await papelEPermissoesDoUsuario(u.id);
+  const { papel, permissoes } = await papelEPermissoesDoUsuario(u.id);
   const meta = (u.user_metadata ?? {}) as {
     nome?: string;
     usuario?: string;
@@ -135,7 +135,7 @@ async function sincronizarSessao() {
     nome,
     papel,
     papelLabel: PAPEL_LABEL[papel],
-    foto: foto || meta.foto,
+    foto: meta.foto,
     permissoesAbas: permissoes || meta.permissoes || ROTAS_PERMITIDAS[papel],
     logadoEm: new Date().toISOString(),
     precisaTrocarSenha: false,
