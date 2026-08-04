@@ -186,11 +186,10 @@ export function EmpresaTab() {
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="end-uf">Estado</Label>
             <Select
-              id="end-uf"
               value={form.endereco.estado}
               onValueChange={(v) => updateEndereco("estado", v)}
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="end-uf" className="h-9">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>

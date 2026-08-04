@@ -276,11 +276,10 @@ export function FiscalTab() {
           <div className="space-y-1.5 sm:col-span-1">
             <Label htmlFor="fis-uf">Estado</Label>
             <Select
-              id="fis-uf"
               value={form.empresa.estado}
               onValueChange={(v) => updateEmpresa("estado", v)}
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="fis-uf" className="h-9">
                 <SelectValue placeholder="UF" />
               </SelectTrigger>
               <SelectContent>
@@ -302,11 +301,10 @@ export function FiscalTab() {
           <div className="space-y-1.5">
             <Label htmlFor="fis-ambiente">Ambiente de emissão</Label>
             <Select
-              id="fis-ambiente"
               value={form.ambiente}
               onValueChange={(v) => updateAmbiente(v as AmbienteSpedy)}
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="fis-ambiente" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -391,11 +389,10 @@ export function FiscalTab() {
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="fis-regime">Regime tributário</Label>
             <Select
-              id="fis-regime"
               value={t.regime}
               onValueChange={(v) => updateRegime(v as RegimeTributarioFiscal)}
             >
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="fis-regime" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
