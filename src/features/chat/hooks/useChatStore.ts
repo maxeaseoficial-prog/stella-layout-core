@@ -2,6 +2,7 @@ import { create, StateCreator } from 'zustand';
 import { ChatConversa, ChatMensagem } from '../types';
 import { chatService } from '../services/chatService';
 import { supabase } from '@/integrations/supabase/client';
+import { tocarSomToast } from '@/lib/toast-som';
 
 interface ChatStore {
   conversas: ChatConversa[];
@@ -32,8 +33,7 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
   setConversaAtiva: (id) => {
     set({ conversaAtivaId: id });
     if (id) {
-        // Mark as read when opening
-        // We can do it here or in a useEffect in the component
+        // Reset unread for this conversation could be added here if we had per-conversa unread counts
     }
   },
   addMensagem: (msg) => set((state) => {
@@ -57,7 +57,7 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
   setNaoLidasTotais: (total) => set({ naoLidasTotais: total }),
 
   init: async (userId) => {
-      // 1. Load conversations
+      // 1. Load initial state
       const convs = await chatService.listarConversas(userId);
       set({ conversas: convs });
 
@@ -67,9 +67,16 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensagens' }, async (payload) => {
             const newMsgRaw = payload.new;
             
-            // Check if user is part of this conversation
+            // Re-fetch conversations if it's a new one or just find existing
             const state = get();
-            const conversation = state.conversas.find(c => c.id === newMsgRaw.conversa_id);
+            let conversation = state.conversas.find(c => c.id === newMsgRaw.conversa_id);
+            
+            if (!conversation) {
+                // Check if user is participant (maybe newly added to a group)
+                const freshConvs = await chatService.listarConversas(userId);
+                set({ conversas: freshConvs });
+                conversation = freshConvs.find(c => c.id === newMsgRaw.conversa_id);
+            }
             
             if (conversation) {
                 const msg: ChatMensagem = {
@@ -87,21 +94,22 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
                 state.addMensagem(msg);
                 
                 // Update conversation's last message and move to top
-                const updatedConvs = state.conversas.map(c => 
+                const updatedConvs = get().conversas.map(c => 
                     c.id === msg.conversaId ? { ...c, ultimaMensagem: msg, atualizadoEm: msg.criadoEm } : c
                 ).sort((a,b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
                 
                 set({ conversas: updatedConvs });
 
-                // If not active and not from self, increment unread
+                // If not active and not from self, increment unread and play sound
                 if (state.conversaAtivaId !== msg.conversaId && msg.remetenteId !== userId) {
-                    set({ naoLidasTotais: state.naoLidasTotais + 1 });
+                    set({ naoLidasTotais: get().naoLidasTotais + 1 });
+                    tocarSomToast();
                 }
             }
         })
         .subscribe();
 
-      // Realtime for new conversations
+      // Realtime for new participants (new groups or private chats)
       supabase
         .channel('public:chat_participantes')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participantes' }, async (payload) => {
@@ -116,6 +124,12 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
   sendMessage: async (conversaId, remetenteId, texto) => {
       const msg = await chatService.enviarMensagem(conversaId, remetenteId, texto);
       get().addMensagem(msg);
+      // Update last message in list locally too for immediate feedback
+      const state = get();
+      const updatedConvs = state.conversas.map(c => 
+          c.id === msg.conversaId ? { ...c, ultimaMensagem: msg, atualizadoEm: msg.criadoEm } : c
+      ).sort((a,b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
+      set({ conversas: updatedConvs });
   },
 
   createGroup: async (tenantId, nome, criadorId, participantes) => {
@@ -134,3 +148,4 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
 });
 
 export const useChatStore = create<ChatStore>(storeApi);
+
