@@ -6,16 +6,22 @@
  */
 
 export interface PrecificacaoEntrada {
-  /** Taxa de cartão (% sobre o preço de venda). */
+  /** Taxa de cartão. */
   taxaCartaoPct: number;
+  /** Modo da taxa de cartão. */
+  taxaCartaoModo: "percentual" | "valor";
   /** Modo do imposto: percentual (%) ou valor fixo (R$). */
   impostoModo: "percentual" | "valor";
   /** Valor ou percentual de impostos. */
   impostos: number;
-  /** Lucro desejado (% sobre o preço de venda). */
+  /** Lucro desejado. */
   lucroPct: number;
-  /** Reinvestimento (% sobre o preço de venda). */
+  /** Modo do lucro. */
+  lucroModo: "percentual" | "valor";
+  /** Reinvestimento. */
   reinvestimentoPct: number;
+  /** Modo do reinvestimento. */
+  reinvestimentoModo: "percentual" | "valor";
   /** Matéria-prima (R$). */
   materiaPrima: number;
   /** Tempo de produção (horas) — informativo. */
