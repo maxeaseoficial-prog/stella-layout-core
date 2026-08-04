@@ -29,7 +29,6 @@ const mapConversa = (c: any): ChatConversa => ({
 
 export const chatService = {
   async listarConversas(userId: string) {
-    // Cast to any to bypass strict type check on new tables
     const { data, error } = await supabase
       .from("chat_conversas")
       .select(`
@@ -124,6 +123,13 @@ export const chatService = {
     const otherUser = usuarios.find(u => u.id === otherId);
     return otherUser?.nome || otherUser?.usuario || "Usuário";
   },
+
+  async criarGrupo(tenantId: string, nome: string, criadorId: string, participantesIds: string[]) {
+    const { data: conv, error: convErr } = await supabase
+      .from("chat_conversas")
+      .insert({
+        tenant_id: tenantId,
+        tipo: "grupo",
         nome,
         criado_por: criadorId
       })
