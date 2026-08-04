@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface CenariosBlocoProps {
-  valores: { lucroPct: string; taxaCartaoPct: string; impostosPct: string };
-  onAplicar: (campo: "lucroPct" | "taxaCartaoPct" | "impostosPct", valor: string) => void;
+  valores: { lucroPct: string; taxaCartaoPct: string; impostos: string };
+  onAplicar: (campo: "lucroPct" | "taxaCartaoPct" | "impostos", valor: string) => void;
 }
 
 const GRUPOS = [
   { campo: "lucroPct" as const, rotulo: "Lucro", opcoes: [20, 25, 30, 35] },
   { campo: "taxaCartaoPct" as const, rotulo: "Taxa Cartão", opcoes: [2, 2.5, 3] },
-  { campo: "impostosPct" as const, rotulo: "Impostos", opcoes: [4, 6, 8] },
+  { campo: "impostos" as const, rotulo: "Impostos", opcoes: [4, 6, 8] },
 ];
 
 export function CenariosBloco({ valores, onAplicar }: CenariosBlocoProps) {

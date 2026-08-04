@@ -15,10 +15,28 @@ const SUFIXO: Record<CampoValorProps["tipo"], string> = {
   tempo: "h",
 };
 
-export function CampoValor({ label, valor, onChange, tipo, descricao }: CampoValorProps) {
+export function CampoValor({
+  label,
+  valor,
+  onChange,
+  tipo,
+  descricao,
+  onToggleTipo,
+}: CampoValorProps & { onToggleTipo?: () => void }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        {onToggleTipo && (
+          <button
+            type="button"
+            onClick={onToggleTipo}
+            className="rounded px-1 text-[10px] font-bold uppercase tracking-wider text-primary hover:bg-primary-soft transition-colors"
+          >
+            Mudar para {tipo === "percentual" ? "R$" : "%"}
+          </button>
+        )}
+      </div>
       <div className="relative">
         {tipo === "moeda" && (
           <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
