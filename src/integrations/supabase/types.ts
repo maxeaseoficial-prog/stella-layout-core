@@ -174,117 +174,6 @@ export type Database = {
           },
         ]
       }
-      chat_conversas: {
-        Row: {
-          atualizado_em: string
-          criado_em: string
-          criado_por: string
-          foto: string | null
-          id: string
-          nome: string | null
-          tenant_id: string
-          tipo: Database["public"]["Enums"]["chat_tipo_conversa"]
-        }
-        Insert: {
-          atualizado_em?: string
-          criado_em?: string
-          criado_por: string
-          foto?: string | null
-          id?: string
-          nome?: string | null
-          tenant_id: string
-          tipo?: Database["public"]["Enums"]["chat_tipo_conversa"]
-        }
-        Update: {
-          atualizado_em?: string
-          criado_em?: string
-          criado_por?: string
-          foto?: string | null
-          id?: string
-          nome?: string | null
-          tenant_id?: string
-          tipo?: Database["public"]["Enums"]["chat_tipo_conversa"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_conversas_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_mensagens: {
-        Row: {
-          conversa_id: string
-          criado_em: string
-          id: string
-          metadata: Json | null
-          remetente_id: string
-          status: Database["public"]["Enums"]["chat_status_mensagem"]
-          texto: string | null
-          tipo: Database["public"]["Enums"]["chat_tipo_mensagem"]
-        }
-        Insert: {
-          conversa_id: string
-          criado_em?: string
-          id?: string
-          metadata?: Json | null
-          remetente_id: string
-          status?: Database["public"]["Enums"]["chat_status_mensagem"]
-          texto?: string | null
-          tipo?: Database["public"]["Enums"]["chat_tipo_mensagem"]
-        }
-        Update: {
-          conversa_id?: string
-          criado_em?: string
-          id?: string
-          metadata?: Json | null
-          remetente_id?: string
-          status?: Database["public"]["Enums"]["chat_status_mensagem"]
-          texto?: string | null
-          tipo?: Database["public"]["Enums"]["chat_tipo_mensagem"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_mensagens_conversa_id_fkey"
-            columns: ["conversa_id"]
-            isOneToOne: false
-            referencedRelation: "chat_conversas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_participantes: {
-        Row: {
-          conversa_id: string
-          criado_em: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          conversa_id: string
-          criado_em?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          conversa_id?: string
-          criado_em?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_participantes_conversa_id_fkey"
-            columns: ["conversa_id"]
-            isOneToOne: false
-            referencedRelation: "chat_conversas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       clientes: {
         Row: {
           created_at: string
@@ -673,10 +562,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_chat_participant: {
-        Args: { _conversa_id: string; _user_id: string }
-        Returns: boolean
-      }
       papel_do_usuario: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -684,9 +569,6 @@ export type Database = {
     }
     Enums: {
       app_role: "administrador" | "operador_matriz" | "caixa"
-      chat_status_mensagem: "enviada" | "entregue" | "lida"
-      chat_tipo_conversa: "privada" | "grupo"
-      chat_tipo_mensagem: "texto" | "arquivo" | "sistema"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -815,9 +697,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["administrador", "operador_matriz", "caixa"],
-      chat_status_mensagem: ["enviada", "entregue", "lida"],
-      chat_tipo_conversa: ["privada", "grupo"],
-      chat_tipo_mensagem: ["texto", "arquivo", "sistema"],
     },
   },
 } as const
