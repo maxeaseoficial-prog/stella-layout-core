@@ -62,7 +62,7 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
       set({ conversas: convs });
 
       // 2. Setup Realtime for messages
-      const channelName = `public:chat_mensagens:${userId}`;
+      const channelName = `chat_mensagens_${userId}`;
       supabase
         .channel(channelName)
         .on('postgres_changes', { 
@@ -111,7 +111,7 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
         .subscribe();
 
       // Realtime for new participants (new groups or private chats)
-      const partChannelName = `public:chat_participantes:${userId}`;
+      const partChannelName = `chat_participantes_${userId}`;
       supabase
         .channel(partChannelName)
         .on('postgres_changes', { 
