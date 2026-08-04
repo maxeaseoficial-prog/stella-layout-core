@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create, StateCreator } from 'zustand';
 import { ChatConversa, ChatMensagem } from '../types';
 
 interface ChatStore {
@@ -14,7 +14,7 @@ interface ChatStore {
   setNaoLidasTotais: (total: number) => void;
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
+const storeApi: StateCreator<ChatStore> = (set) => ({
   conversas: [],
   conversaAtivaId: null,
   mensagens: {},
@@ -38,4 +38,6 @@ export const useChatStore = create<ChatStore>((set) => ({
     }
   })),
   setNaoLidasTotais: (total) => set({ naoLidasTotais: total }),
-}));
+});
+
+export const useChatStore = create<ChatStore>(storeApi);
