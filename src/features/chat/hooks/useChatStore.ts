@@ -94,9 +94,10 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
                 state.addMensagem(msg);
                 
                 // Update conversation's last message and move to top
-                const updatedConvs = get().conversas.map(c => 
+                const updatedConvs = get().conversas.map((c: ChatConversa) => 
                     c.id === msg.conversaId ? { ...c, ultimaMensagem: msg, atualizadoEm: msg.criadoEm } : c
-                ).sort((a,b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
+                ).sort((a: ChatConversa, b: ChatConversa) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
+
                 
                 set({ conversas: updatedConvs });
 
