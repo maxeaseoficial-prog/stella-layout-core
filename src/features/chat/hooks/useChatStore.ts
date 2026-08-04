@@ -62,17 +62,20 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
       set({ conversas: convs });
 
       // 2. Setup Realtime for messages
+      const channelName = `public:chat_mensagens:${userId}`;
       supabase
-        .channel('public:chat_mensagens')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_mensagens' }, async (payload) => {
+        .channel(channelName)
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chat_mensagens' 
+        }, async (payload) => {
             const newMsgRaw = payload.new;
             
-            // Re-fetch conversations if it's a new one or just find existing
             const state = get();
             let conversation = state.conversas.find((c: ChatConversa) => c.id === newMsgRaw.conversa_id);
             
             if (!conversation) {
-                // Check if user is participant (maybe newly added to a group)
                 const freshConvs = await chatService.listarConversas(userId);
                 set({ conversas: freshConvs });
                 conversation = freshConvs.find((c: ChatConversa) => c.id === newMsgRaw.conversa_id);
@@ -93,15 +96,12 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
                 
                 state.addMensagem(msg);
                 
-                // Update conversation's last message and move to top
                 const updatedConvs = get().conversas.map((c: ChatConversa) => 
                     c.id === msg.conversaId ? { ...c, ultimaMensagem: msg, atualizadoEm: msg.criadoEm } : c
                 ).sort((a: ChatConversa, b: ChatConversa) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime());
 
-                
                 set({ conversas: updatedConvs });
 
-                // If not active and not from self, increment unread and play sound
                 if (state.conversaAtivaId !== msg.conversaId && msg.remetenteId !== userId) {
                     set({ naoLidasTotais: get().naoLidasTotais + 1 });
                     tocarSomToast();
@@ -111,9 +111,14 @@ const storeApi: StateCreator<ChatStore> = (set, get) => ({
         .subscribe();
 
       // Realtime for new participants (new groups or private chats)
+      const partChannelName = `public:chat_participantes:${userId}`;
       supabase
-        .channel('public:chat_participantes')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participantes' }, async (payload) => {
+        .channel(partChannelName)
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chat_participantes' 
+        }, async (payload) => {
             if (payload.new.user_id === userId) {
                 const freshConvs = await chatService.listarConversas(userId);
                 set({ conversas: freshConvs });
