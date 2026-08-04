@@ -176,9 +176,15 @@ function PrecificacaoPage() {
               />
               <CampoValor
                 label="Impostos"
-                tipo="percentual"
-                valor={campos.impostosPct}
-                onChange={(v) => setCampo("impostosPct", v)}
+                tipo={campos.impostoModo === "percentual" ? "percentual" : "moeda"}
+                valor={campos.impostos}
+                onChange={(v) => setCampo("impostos", v)}
+                onToggleTipo={() =>
+                  setCampos((p) => ({
+                    ...p,
+                    impostoModo: p.impostoModo === "percentual" ? "valor" : "percentual",
+                  }))
+                }
               />
               <CampoValor
                 label="Lucro Desejado"
@@ -249,7 +255,7 @@ function PrecificacaoPage() {
             valores={{
               lucroPct: campos.lucroPct,
               taxaCartaoPct: campos.taxaCartaoPct,
-              impostosPct: campos.impostosPct,
+              impostosPct: entrada.impostoModo === "percentual" ? entrada.impostos : 0,
             }}
             onAplicar={setCampo}
           />

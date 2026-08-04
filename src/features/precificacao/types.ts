@@ -8,8 +8,10 @@
 export interface PrecificacaoEntrada {
   /** Taxa de cartão (% sobre o preço de venda). */
   taxaCartaoPct: number;
-  /** Impostos (% sobre o preço de venda). */
-  impostosPct: number;
+  /** Modo do imposto: percentual (%) ou valor fixo (R$). */
+  impostoModo: "percentual" | "valor";
+  /** Valor ou percentual de impostos. */
+  impostos: number;
   /** Lucro desejado (% sobre o preço de venda). */
   lucroPct: number;
   /** Reinvestimento (% sobre o preço de venda). */

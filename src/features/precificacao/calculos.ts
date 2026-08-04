@@ -3,7 +3,8 @@ import type { PrecificacaoEntrada, PrecificacaoResultado } from "./types";
 /** Valores iniciais exibidos ao abrir a tela (espelham a planilha atual). */
 export const ENTRADA_PADRAO: PrecificacaoEntrada = {
   taxaCartaoPct: 2.5,
-  impostosPct: 6,
+  impostoModo: "percentual",
+  impostos: 6,
   lucroPct: 30,
   reinvestimentoPct: 5,
   materiaPrima: 0,
@@ -42,11 +43,17 @@ export function calcularPrecificacao(e: PrecificacaoEntrada): PrecificacaoResult
   const custoProducao = round2(
     e.materiaPrima + e.maoDeObra + e.outrosCustos + e.frete + e.despesasExtras,
   );
-  const somaPercentuais = e.impostosPct + e.taxaCartaoPct + e.lucroPct + e.reinvestimentoPct;
-  const valido = somaPercentuais < 100 && custoProducao > 0;
-  const precoVenda = valido ? custoProducao / (1 - somaPercentuais / 100) : 0;
 
-  const valorImpostos = (precoVenda * e.impostosPct) / 100;
+  // Se o imposto for valor fixo, ele soma ao custo. Se for %, entra na fórmula do divisor.
+  const custoComImpostoFixo = e.impostoModo === "valor" ? custoProducao + e.impostos : custoProducao;
+  const impostosPct = e.impostoModo === "percentual" ? e.impostos : 0;
+
+  const somaPercentuais = impostosPct + e.taxaCartaoPct + e.lucroPct + e.reinvestimentoPct;
+  const valido = somaPercentuais < 100 && custoComImpostoFixo > 0;
+  const precoVenda = valido ? custoComImpostoFixo / (1 - somaPercentuais / 100) : 0;
+
+  const valorImpostos =
+    e.impostoModo === "valor" ? e.impostos : (precoVenda * impostosPct) / 100;
   const valorTaxaCartao = (precoVenda * e.taxaCartaoPct) / 100;
   const valorLucro = (precoVenda * e.lucroPct) / 100;
   const valorReinvestimento = (precoVenda * e.reinvestimentoPct) / 100;
