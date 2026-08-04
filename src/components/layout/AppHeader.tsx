@@ -16,12 +16,13 @@ import {
 import { getPageMeta } from "@/lib/navigation";
 import { logout, useAuth } from "@/features/auth/useAuth";
 import { NotificacoesPopover } from "@/features/notificacoes";
-
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 
 export function AppHeader() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const meta = getPageMeta(pathname);
   const { user } = useAuth();
+  const { state: config } = useConfiguracoes();
   const navigate = useNavigate();
 
   const iniciais = (user?.nome ?? "AD")
@@ -67,8 +68,12 @@ export function AppHeader() {
               className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 outline-none transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Avatar className="h-8 w-8">
-                {user?.foto ? (
-                  <img src={user.foto} alt={user.nome} className="h-full w-full object-cover" />
+                {user?.foto || config.empresa.logo ? (
+                  <img
+                    src={user?.foto || config.empresa.logo}
+                    alt={user?.nome}
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary">
                     {iniciais}

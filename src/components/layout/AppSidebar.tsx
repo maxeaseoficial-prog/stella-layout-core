@@ -31,6 +31,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StellaLogo } from "@/components/brand/StellaLogo";
 import { logout, useAuth } from "@/features/auth/useAuth";
+import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 import type { Papel } from "@/features/auth/permissions";
 import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 
@@ -58,6 +59,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const { user, papel, permissoesAbas } = useAuth();
+  const { state: config } = useConfiguracoes();
 
   const items = itensPara(papel ?? "administrador", permissoesAbas);
 
@@ -118,8 +120,12 @@ export function AppSidebar() {
               className="h-11 rounded-lg text-sm text-muted-foreground hover:bg-sidebar-accent"
             >
               <Avatar className="h-7 w-7">
-                {user?.foto ? (
-                  <img src={user.foto} alt={user.nome} className="h-full w-full object-cover" />
+                {user?.foto || config.empresa.logo ? (
+                  <img
+                    src={user?.foto || config.empresa.logo}
+                    alt={user?.nome}
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary">
                     {iniciais}
