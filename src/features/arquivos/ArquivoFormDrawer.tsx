@@ -698,14 +698,18 @@ export function ArquivoFormDrawer({
                 />
               </Campo>
               <Campo label="Status">
-                <select
+                <Select
                   value={form.status}
-                  onChange={(e) => up("status", e.target.value as StatusArquivo)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  onValueChange={(v) => up("status", v as StatusArquivo)}
                 >
-                  <option value="ativo">Ativo</option>
-                  <option value="arquivado">Arquivado</option>
-                </select>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ativo">Ativo</SelectItem>
+                    <SelectItem value="arquivado">Arquivado</SelectItem>
+                  </SelectContent>
+                </Select>
               </Campo>
             </section>
           </div>
