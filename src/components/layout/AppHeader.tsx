@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getPageMeta } from "@/lib/navigation";
 import { logout, useAuth } from "@/features/auth/useAuth";
-import { useConfiguracoes } from "@/features/configuracoes/useConfiguracoes";
 import { NotificacoesPopover } from "@/features/notificacoes";
 
 
@@ -23,7 +22,6 @@ export function AppHeader() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const meta = getPageMeta(pathname);
   const { user } = useAuth();
-  const { state: config } = useConfiguracoes();
   const navigate = useNavigate();
 
   const iniciais = (user?.nome ?? "AD")
@@ -43,16 +41,7 @@ export function AppHeader() {
       <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
       <Separator orientation="vertical" className="h-6" />
 
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        {config.empresa.logo && (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-white p-0.5">
-            <img 
-              src={config.empresa.logo} 
-              alt={config.empresa.nomeFantasia || "Logo"} 
-              className="h-full w-full object-contain"
-            />
-          </div>
-        )}
+      <div className="flex min-w-0 flex-1 items-center gap-4">
         <div className="min-w-0">
           <h1 className="truncate text-sm font-semibold text-foreground sm:text-base">
             {meta.title}
@@ -78,9 +67,13 @@ export function AppHeader() {
               className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 outline-none transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary">
-                  {iniciais}
-                </AvatarFallback>
+                {user?.foto ? (
+                  <img src={user.foto} alt={user.nome} className="h-full w-full object-cover" />
+                ) : (
+                  <AvatarFallback className="bg-primary-soft text-xs font-semibold text-primary">
+                    {iniciais}
+                  </AvatarFallback>
+                )}
               </Avatar>
               <div className="hidden text-left sm:block">
                 <p className="text-xs font-semibold leading-tight text-foreground">
