@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ChatConversa, ChatMensagem } from "../types";
+import { AuthUser } from "@/features/auth/useAuth";
 
 // Helper to map DB row to ChatMensagem
 const mapMensagem = (m: any): ChatMensagem => ({
@@ -28,8 +29,7 @@ const mapConversa = (c: any): ChatConversa => ({
 
 export const chatService = {
   async listarConversas(userId: string) {
-    // Cast to any to bypass strict type check on new tables
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("chat_conversas")
       .select(`
         *,
@@ -46,7 +46,7 @@ export const chatService = {
   },
 
   async listarMensagens(conversaId: string) {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("chat_mensagens")
       .select("*")
       .eq("conversa_id", conversaId)
@@ -57,7 +57,7 @@ export const chatService = {
   },
 
   async enviarMensagem(conversaId: string, remetenteId: string, texto: string) {
-    const { data, error } = await (supabase as any)
+    const { data, error } = await supabase
       .from("chat_mensagens")
       .insert({
         conversa_id: conversaId,
@@ -71,13 +71,13 @@ export const chatService = {
 
     if (error) throw error;
     
-    await (supabase as any).from("chat_conversas").update({ atualizado_em: new Date().toISOString() }).eq("id", conversaId);
+    await supabase.from("chat_conversas").update({ atualizado_em: new Date().toISOString() }).eq("id", conversaId);
     
     return mapMensagem(data);
   },
 
   async criarConversaPrivada(tenantId: string, user1Id: string, user2Id: string) {
-    const { data: existing } = await (supabase as any)
+    const { data: existing } = await supabase
       .from("chat_conversas")
       .select(`
         id,
@@ -93,7 +93,7 @@ export const chatService = {
 
     if (match) return match.id;
 
-    const { data: conv, error: convErr } = await (supabase as any)
+    const { data: conv, error: convErr } = await supabase
       .from("chat_conversas")
       .insert({
         tenant_id: tenantId,
@@ -105,7 +105,7 @@ export const chatService = {
 
     if (convErr) throw convErr;
 
-    const { error: partErr } = await (supabase as any)
+    const { error: partErr } = await supabase
       .from("chat_participantes")
       .insert([
         { conversa_id: conv.id, user_id: user1Id },
@@ -117,8 +117,15 @@ export const chatService = {
     return conv.id;
   },
 
+  getChatName(c: ChatConversa, currentUser: AuthUser | null, usuarios: any[]) {
+    if (c.tipo === 'grupo') return c.nome || "Grupo";
+    const otherId = c.participantes.find((id: string) => id !== currentUser?.id);
+    const otherUser = usuarios.find(u => u.id === otherId);
+    return otherUser?.nome || otherUser?.usuario || "Usuário";
+  },
+
   async criarGrupo(tenantId: string, nome: string, criadorId: string, participantesIds: string[]) {
-    const { data: conv, error: convErr } = await (supabase as any)
+    const { data: conv, error: convErr } = await supabase
       .from("chat_conversas")
       .insert({
         tenant_id: tenantId,
@@ -132,7 +139,7 @@ export const chatService = {
     if (convErr) throw convErr;
 
     const allParts = Array.from(new Set([criadorId, ...participantesIds]));
-    const { error: partErr } = await (supabase as any)
+    const { error: partErr } = await supabase
       .from("chat_participantes")
       .insert(allParts.map(uid => ({ conversa_id: conv.id, user_id: uid })));
 
@@ -142,7 +149,7 @@ export const chatService = {
   },
 
   async marcarComoLida(conversaId: string, userId: string) {
-    await (supabase as any)
+    await supabase
       .from("chat_mensagens")
       .update({ status: "lida" })
       .eq("conversa_id", conversaId)

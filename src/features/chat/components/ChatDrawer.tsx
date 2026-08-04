@@ -95,7 +95,7 @@ export function ChatDrawer() {
       setConversaAtiva(convId);
     } catch (error) {
       console.error("Erro ao iniciar chat:", error);
-      toast.error(`Erro ao iniciar conversa: ${error instanceof Error ? error.message : String(error)}`);
+      toast.error(`Erro ao iniciar conversa: ${error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error))}`);
     }
   };
 
@@ -128,12 +128,7 @@ export function ChatDrawer() {
     }
   };
 
-  const getChatName = (c: any) => {
-    if (c.tipo === 'grupo') return c.nome;
-    const otherId = c.participantes.find((id: string) => id !== currentUser?.id);
-    const otherUser = usuarios.find(u => u.id === otherId);
-    return otherUser?.nome || "Usuário";
-  };
+  const getChatName = (c: any) => chatService.getChatName(c, currentUser, usuarios);
 
   return (
     <>
