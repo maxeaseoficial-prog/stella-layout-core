@@ -172,13 +172,13 @@ function PrecificacaoPage() {
                 label="Taxa de Cartão"
                 tipo="percentual"
                 valor={campos.taxaCartaoPct}
-                onChange={(v) => setCampo("taxaCartaoPct", v)}
+                onChange={(v: string) => setCampo("taxaCartaoPct", v)}
               />
               <CampoValor
                 label="Impostos"
                 tipo={campos.impostoModo === "percentual" ? "percentual" : "moeda"}
                 valor={campos.impostos}
-                onChange={(v) => setCampo("impostos", v)}
+                onChange={(v: string) => setCampo("impostos", v)}
                 onToggleTipo={() =>
                   setCampos((p) => ({
                     ...p,
@@ -190,13 +190,13 @@ function PrecificacaoPage() {
                 label="Lucro Desejado"
                 tipo="percentual"
                 valor={campos.lucroPct}
-                onChange={(v) => setCampo("lucroPct", v)}
+                onChange={(v: string) => setCampo("lucroPct", v)}
               />
               <CampoValor
                 label="Reinvestimento"
                 tipo="percentual"
                 valor={campos.reinvestimentoPct}
-                onChange={(v) => setCampo("reinvestimentoPct", v)}
+                onChange={(v: string) => setCampo("reinvestimentoPct", v)}
               />
             </CardContent>
           </Card>
@@ -216,37 +216,37 @@ function PrecificacaoPage() {
                 label="Matéria-prima"
                 tipo="moeda"
                 valor={campos.materiaPrima}
-                onChange={(v) => setCampo("materiaPrima", v)}
+                onChange={(v: string) => setCampo("materiaPrima", v)}
               />
               <CampoValor
                 label="Tempo de Produção"
                 tipo="tempo"
                 valor={campos.tempoProducaoHoras}
-                onChange={(v) => setCampo("tempoProducaoHoras", v)}
+                onChange={(v: string) => setCampo("tempoProducaoHoras", v)}
               />
               <CampoValor
                 label="Custo da Mão de Obra"
                 tipo="moeda"
                 valor={campos.maoDeObra}
-                onChange={(v) => setCampo("maoDeObra", v)}
+                onChange={(v: string) => setCampo("maoDeObra", v)}
               />
               <CampoValor
                 label="Outros Custos"
                 tipo="moeda"
                 valor={campos.outrosCustos}
-                onChange={(v) => setCampo("outrosCustos", v)}
+                onChange={(v: string) => setCampo("outrosCustos", v)}
               />
               <CampoValor
                 label="Frete"
                 tipo="moeda"
                 valor={campos.frete}
-                onChange={(v) => setCampo("frete", v)}
+                onChange={(v: string) => setCampo("frete", v)}
               />
               <CampoValor
                 label="Despesas Extras"
                 tipo="moeda"
                 valor={campos.despesasExtras}
-                onChange={(v) => setCampo("despesasExtras", v)}
+                onChange={(v: string) => setCampo("despesasExtras", v)}
               />
             </CardContent>
           </Card>
@@ -262,7 +262,7 @@ function PrecificacaoPage() {
 
           <HistoricoLista
             historico={historico}
-            onRestaurar={(e) => {
+            onRestaurar={(e: PrecificacaoEntrada) => {
               setCampos(paraCampos(e));
               toast.success("Valores restaurados do histórico.");
             }}
