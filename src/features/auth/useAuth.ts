@@ -48,6 +48,7 @@ export interface AuthUser {
   nome: string;
   papel: Papel;
   papelLabel: string;
+  foto: string | null;
   permissoesAbas: ModuloRota[];
   logadoEm: string;
   precisaTrocarSenha: boolean;
@@ -100,7 +101,7 @@ function identificadorParaEmail(id: string): string {
   return APELIDOS_EMAIL[key] ?? key;
 }
 
-async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null }> {
+async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null; foto?: string }> {
   const { data } = await supabase
     .from("empresa_usuarios")
     .select("papel, permissoes")
@@ -108,6 +109,7 @@ async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel
     .maybeSingle();
   const papel = ((data?.papel as Papel | undefined) ?? "administrador") as Papel;
   const permissoes = data?.permissoes as ModuloRota[] | null;
+  // A coluna 'foto' ainda não existe no banco, então pegamos do metadados por enquanto
   return { papel, permissoes };
 }
 
@@ -132,6 +134,7 @@ async function sincronizarSessao() {
     nome,
     papel,
     papelLabel: PAPEL_LABEL[papel],
+    foto: u.user_metadata?.avatar_url || u.user_metadata?.picture,
     permissoesAbas: permissoes || meta.permissoes || ROTAS_PERMITIDAS[papel],
     logadoEm: new Date().toISOString(),
     precisaTrocarSenha: false,
