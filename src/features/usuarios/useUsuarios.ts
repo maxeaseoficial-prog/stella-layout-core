@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 import { carregarUsuarios, salvarUsuarios, USUARIOS_EVENT } from "./storage";
 import type { HistoricoUsuario, NovoUsuarioInput, Usuario } from "./types";
 
@@ -27,6 +28,7 @@ const SEED: Usuario[] = [
       { id: uid(), data: nowIso(), acao: "criado", responsavel: "Sistema" },
     ],
     padrao: true,
+    permissoesAbas: ROTAS_PERMITIDAS["administrador"],
   },
   {
     id: "seed_matriz",
@@ -43,6 +45,7 @@ const SEED: Usuario[] = [
       { id: uid(), data: nowIso(), acao: "criado", responsavel: "Sistema" },
     ],
     padrao: true,
+    permissoesAbas: ROTAS_PERMITIDAS["operador_matriz"],
   },
 ];
 
@@ -117,6 +120,9 @@ export function encontrarPorCredencial(identificador: string, senha: string): Us
       (x.usuario.toLowerCase() === id || x.email.toLowerCase() === id) &&
       x.senha === senha,
   );
+  if (u && !u.permissoesAbas) {
+    u.permissoesAbas = ROTAS_PERMITIDAS[u.papel];
+  }
   return u ?? null;
 }
 
@@ -259,5 +265,5 @@ export function excluirUsuario(id: string, _responsavel: string): { ok: boolean;
 
 export function useUsuarios() {
   const usuarios = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  return { usuarios };
+  return { usuarios: usuarios.map(u => ({ ...u, padrao: u.padrao ?? false })) };
 }

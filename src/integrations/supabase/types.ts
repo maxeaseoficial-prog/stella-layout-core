@@ -268,6 +268,7 @@ export type Database = {
           empresa_id: string
           id: string
           papel: Database["public"]["Enums"]["app_role"]
+          permissoes: Json | null
           user_id: string
         }
         Insert: {
@@ -275,6 +276,7 @@ export type Database = {
           empresa_id: string
           id?: string
           papel: Database["public"]["Enums"]["app_role"]
+          permissoes?: Json | null
           user_id: string
         }
         Update: {
@@ -282,6 +284,7 @@ export type Database = {
           empresa_id?: string
           id?: string
           papel?: Database["public"]["Enums"]["app_role"]
+          permissoes?: Json | null
           user_id?: string
         }
         Relationships: [
@@ -565,7 +568,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "administrador" | "operador_matriz"
+      app_role: "administrador" | "operador_matriz" | "caixa"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -693,7 +696,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["administrador", "operador_matriz"],
+      app_role: ["administrador", "operador_matriz", "caixa"],
     },
   },
 } as const

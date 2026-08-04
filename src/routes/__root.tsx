@@ -149,7 +149,7 @@ function RootComponent() {
 }
 
 function AuthGate() {
-  const { isAuthenticated, papel, user } = useAuth();
+  const { isAuthenticated, papel, user, permissoesAbas } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const isLoginRoute = pathname === "/login";
@@ -183,12 +183,12 @@ function AuthGate() {
     // Bloqueia acesso por URL a módulos fora do perfil.
     if (isAuthenticated && papel && !isLoginRoute && !isTrocaSenhaRoute) {
       import("@/features/auth/permissions").then(({ podeAcessarRota }) => {
-        if (!podeAcessarRota(papel, pathname)) {
+        if (!podeAcessarRota(papel, pathname, permissoesAbas)) {
           navigate({ to: "/", replace: true });
         }
       });
     }
-  }, [hydrated, isAuthenticated, isLoginRoute, isTrocaSenhaRoute, navigate, pathname, papel, user?.precisaTrocarSenha]);
+  }, [hydrated, isAuthenticated, isLoginRoute, isTrocaSenhaRoute, navigate, pathname, papel, user?.precisaTrocarSenha, permissoesAbas]);
 
   if (isLoginRoute || isTrocaSenhaRoute) {
     return <Outlet />;

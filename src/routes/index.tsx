@@ -27,9 +27,44 @@ export const Route = createFileRoute("/")({
 
 function DashboardPage() {
   const { papel } = useAuth();
+  const { totais } = useCaixa();
+
   if (papel === "operador_matriz") {
     return <MatrizDashboard />;
   }
+
+  if (papel === "caixa") {
+    const hoje = new Date().toISOString().split("T")[0];
+    const faturamentoHoje = (totais as any).movimentacoes
+      ? (totais as any).movimentacoes
+          .filter((m: any) => m.data === hoje && m.tipo === "entrada" && m.status !== "cancelada")
+          .reduce((acc: number, m: any) => acc + m.valor, 0)
+      : 0;
+
+    // Se useCaixa não expõe as movimentações nos totais, pegamos do hook principal
+    const { movimentacoes } = useCaixa();
+    const faturamentoReal = movimentacoes
+      .filter((m) => m.data === hoje && m.tipo === "entrada" && m.status !== "cancelada")
+      .reduce((acc, m) => acc + m.valor, 0);
+
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title="Resumo do Dia"
+          description="Acompanhe o faturamento de hoje."
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Faturamento de Hoje"
+            value={formatarMoeda(faturamentoReal)}
+            hint={new Date().toLocaleDateString("pt-BR")}
+            icon={DollarSign}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return <AdminDashboard />;
 }
 

@@ -1,4 +1,4 @@
-import type { Papel } from "@/features/auth/permissions";
+import type { ModuloRota, Papel } from "@/features/auth/permissions";
 
 export type StatusUsuario = "ativo" | "inativo";
 
@@ -35,6 +35,8 @@ export interface Usuario {
   historico: HistoricoUsuario[];
   /** true para contas semente (não podem ser excluídas) */
   padrao?: boolean;
+  /** abas de navegação permitidas para este usuário específico */
+  permissoesAbas?: ModuloRota[];
 }
 
 export type NovoUsuarioInput = Omit<
@@ -45,4 +47,5 @@ export type NovoUsuarioInput = Omit<
 export const PAPEL_LABEL: Record<Papel, string> = {
   administrador: "Administrador",
   operador_matriz: "Operador Matriz",
+  caixa: "Caixa",
 };
