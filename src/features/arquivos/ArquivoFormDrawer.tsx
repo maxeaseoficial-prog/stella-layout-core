@@ -468,10 +468,10 @@ export function ArquivoFormDrawer({
                   Cores da aplicação
                 </h5>
                 <Campo label="Quantidade de cores">
-                  <select
-                    value={form.cores.length}
-                    onChange={(e) => {
-                      const n = Number(e.target.value);
+                  <Select
+                    value={String(form.cores.length)}
+                    onValueChange={(v) => {
+                      const n = Number(v);
                       setForm((f) => {
                         const atual = f.cores;
                         let next: CorAplicacao[];
@@ -489,15 +489,19 @@ export function ArquivoFormDrawer({
                         return { ...f, cores: next };
                       });
                     }}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
-                    <option value={0}>— Nenhuma —</option>
-                    {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">— Nenhuma —</SelectItem>
+                      {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </Campo>
 
                 {form.cores.length > 0 && (
