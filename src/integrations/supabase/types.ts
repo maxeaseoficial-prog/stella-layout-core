@@ -673,6 +673,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_chat_participant: {
+        Args: { _conversa_id: string; _user_id: string }
+        Returns: boolean
+      }
       papel_do_usuario: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

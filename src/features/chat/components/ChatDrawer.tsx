@@ -95,7 +95,7 @@ export function ChatDrawer() {
       setConversaAtiva(convId);
     } catch (error) {
       console.error("Erro ao iniciar chat:", error);
-      toast.error(`Erro ao iniciar conversa: ${error instanceof Error ? error.message : (typeof error === 'object' ? JSON.stringify(error) : String(error))}`);
+      toast.error(`Erro ao iniciar conversa: ${error instanceof Error ? error.message : (typeof error === 'object' && error !== null ? JSON.stringify(error) : String(error))}`);
     }
   };
 

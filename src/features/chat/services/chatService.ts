@@ -34,7 +34,8 @@ export const chatService = {
       .select(`
         *,
         participantes:chat_participantes(user_id)
-      `);
+      `)
+      .order('atualizado_em', { ascending: false });
     
     if (error) throw error;
 
