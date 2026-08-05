@@ -257,6 +257,7 @@ export function montarPayloadNfe(
   const brutos: ItemBruto[] = [];
   for (const it of pedido.itens) {
     brutos.push({
+      id: it.id,
       code: (it.produtoId ?? it.id).slice(0, 60),
       description: it.tamanho
         ? `${it.produto} (Tam: ${it.tamanho})`
