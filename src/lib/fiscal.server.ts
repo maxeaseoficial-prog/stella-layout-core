@@ -231,11 +231,13 @@ function montarImpostos(t: TributacaoPadrao) {
 }
 
 interface ItemBruto {
+  id: string; // ID original do item para correlação
   code: string;
   description: string;
   quantity: number;
   unitAmount: number;
   totalAmount: number;
+  ncm?: string;
 }
 
 export function montarPayloadNfe(
@@ -255,6 +257,7 @@ export function montarPayloadNfe(
   const brutos: ItemBruto[] = [];
   for (const it of pedido.itens) {
     brutos.push({
+      id: it.id,
       code: (it.produtoId ?? it.id).slice(0, 60),
       description: it.tamanho
         ? `${it.produto} (Tam: ${it.tamanho})`
@@ -262,11 +265,13 @@ export function montarPayloadNfe(
       quantity: it.quantidade,
       unitAmount: it.valorUnitario,
       totalAmount: round2(it.quantidade * it.valorUnitario),
+      ncm: (it as any).ncm, // O snapshot do item pode conter o NCM
     });
     for (const a of it.adicionais ?? []) {
       if (a.pendencia) continue;
       const qtd = a.unico ? 1 : it.quantidade;
       brutos.push({
+        id: a.id,
         code: (a.adicionalId ?? a.id).slice(0, 60),
         description: `${a.nome} — ${it.produto}`,
         quantity: qtd,
@@ -298,24 +303,30 @@ export function montarPayloadNfe(
     });
   }
 
-  const ncm = apenasDigitos(t.ncm);
+  const ncmPadrao = apenasDigitos(t.ncm);
   const taxes = montarImpostos(t);
 
-  const items = ajustados.map((i) => ({
-    code: i.code,
-    description: i.description,
-    ncm,
-    cfop,
-    unit: "UN",
-    quantity: i.quantity,
-    unitAmount: i.unitAmount,
-    totalAmount: i.totalAmount,
-    unitTax: "UN",
-    quantityTax: i.quantity,
-    unitTaxAmount: i.unitAmount,
-    makeupTotal: true,
-    taxes: taxes(i.totalAmount),
-  }));
+  const items = ajustados.map((i) => {
+    // Busca o NCM no snapshot do item do pedido
+    const itemOriginal = pedido.itens.find(it => it.id === i.id);
+    const ncmItem = apenasDigitos(itemOriginal?.ncm) || ncmPadrao;
+
+    return {
+      code: i.code,
+      description: i.description,
+      ncm: ncmItem,
+      cfop,
+      unit: "UN",
+      quantity: i.quantity,
+      unitAmount: i.unitAmount,
+      totalAmount: i.totalAmount,
+      unitTax: "UN",
+      quantityTax: i.quantity,
+      unitTaxAmount: i.unitAmount,
+      makeupTotal: true,
+      taxes: taxes(i.totalAmount),
+    };
+  });
 
   const total: Record<string, number> = {
     invoiceAmount: totalPedido,

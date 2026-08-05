@@ -22,6 +22,7 @@ import {
   PEDIDOS_EVENT,
   salvarPedidos,
 } from "./storage";
+import { carregarProdutos } from "@/features/produtos/storage";
 import {
   calcularEtapa,
   calcularSubtotal,
@@ -85,15 +86,23 @@ export function usePedidos() {
 
   const criar = useCallback((entrada: PedidoInput): Pedido => {
     const agora = new Date().toISOString();
-    const subtotal = calcularSubtotal(entrada.itens);
+    
+    // Anexa o NCM atual do produto aos itens do pedido (snapshot)
+    const itensComNcm = entrada.itens.map(it => {
+      if (it.ncm) return it;
+      const p = carregarProdutos().find(prod => prod.id === it.produtoId);
+      return { ...it, ncm: p?.ncm };
+    });
+
+    const subtotal = calcularSubtotal(itensComNcm);
     const total = calcularTotal(subtotal, entrada.desconto, entrada.frete);
     const statusProducao =
-      entrada.statusProducao ?? statusProducaoInicial(entrada.itens);
+      entrada.statusProducao ?? statusProducaoInicial(itensComNcm);
     const novo: Pedido = {
       id: novoId(),
       numero: gerarNumeroPedido(),
       clienteId: entrada.clienteId,
-      itens: entrada.itens,
+      itens: itensComNcm,
       arquivos: entrada.arquivos,
       subtotal,
       desconto: entrada.desconto,
@@ -125,7 +134,15 @@ export function usePedidos() {
     commit(setPedidos, (atual) =>
       atual.map((p) => {
         if (p.id !== id) return p;
-        const subtotal = calcularSubtotal(entrada.itens);
+
+        // Atualiza/Preserva NCM nos itens
+        const itensComNcm = entrada.itens.map(it => {
+          if (it.ncm) return it;
+          const prod = carregarProdutos().find(cp => cp.id === it.produtoId);
+          return { ...it, ncm: prod?.ncm };
+        });
+
+        const subtotal = calcularSubtotal(itensComNcm);
         const total = calcularTotal(subtotal, entrada.desconto, entrada.frete);
         const statusFinanceiro = statusFinanceiroCalculado(
           total,
@@ -149,7 +166,7 @@ export function usePedidos() {
         const atualizado: Pedido = {
           ...p,
           clienteId: entrada.clienteId,
-          itens: entrada.itens,
+          itens: itensComNcm,
           arquivos: entrada.arquivos,
           subtotal,
           desconto: entrada.desconto,

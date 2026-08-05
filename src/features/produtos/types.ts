@@ -36,6 +36,7 @@ export interface Produto {
   id: string;
   nome: string;
   sku?: string;
+  ncm?: string;
   categoria: CategoriaProduto;
   precoBase: number;
   personalizacoes: PersonalizacoesPermitidas;

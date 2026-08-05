@@ -45,6 +45,7 @@ interface Props {
 interface FormState {
   nome: string;
   sku: string;
+  ncm: string;
   categoria: CategoriaProduto;
   precoStr: string;
   personalizacoes: PersonalizacoesPermitidas;
@@ -59,6 +60,7 @@ function estadoInicial(produto?: Produto | null): FormState {
     return {
       nome: "",
       sku: "",
+      ncm: "",
       categoria: "",
       precoStr: "",
       personalizacoes: { ...PERSONALIZACOES_VAZIAS },
@@ -71,6 +73,7 @@ function estadoInicial(produto?: Produto | null): FormState {
   return {
     nome: produto.nome,
     sku: produto.sku ?? "",
+    ncm: produto.ncm ?? "",
     categoria: produto.categoria,
     precoStr: produto.precoBase > 0 ? produto.precoBase.toFixed(2).replace(".", ",") : "",
     personalizacoes: { ...produto.personalizacoes },
@@ -133,6 +136,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
     const dados: ProdutoInput = {
       nome: form.nome.trim(),
       sku: form.sku.trim() || undefined,
+      ncm: form.ncm.trim() || undefined,
       categoria: form.categoria,
       precoBase: parsePreco(form.precoStr),
       personalizacoes: form.personalizacoes,
@@ -220,6 +224,15 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                   value={form.sku}
                   onChange={(e) => upd("sku", e.target.value)}
                   placeholder="Opcional"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ncm">Código Fiscal (NCM)</Label>
+                <Input
+                  id="ncm"
+                  value={form.ncm}
+                  onChange={(e) => upd("ncm", e.target.value)}
+                  placeholder="8 dígitos (Opcional)"
                 />
               </div>
               <div className="space-y-1.5">
