@@ -303,21 +303,27 @@ export function montarPayloadNfe(
   const ncmPadrao = apenasDigitos(t.ncm);
   const taxes = montarImpostos(t);
 
-  const items = ajustados.map((i) => ({
-    code: i.code,
-    description: i.description,
-    ncm: apenasDigitos(i.ncm) || ncmPadrao,
-    cfop,
-    unit: "UN",
-    quantity: i.quantity,
-    unitAmount: i.unitAmount,
-    totalAmount: i.totalAmount,
-    unitTax: "UN",
-    quantityTax: i.quantity,
-    unitTaxAmount: i.unitAmount,
-    makeupTotal: true,
-    taxes: taxes(i.totalAmount),
-  }));
+  const items = ajustados.map((i) => {
+    // Busca o NCM no snapshot do item do pedido
+    const itemOriginal = pedido.itens.find(it => it.id === i.id);
+    const ncmItem = apenasDigitos(itemOriginal?.ncm) || ncmPadrao;
+
+    return {
+      code: i.code,
+      description: i.description,
+      ncm: ncmItem,
+      cfop,
+      unit: "UN",
+      quantity: i.quantity,
+      unitAmount: i.unitAmount,
+      totalAmount: i.totalAmount,
+      unitTax: "UN",
+      quantityTax: i.quantity,
+      unitTaxAmount: i.unitAmount,
+      makeupTotal: true,
+      taxes: taxes(i.totalAmount),
+    };
+  });
 
   const total: Record<string, number> = {
     invoiceAmount: totalPedido,

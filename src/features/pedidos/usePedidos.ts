@@ -22,6 +22,7 @@ import {
   PEDIDOS_EVENT,
   salvarPedidos,
 } from "./storage";
+import { carregarProdutos } from "@/features/produtos/storage";
 import {
   calcularEtapa,
   calcularSubtotal,
