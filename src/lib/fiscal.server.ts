@@ -231,6 +231,7 @@ function montarImpostos(t: TributacaoPadrao) {
 }
 
 interface ItemBruto {
+  id: string; // ID original do item para correlação
   code: string;
   description: string;
   quantity: number;
@@ -269,6 +270,7 @@ export function montarPayloadNfe(
       if (a.pendencia) continue;
       const qtd = a.unico ? 1 : it.quantidade;
       brutos.push({
+        id: a.id,
         code: (a.adicionalId ?? a.id).slice(0, 60),
         description: `${a.nome} — ${it.produto}`,
         quantity: qtd,
