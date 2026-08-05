@@ -236,6 +236,7 @@ interface ItemBruto {
   quantity: number;
   unitAmount: number;
   totalAmount: number;
+  ncm?: string;
 }
 
 export function montarPayloadNfe(
@@ -262,6 +263,7 @@ export function montarPayloadNfe(
       quantity: it.quantidade,
       unitAmount: it.valorUnitario,
       totalAmount: round2(it.quantidade * it.valorUnitario),
+      ncm: (it as any).ncm, // O snapshot do item pode conter o NCM
     });
     for (const a of it.adicionais ?? []) {
       if (a.pendencia) continue;
@@ -298,13 +300,13 @@ export function montarPayloadNfe(
     });
   }
 
-  const ncm = apenasDigitos(t.ncm);
+  const ncmPadrao = apenasDigitos(t.ncm);
   const taxes = montarImpostos(t);
 
   const items = ajustados.map((i) => ({
     code: i.code,
     description: i.description,
-    ncm,
+    ncm: apenasDigitos(i.ncm) || ncmPadrao,
     cfop,
     unit: "UN",
     quantity: i.quantity,
