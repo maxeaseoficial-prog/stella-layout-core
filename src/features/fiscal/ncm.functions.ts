@@ -35,7 +35,7 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
 
 export const searchNCM = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ query: z.string().min(2) }).parse(data))
+  .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: ncms, error } = await context.supabase
       .from('fiscal_ncm')
