@@ -6,28 +6,36 @@ import { assertAdminFiscal } from "@/lib/fiscal.server";
 export const importarPlanilhaNCM = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.array(z.object({
-    codigo: z.string(),
-    descricao: z.string(),
-    data_inicio: z.string().optional(),
-    data_fim: z.string().optional(),
-    ato_legal: z.string().optional(),
-    ano: z.number().optional(),
+    ncm: z.string(),
+    nome_amigavel: z.string().optional(),
+    descricao_oficial: z.string().optional(),
+    unidade_comercial: z.string().optional(),
+    unidade_tributavel: z.string().optional(),
+    situacao: z.string().optional()
   })).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     
+    // Buscar tenant do usuário
+    const { data: userData } = await context.supabase
+      .from('empresa_usuarios')
+      .select('empresa_id')
+      .eq('user_id', context.userId)
+      .single();
+
     // Batch upsert no Supabase
     const { error } = await context.supabase
-      .from('fiscal_ncm')
+      .from('categorias_fiscais')
       .upsert(data.map(item => ({
-        codigo: item.codigo.replace(/[^0-9]/g, ''), // Normalizar NCM (apenas números)
-        descricao: item.descricao,
-        data_inicio: item.data_inicio === 'nan' ? null : item.data_inicio,
-        data_fim: item.data_fim === 'nan' ? null : item.data_fim,
-        ato_legal: item.ato_legal,
-        ano: item.ano,
-        situacao: 'ativo'
-      })), { onConflict: 'codigo' });
+        ncm: item.ncm.replace(/[^0-9]/g, ''), 
+        nome_amigavel: item.nome_amigavel || item.descricao_oficial?.slice(0, 50) || 'NCM ' + item.ncm,
+        descricao_oficial: item.descricao_oficial,
+        unidade_comercial: item.unidade_comercial || 'UN',
+        unidade_tributavel: item.unidade_tributavel || 'UN',
+        situacao: item.situacao || 'ativo',
+        tenant_id: userData?.empresa_id,
+        atualizado_em: new Date().toISOString()
+      })), { onConflict: 'ncm,tenant_id' });
 
     if (error) throw new Error(`Erro ao importar NCMs: ${error.message}`);
     return { success: true, count: data.length };

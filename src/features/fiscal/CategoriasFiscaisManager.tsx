@@ -139,8 +139,29 @@ export function CategoriasFiscaisManager() {
           const chunkSize = 500;
           let importados = 0;
           
+          // Mapear colunas da planilha
+          const mappedData = rows.map(row => {
+            const codigo = String(row.codigo || row.NCM || row.ncm || row.Codigo || row.Ncm || "").replace(/\D/g, '');
+            const descricao = row.descricao || row.Descricao || row.Descrição || row.nome || row.Descricao_Oficial || "";
+            const nomeAmigavel = row.nome_amigavel || row.Categoria || row.Nome || row.nome || descricao.slice(0, 30);
+            
+            return {
+              nome_amigavel: nomeAmigavel,
+              ncm: codigo,
+              descricao_oficial: descricao,
+              unidade_comercial: row.unidade_comercial || row.UN || "UN",
+              unidade_tributavel: row.unidade_tributavel || row.UNTRIB || "UN",
+              situacao: 'ativo'
+            };
+          }).filter(r => r.ncm.length >= 2);
+
+          const chunkSize = 100;
+          let importados = 0;
+          
           for (let i = 0; i < mappedData.length; i += chunkSize) {
             const chunk = mappedData.slice(i, i + chunkSize);
+            // Reutilizamos a lógica de salvar categoria para cada item
+            // ou ajustamos o importarPlanilhaNCM para aceitar a estrutura completa
             await importAction({ data: chunk });
             importados += chunk.length;
           }
