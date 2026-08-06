@@ -62,8 +62,10 @@ export function CategoriasFiscaisManager() {
     e.preventDefault();
     try {
       await saveAction({
-        ...form,
-        id: editing?.id
+        data: {
+          ...form,
+          id: editing?.id
+        }
       });
       toast.success(editing ? "Categoria atualizada." : "Categoria criada.");
       setModalAberto(false);
