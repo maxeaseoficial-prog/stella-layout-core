@@ -222,7 +222,8 @@ export function CategoriasFiscaisManager() {
                 <TableRow>
                   <TableHead>Nome Amigável</TableHead>
                   <TableHead>NCM</TableHead>
-                  <TableHead>Descrição Oficial</TableHead>
+                   <TableHead>Descrição Oficial</TableHead>
+                  <TableHead>UN (Com/Trib)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -237,8 +238,11 @@ export function CategoriasFiscaisManager() {
                     <TableRow key={c.id} className={c.situacao === 'inativo' ? 'opacity-50' : ''}>
                       <TableCell className="font-medium">{c.nome_amigavel}</TableCell>
                       <TableCell><code className="bg-muted px-1.5 py-0.5 rounded text-xs">{c.ncm}</code></TableCell>
-                      <TableCell className="max-w-[300px] truncate text-xs text-muted-foreground" title={c.descricao_oficial}>
+                      <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground" title={c.descricao_oficial}>
                         {c.descricao_oficial || "-"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {c.unidade_comercial} / {c.unidade_tributavel}
                       </TableCell>
                       <TableCell>
                         <Badge variant={c.situacao === 'ativo' ? 'outline' : 'secondary'} className={c.situacao === 'ativo' ? 'bg-emerald-50 text-emerald-700' : ''}>
