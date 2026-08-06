@@ -96,7 +96,7 @@ export function CategoriasFiscaisManager() {
     try {
       const res = await fetch("/tmp/ncm/data.json");
       const data = await res.json();
-      await importAction(data);
+      await importAction({ data });
       toast.success("Tabela NCM importada com sucesso!");
     } catch (error) {
       toast.error("Erro ao importar planilha. Verifique os logs.");
