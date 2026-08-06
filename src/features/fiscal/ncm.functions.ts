@@ -84,6 +84,8 @@ export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
     nome_amigavel: z.string().min(1),
     ncm: z.string().min(8),
     descricao_oficial: z.string().optional(),
+    unidade_comercial: z.string().optional(),
+    unidade_tributavel: z.string().optional(),
     situacao: z.enum(['ativo', 'inativo']).optional()
   }).parse(data))
   .handler(async ({ data, context }) => {
