@@ -20,6 +20,7 @@ import { testarConexaoFiscal } from "@/lib/fiscal.functions";
 export function ConfiguracoesFiscaisForm() {
   const { config, salvar, carregando } = useFiscalConfig();
   const [form, setForm] = useState(config);
+  const [testando, setTestando] = useState(false);
 
   // Sincroniza o estado local quando os dados são carregados do backend
   useEffect(() => {
