@@ -66,7 +66,10 @@ export interface FiscalConfig {
   apiKeyProducao: string;
   tributacao: TributacaoPadrao;
   ultimoTeste?: TesteConexaoFiscal;
+  /** Momento em que o pedido fica disponível no módulo Fiscal para revisão/emissão. */
+  liberacaoPedido: "producao" | "finalizado";
 }
+
 
 /**
  * Status da nota conforme enum InvoiceStatus da Spedy.
