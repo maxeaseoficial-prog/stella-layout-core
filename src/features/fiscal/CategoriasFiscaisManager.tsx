@@ -94,12 +94,24 @@ export function CategoriasFiscaisManager() {
   const handleImport = async () => {
     setImportando(true);
     try {
-      const res = await fetch("/tmp/ncm/data.json");
-      const data = await res.json();
-      await importAction({ data });
-      toast.success("Tabela NCM importada com sucesso!");
+      const response = await fetch("/tmp/ncm/full_data.json");
+      if (!response.ok) throw new Error("Falha ao ler dados da planilha.");
+      const data = await response.json();
+      
+      // Dividir em chunks para evitar estouro de limite de payload do server function
+      const chunkSize = 500;
+      let importados = 0;
+      
+      for (let i = 0; i < data.length; i += chunkSize) {
+        const chunk = data.slice(i, i + chunkSize);
+        await importAction({ data: chunk });
+        importados += chunk.length;
+      }
+      
+      toast.success(`${importados} NCMs importados com sucesso!`);
     } catch (error) {
-      toast.error("Erro ao importar planilha. Verifique os logs.");
+      console.error(error);
+      toast.error("Erro ao importar planilha. Verifique se o arquivo existe.");
     } finally {
       setImportando(false);
     }

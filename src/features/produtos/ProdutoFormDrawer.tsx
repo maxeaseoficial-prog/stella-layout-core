@@ -25,7 +25,7 @@ import { fileToDataUrl } from "@/features/clientes";
 import { useConfiguracoes } from "@/features/configuracoes";
 
 import { useServerFn } from "@tanstack/react-start";
-import { getCategoriasFiscais, searchNCM } from "@/features/fiscal/ncm.functions";
+import { getCategoriasFiscais, searchNCM, searchCategoriasFiscais } from "@/features/fiscal/ncm.functions";
 import { 
   Popover,
   PopoverContent,
@@ -283,8 +283,12 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Pesquisar camiseta, moletom..." />
+                    <Command shouldFilter={false}>
+                      <CommandInput 
+                        placeholder="Pesquisar camiseta, moletom..." 
+                        value={buscaFiscal}
+                        onValueChange={setBuscaFiscal}
+                      />
                       <CommandList>
                         <CommandEmpty>Nenhuma classificação encontrada.</CommandEmpty>
                         <CommandGroup>
