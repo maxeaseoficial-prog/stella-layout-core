@@ -37,14 +37,32 @@ export const searchNCM = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
+    // Normalizar a busca: se for número, tirar pontuação
+    const cleanQuery = data.query.replace(/[^0-9a-zA-Z]/g, '');
+    
     const { data: ncms, error } = await context.supabase
       .from('fiscal_ncm')
       .select('codigo, descricao')
-      .or(`codigo.ilike.%${data.query}%,descricao.ilike.%${data.query}%`)
+      .or(`codigo.ilike.%${cleanQuery}%,descricao.ilike.%${cleanQuery}%`)
       .limit(20);
 
     if (error) throw new Error(error.message);
     return ncms;
+  });
+
+export const searchCategoriasFiscais = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: cats, error } = await context.supabase
+      .from('categorias_fiscais')
+      .select('*')
+      .or(`nome_amigavel.ilike.%${data.query}%,ncm.ilike.%${data.query}%`)
+      .eq('situacao', 'ativo')
+      .limit(20);
+
+    if (error) throw new Error(error.message);
+    return cats;
   });
 
 export const getCategoriasFiscais = createServerFn({ method: "GET" })
