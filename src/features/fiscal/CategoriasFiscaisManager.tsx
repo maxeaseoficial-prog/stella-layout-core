@@ -79,8 +79,10 @@ export function CategoriasFiscaisManager() {
   const handleToggleStatus = async (cat: any) => {
     try {
       await saveAction({
-        ...cat,
-        situacao: cat.situacao === "ativo" ? "inativo" : "ativo"
+        data: {
+          ...cat,
+          situacao: cat.situacao === "ativo" ? "inativo" : "ativo"
+        }
       });
       toast.success("Status atualizado.");
       carregar();
