@@ -24,6 +24,24 @@ import { cn } from "@/lib/utils";
 import { fileToDataUrl } from "@/features/clientes";
 import { useConfiguracoes } from "@/features/configuracoes";
 
+import { useServerFn } from "@tanstack/react-start";
+import { getCategoriasFiscais, searchNCM } from "@/features/fiscal/ncm.functions";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { 
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown, Search, AlertCircle } from "lucide-react";
+import { toast } from "@/lib/toast";
+
 import type {
   CategoriaProduto,
   PersonalizacoesPermitidas,
