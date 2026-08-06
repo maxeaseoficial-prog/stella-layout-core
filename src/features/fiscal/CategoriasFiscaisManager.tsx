@@ -126,14 +126,14 @@ export function CategoriasFiscaisManager() {
           const mappedData = rows.map(row => {
             const codigo = String(row.codigo || row.NCM || row.ncm || row.Codigo || row.Ncm || "").replace(/\D/g, '');
             const descricao = row.descricao || row.Descricao || row.Descrição || row.nome || row.Descricao_Oficial || "";
-            const nomeAmigavel = row.nome_amigavel || row.Categoria || row.Nome || row.nome || descricao.slice(0, 30);
+            const nomeAmigavel = row.nome_amigavel || row.Categoria || row.Nome || row.nome || descricao.slice(0, 30) || `NCM ${codigo}`;
             
             return {
               nome_amigavel: nomeAmigavel,
               ncm: codigo,
               descricao_oficial: descricao,
-              unidade_comercial: row.unidade_comercial || row.UN || "UN",
-              unidade_tributavel: row.unidade_tributavel || row.UNTRIB || "UN",
+              unidade_comercial: String(row.unidade_comercial || row.UN || row.Unidade || "UN"),
+              unidade_tributavel: String(row.unidade_tributavel || row.UNTRIB || row.UnidadeTrib || "UN"),
               situacao: 'ativo'
             };
           }).filter(r => r.ncm.length >= 2);
