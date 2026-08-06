@@ -98,7 +98,7 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className="h-9 rounded-lg text-sm font-medium data-[active=true]:bg-primary-soft data-[active=true]:text-primary hover:bg-sidebar-accent"
                     >
-                      <Link to={item.url} className="flex items-center gap-3">
+                      <Link to={item.url} preload="intent" className="flex items-center gap-3">
                         <item.icon className="h-4 w-4 shrink-0" />
                         <span className="truncate">{item.title}</span>
                       </Link>
