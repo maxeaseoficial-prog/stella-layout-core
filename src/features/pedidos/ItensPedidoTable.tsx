@@ -23,10 +23,10 @@ import {
   calcularSubtotalItem,
   formatarMoeda,
   novoId,
-  parseNumero,
   parseValorInput,
   somaAdicionaisItem,
 } from "./utils";
+
 
 import { PersonalizacaoModal } from "./PersonalizacaoModal";
 import { SelecionarProdutoDialog } from "./SelecionarProdutoDialog";
