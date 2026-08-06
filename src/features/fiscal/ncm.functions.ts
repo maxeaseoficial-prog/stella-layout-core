@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertAdminFiscal } from "./spedy";
+import { assertAdminFiscal } from "@/lib/fiscal.server";
 
 export const importarPlanilhaNCM = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
