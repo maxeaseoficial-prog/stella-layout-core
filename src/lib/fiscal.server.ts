@@ -312,9 +312,8 @@ export function montarPayloadNfe(
   const taxes = montarImpostos(t);
 
   const items = ajustados.map((i) => {
-    // Busca o NCM no snapshot do item do pedido
-    const itemOriginal = pedido.itens.find(it => it.id === i.id);
-    const ncmItem = apenasDigitos(itemOriginal?.ncm) || ncmPadrao;
+    // Busca o NCM no snapshot (armazenado em brutos) ou usa o padrão
+    const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
 
     return {
       code: i.code,
