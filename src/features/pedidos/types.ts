@@ -65,6 +65,8 @@ export interface ItemPedido {
   tamanho?: string;
   /** Snapshot do NCM do produto para fins fiscais. */
   ncm?: string;
+  /** Descrição oficial do NCM vinculada ao produto. */
+  descricaoFiscal?: string;
   quantidade: number;
   valorUnitario: number;
   personalizacoes: Personalizacao[];

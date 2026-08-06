@@ -174,6 +174,36 @@ export type Database = {
           },
         ]
       }
+      categorias_fiscais: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          descricao_oficial: string | null
+          id: string
+          ncm: string
+          nome_amigavel: string
+          situacao: string | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao_oficial?: string | null
+          id?: string
+          ncm: string
+          nome_amigavel: string
+          situacao?: string | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          descricao_oficial?: string | null
+          id?: string
+          ncm?: string
+          nome_amigavel?: string
+          situacao?: string | null
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           created_at: string
@@ -312,6 +342,42 @@ export type Database = {
           criado_em?: string
           id?: string
           nome?: string
+        }
+        Relationships: []
+      }
+      fiscal_ncm: {
+        Row: {
+          ano: number | null
+          ato_legal: string | null
+          codigo: string
+          criado_em: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string
+          id: string
+          situacao: string | null
+        }
+        Insert: {
+          ano?: number | null
+          ato_legal?: string | null
+          codigo: string
+          criado_em?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao: string
+          id?: string
+          situacao?: string | null
+        }
+        Update: {
+          ano?: number | null
+          ato_legal?: string | null
+          codigo?: string
+          criado_em?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string
+          id?: string
+          situacao?: string | null
         }
         Relationships: []
       }
@@ -477,27 +543,43 @@ export type Database = {
       }
       produtos: {
         Row: {
+          categoria_fiscal_id: string | null
           created_at: string
           data: Json
+          descricao_fiscal: string | null
           id: string
+          ncm_oficial: string | null
           tenant_id: string
           updated_at: string
         }
         Insert: {
+          categoria_fiscal_id?: string | null
           created_at?: string
           data: Json
+          descricao_fiscal?: string | null
           id: string
+          ncm_oficial?: string | null
           tenant_id: string
           updated_at?: string
         }
         Update: {
+          categoria_fiscal_id?: string | null
           created_at?: string
           data?: Json
+          descricao_fiscal?: string | null
           id?: string
+          ncm_oficial?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "produtos_categoria_fiscal_id_fkey"
+            columns: ["categoria_fiscal_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_fiscais"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "produtos_tenant_id_fkey"
             columns: ["tenant_id"]

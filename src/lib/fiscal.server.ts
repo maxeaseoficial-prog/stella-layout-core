@@ -252,10 +252,11 @@ export function montarPayloadNfe(
   const destination = interestadual ? "interstate" : "internal";
   const cfop = interestadual ? t.cfopInterestadual : t.cfopInterno;
 
-  // 1) Itens "brutos": produtos + adicionais já orçados (matriz/logo entra
-  //    como item próprio com descrição referenciando o produto).
+  // 1) Itens "brutos": produtos + adicionais já orçados.
+  // Conforme requisito 8, cada produto e seus adicionais geram itens individuais na NF-e.
   const brutos: ItemBruto[] = [];
   for (const it of pedido.itens) {
+    // Produto base
     brutos.push({
       id: it.id,
       code: (it.produtoId ?? it.id).slice(0, 60),
@@ -265,8 +266,10 @@ export function montarPayloadNfe(
       quantity: it.quantidade,
       unitAmount: it.valorUnitario,
       totalAmount: round2(it.quantidade * it.valorUnitario),
-      ncm: (it as any).ncm, // O snapshot do item pode conter o NCM
+      ncm: it.ncm,
     });
+    
+    // Adicionais do item
     for (const a of it.adicionais ?? []) {
       if (a.pendencia) continue;
       const qtd = a.unico ? 1 : it.quantidade;
@@ -277,6 +280,8 @@ export function montarPayloadNfe(
         quantity: qtd,
         unitAmount: a.valor,
         totalAmount: round2(qtd * a.valor),
+        // Adicionais podem usar o NCM do produto pai se não tiverem um próprio
+        ncm: it.ncm,
       });
     }
   }
@@ -307,9 +312,8 @@ export function montarPayloadNfe(
   const taxes = montarImpostos(t);
 
   const items = ajustados.map((i) => {
-    // Busca o NCM no snapshot do item do pedido
-    const itemOriginal = pedido.itens.find(it => it.id === i.id);
-    const ncmItem = apenasDigitos(itemOriginal?.ncm) || ncmPadrao;
+    // Busca o NCM no snapshot (armazenado em brutos) ou usa o padrão
+    const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
 
     return {
       code: i.code,

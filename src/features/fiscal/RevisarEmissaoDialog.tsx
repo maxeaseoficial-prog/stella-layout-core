@@ -149,20 +149,40 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
             {/* Lista de Itens */}
             <div className="space-y-3">
               <h4 className="text-sm font-bold flex items-center gap-2">
-                <Package className="h-4 w-4 text-primary" /> Itens e NCMs
+                <Package className="h-4 w-4 text-primary" /> Itens e Classificação Fiscal
               </h4>
               <div className="grid gap-2">
                 {pedido.itens.map((it: any) => (
-                  <div key={it.id} className="flex items-center justify-between rounded-md border border-border p-3 text-sm">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{it.produto}</p>
-                      <p className="text-xs text-muted-foreground">{it.quantidade} un. x {formatarMoeda(it.valorUnitario)}</p>
+                  <div key={it.id} className="rounded-md border border-border p-3 text-sm space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{it.produto}</p>
+                        <p className="text-[10px] text-muted-foreground">{it.quantidade} un. x {formatarMoeda(it.valorUnitario)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-mono bg-muted px-2 py-0.5 rounded flex items-center gap-1">
+                          NCM: {it.ncm || <span className="text-red-500">Pendente</span>}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
-                        NCM: {it.ncm || <span className="text-red-500">Ausente</span>}
+                    
+                    {it.ncm && it.descricaoFiscal && (
+                      <p className="text-[10px] text-muted-foreground leading-tight italic">
+                        {it.descricaoFiscal}
                       </p>
-                    </div>
+                    )}
+
+                    {it.adicionais && it.adicionais.length > 0 && (
+                      <div className="pt-1 border-t border-dashed border-border mt-1">
+                        <p className="text-[9px] font-bold uppercase text-muted-foreground mb-1">Adicionais (Sub-itens na NF):</p>
+                        {it.adicionais.filter((a: any) => !a.pendencia).map((a: any) => (
+                          <div key={a.id} className="flex justify-between text-[10px]">
+                            <span>• {a.nome}</span>
+                            <span className="font-mono">{formatarMoeda(a.valor)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

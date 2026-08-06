@@ -87,11 +87,15 @@ export function usePedidos() {
   const criar = useCallback((entrada: PedidoInput): Pedido => {
     const agora = new Date().toISOString();
     
-    // Anexa o NCM atual do produto aos itens do pedido (snapshot)
+    // Anexa o NCM e descrição fiscal atual do produto aos itens do pedido (snapshot)
     const itensComNcm = entrada.itens.map(it => {
       if (it.ncm) return it;
       const p = carregarProdutos().find(prod => prod.id === it.produtoId);
-      return { ...it, ncm: p?.ncm };
+      return { 
+        ...it, 
+        ncm: p?.ncm,
+        descricaoFiscal: (p as any)?.descricaoFiscal 
+      };
     });
 
     const subtotal = calcularSubtotal(itensComNcm);
@@ -135,11 +139,15 @@ export function usePedidos() {
       atual.map((p) => {
         if (p.id !== id) return p;
 
-        // Atualiza/Preserva NCM nos itens
+        // Atualiza/Preserva NCM e descrição fiscal nos itens
         const itensComNcm = entrada.itens.map(it => {
           if (it.ncm) return it;
           const prod = carregarProdutos().find(cp => cp.id === it.produtoId);
-          return { ...it, ncm: prod?.ncm };
+          return { 
+            ...it, 
+            ncm: prod?.ncm,
+            descricaoFiscal: (prod as any)?.descricaoFiscal
+          };
         });
 
         const subtotal = calcularSubtotal(itensComNcm);
