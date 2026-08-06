@@ -37,8 +37,10 @@ export function fiscalConfigInicial(): FiscalConfig {
       cofinsCst: 7,
       cofinsAliquota: 3,
     },
+    liberacaoPedido: "producao",
   };
 }
+
 
 /** Mescla o registro salvo com os defaults para tolerar versões antigas. */
 export function mergeFiscalConfig(raw: unknown): FiscalConfig {

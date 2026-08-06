@@ -1,0 +1,196 @@
+import { useMemo, useState } from "react";
+import { 
+  AlertCircle, 
+  CheckCircle2, 
+  ChevronRight, 
+  FileText, 
+  Info, 
+  Package, 
+  Send,
+  Loader2,
+  X
+} from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/lib/toast";
+import { usePedidos } from "@/features/pedidos/usePedidos";
+import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
+import { emitirNfePedido } from "@/lib/fiscal.functions";
+import { useFiscalConfig } from "./useFiscalConfig";
+import { NotaFiscalSection } from "./NotaFiscalSection";
+
+interface Props {
+  pedido: any | null;
+  onFechar: () => void;
+}
+
+export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
+  const { config } = useFiscalConfig();
+  const [emitindo, setEmitindo] = useState(false);
+  const { salvarNotaFiscal } = usePedidos();
+
+  const validacoes = useMemo(() => {
+    if (!pedido) return [];
+    const erros = [];
+
+    // Validar itens
+    for (const it of pedido.itens) {
+      if (!it.ncm) {
+        erros.push(`Produto "${it.produto}" não possui NCM configurado.`);
+      }
+    }
+
+    // Validar cliente (simplificado)
+    if (!pedido.clienteId) {
+      erros.push("Pedido sem cliente vinculado.");
+    }
+
+    // Validar valores
+    if (pedido.total <= 0) {
+      erros.push("O valor total do pedido deve ser maior que zero.");
+    }
+
+    return erros;
+  }, [pedido]);
+
+  const temErros = validacoes.length > 0;
+
+  async function handleEmitir() {
+    if (!pedido) return;
+    setEmitindo(true);
+    try {
+      const res = await emitirNfePedido({ data: { pedidoId: pedido.id } });
+      if (res.ok) {
+        salvarNotaFiscal(pedido.id, res.nota, "NF-e enviada para emissão via módulo Fiscal.");
+        toast.success("Nota Fiscal enviada com sucesso!");
+        onFechar();
+      } else {
+        toast.error(res.mensagem);
+      }
+    } catch (error) {
+      toast.error("Erro técnico ao tentar emitir a nota.");
+    } finally {
+      setEmitindo(false);
+    }
+  }
+
+  if (!pedido) return null;
+
+  return (
+    <Dialog open={!!pedido} onOpenChange={(v) => !v && onFechar()}>
+      <DialogContent className="max-w-2xl gap-0 p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl">Revisar Pedido {pedido.numero}</DialogTitle>
+              <DialogDescription>
+                Verifique os dados fiscais antes de enviar para a SEFAZ.
+              </DialogDescription>
+            </div>
+            <Badge variant="outline" className="h-fit">
+              {config.ambiente === 'sandbox' ? 'Ambiente de Testes' : 'Ambiente de Produção'}
+            </Badge>
+          </div>
+        </DialogHeader>
+
+        <ScrollArea className="max-h-[60vh] px-6">
+          <div className="space-y-6 pb-6">
+            {/* Seção de Alertas */}
+            {temErros && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                <div className="flex items-center gap-2 text-red-800 mb-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm font-bold">Pendências impeditivas</span>
+                </div>
+                <ul className="space-y-1">
+                  {validacoes.map((e, i) => (
+                    <li key={i} className="text-xs text-red-700 flex items-start gap-1">
+                      <span className="mt-1 h-1 w-1 rounded-full bg-red-400 shrink-0" />
+                      {e}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {!temErros && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                <div className="flex items-center gap-2 text-emerald-800">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="text-sm font-medium">Todos os dados básicos foram validados.</span>
+                </div>
+              </div>
+            )}
+
+            {/* Resumo do Pedido */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Valor Total</p>
+                <p className="text-lg font-bold">{formatarMoeda(pedido.total)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Qtde de Itens</p>
+                <p className="text-lg font-bold">{totalItensPedido(pedido)} produtos</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Lista de Itens */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold flex items-center gap-2">
+                <Package className="h-4 w-4 text-primary" /> Itens e NCMs
+              </h4>
+              <div className="grid gap-2">
+                {pedido.itens.map((it: any) => (
+                  <div key={it.id} className="flex items-center justify-between rounded-md border border-border p-3 text-sm">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{it.produto}</p>
+                      <p className="text-xs text-muted-foreground">{it.quantidade} un. x {formatarMoeda(it.valorUnitario)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
+                        NCM: {it.ncm || <span className="text-red-500">Ausente</span>}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {pedido.notaFiscal && (
+              <>
+                <Separator />
+                <NotaFiscalSection pedido={pedido} />
+              </>
+            )}
+          </div>
+        </ScrollArea>
+
+        <DialogFooter className="border-t border-border p-4 bg-surface-muted/30">
+          <Button variant="ghost" onClick={onFechar}>Fechar</Button>
+          {!pedido.notaFiscal?.spedyId && (
+            <Button 
+              className="gap-2" 
+              disabled={temErros || emitindo}
+              onClick={handleEmitir}
+            >
+              {emitindo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              Emitir Nota Fiscal agora
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

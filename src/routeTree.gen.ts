@@ -17,6 +17,7 @@ import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as MatrizesLogosRouteImport } from './routes/matrizes-logos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
+import { Route as FiscalRouteImport } from './routes/fiscal'
 import { Route as EstoqueRouteImport } from './routes/estoque'
 import { Route as DownloadRouteImport } from './routes/download'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -64,6 +65,11 @@ const FornecedoresRoute = FornecedoresRouteImport.update({
   path: '/fornecedores',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FiscalRoute = FiscalRouteImport.update({
+  id: '/fiscal',
+  path: '/fiscal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EstoqueRoute = EstoqueRouteImport.update({
   id: '/estoque',
   path: '/estoque',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/download': typeof DownloadRoute
   '/estoque': typeof EstoqueRoute
+  '/fiscal': typeof FiscalRoute
   '/fornecedores': typeof FornecedoresRoute
   '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/download': typeof DownloadRoute
   '/estoque': typeof EstoqueRoute
+  '/fiscal': typeof FiscalRoute
   '/fornecedores': typeof FornecedoresRoute
   '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/download': typeof DownloadRoute
   '/estoque': typeof EstoqueRoute
+  '/fiscal': typeof FiscalRoute
   '/fornecedores': typeof FornecedoresRoute
   '/login': typeof LoginRoute
   '/matrizes-logos': typeof MatrizesLogosRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/download'
     | '/estoque'
+    | '/fiscal'
     | '/fornecedores'
     | '/login'
     | '/matrizes-logos'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/download'
     | '/estoque'
+    | '/fiscal'
     | '/fornecedores'
     | '/login'
     | '/matrizes-logos'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/download'
     | '/estoque'
+    | '/fiscal'
     | '/fornecedores'
     | '/login'
     | '/matrizes-logos'
@@ -202,6 +214,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   DownloadRoute: typeof DownloadRoute
   EstoqueRoute: typeof EstoqueRoute
+  FiscalRoute: typeof FiscalRoute
   FornecedoresRoute: typeof FornecedoresRoute
   LoginRoute: typeof LoginRoute
   MatrizesLogosRoute: typeof MatrizesLogosRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FornecedoresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fiscal': {
+      id: '/fiscal'
+      path: '/fiscal'
+      fullPath: '/fiscal'
+      preLoaderRoute: typeof FiscalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/estoque': {
       id: '/estoque'
       path: '/estoque'
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   DownloadRoute: DownloadRoute,
   EstoqueRoute: EstoqueRoute,
+  FiscalRoute: FiscalRoute,
   FornecedoresRoute: FornecedoresRoute,
   LoginRoute: LoginRoute,
   MatrizesLogosRoute: MatrizesLogosRoute,
@@ -334,13 +355,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

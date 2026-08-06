@@ -13,7 +13,9 @@ export type ModuloRota =
   | "/matrizes-logos"
   | "/tarefas"
   | "/precificacao"
+  | "/fiscal"
   | "/configuracoes";
+
 
 /**
  * Rotas permitidas por perfil. Se o usuário tentar acessar uma URL
@@ -30,8 +32,10 @@ export const ROTAS_PERMITIDAS: Record<Papel, ModuloRota[]> = {
     "/fornecedores",
     "/matrizes-logos",
     "/precificacao",
+    "/fiscal",
     "/configuracoes",
   ],
+
   operador_matriz: [
     "/",
     "/pedidos",

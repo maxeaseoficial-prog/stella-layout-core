@@ -13,7 +13,9 @@ import {
   Settings,
   LogOut,
   UserCircle2,
+  FileText,
 } from "lucide-react";
+
 
 import {
   Sidebar,
@@ -46,8 +48,10 @@ const NAV_ITEMS = [
   { title: "Matrizes & Logos", url: "/matrizes-logos", icon: Sparkles },
   { title: "Tarefas", url: "/tarefas", icon: ClipboardList },
   { title: "Formação de Preço", url: "/precificacao", icon: Calculator },
+  { title: "Fiscal", url: "/fiscal", icon: FileText },
   { title: "Configurações", url: "/configuracoes", icon: Settings },
 ] as const;
+
 
 function itensPara(papel: Papel, permissoesAbas?: string[]) {
   const permitidas = new Set<string>(permissoesAbas ?? ROTAS_PERMITIDAS[papel]);
