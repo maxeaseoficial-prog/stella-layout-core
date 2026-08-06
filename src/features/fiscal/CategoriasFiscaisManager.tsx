@@ -124,23 +124,6 @@ export function CategoriasFiscaisManager() {
 
           // Mapear colunas da planilha (tentar ser flexível com nomes de colunas)
           const mappedData = rows.map(row => {
-            const codigo = String(row.codigo || row.NCM || row.ncm || row.Codigo || "").replace(/\D/g, '');
-            const descricao = row.descricao || row.Descricao || row.Descrição || row.nome || "";
-            return {
-              codigo,
-              descricao,
-              data_inicio: row.data_inicio || null,
-              data_fim: row.data_fim || null,
-              ato_legal: row.ato_legal || null,
-              ano: row.ano ? Number(row.ano) : null
-            };
-          }).filter(r => r.codigo.length >= 2);
-
-          const chunkSize = 500;
-          let importados = 0;
-          
-          // Mapear colunas da planilha
-          const mappedData = rows.map(row => {
             const codigo = String(row.codigo || row.NCM || row.ncm || row.Codigo || row.Ncm || "").replace(/\D/g, '');
             const descricao = row.descricao || row.Descricao || row.Descrição || row.nome || row.Descricao_Oficial || "";
             const nomeAmigavel = row.nome_amigavel || row.Categoria || row.Nome || row.nome || descricao.slice(0, 30);
@@ -156,17 +139,15 @@ export function CategoriasFiscaisManager() {
           }).filter(r => r.ncm.length >= 2);
 
           const chunkSize = 100;
-          let importados = 0;
+          let importadosCount = 0;
           
           for (let i = 0; i < mappedData.length; i += chunkSize) {
             const chunk = mappedData.slice(i, i + chunkSize);
-            // Reutilizamos a lógica de salvar categoria para cada item
-            // ou ajustamos o importarPlanilhaNCM para aceitar a estrutura completa
             await importAction({ data: chunk });
-            importados += chunk.length;
+            importadosCount += chunk.length;
           }
           
-          toast.success(`${importados} NCMs importados e atualizados!`, { id: toastId });
+          toast.success(`${importadosCount} NCMs importados e atualizados!`, { id: toastId });
           carregar();
         } catch (err) {
           console.error(err);
