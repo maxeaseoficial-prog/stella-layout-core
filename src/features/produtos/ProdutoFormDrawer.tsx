@@ -325,7 +325,9 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                 </Popover>
                 {form.ncm && (
                   <p className="text-[10px] text-muted-foreground px-1">
-                    NCM vinculado: <code className="bg-muted px-1 rounded">{form.ncm}</code>
+                    NCM: <code className="bg-muted px-1 rounded">{form.ncm}</code>
+                    <span className="mx-1">•</span>
+                    Desc: <span className="italic">{form.descricaoFiscal}</span>
                   </p>
                 )}
                 {erros.categoriaFiscalId && <p className="text-xs text-destructive">{erros.categoriaFiscalId}</p>}
