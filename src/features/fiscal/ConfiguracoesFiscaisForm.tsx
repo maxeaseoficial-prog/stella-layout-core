@@ -18,18 +18,19 @@ import { toast } from "@/lib/toast";
 import { testarConexaoFiscal } from "@/lib/fiscal.functions";
 
 export function ConfiguracoesFiscaisForm() {
-  const { config, salvarConfig } = useFiscalConfig();
+  const { config, salvar } = useFiscalConfig();
   const [form, setForm] = useState(config);
   const [testando, setTestando] = useState(false);
 
   async function handleSalvar() {
     try {
-      await salvarConfig(form);
+      await salvar(form);
       toast.success("Configurações fiscais salvas com sucesso.");
     } catch (error) {
       toast.error("Erro ao salvar configurações.");
     }
   }
+
 
   async function handleTestar() {
     setTestando(true);

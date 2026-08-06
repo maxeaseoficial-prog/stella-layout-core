@@ -16,8 +16,10 @@ import { cn } from "@/lib/utils";
 import type { ClienteArquivo } from "@/features/clientes";
 import type { Arquivo } from "@/features/arquivos";
 import { arquivoParaObservacoes } from "@/features/arquivos";
+import { carregarProdutos } from "@/features/produtos/storage";
 
 import type { ItemAdicional, ItemPedido, Pedido, PedidoInput } from "./types";
+
 import { ClienteSelector } from "./ClienteSelector";
 import { ItensPedidoTable } from "./ItensPedidoTable";
 import { PedidoArquivosUploader } from "./PedidoArquivosUploader";
@@ -188,6 +190,7 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
     setEtapa((e) => Math.max(1, e - 1));
   }
 
+
   function handleSalvar() {
     const msg = validarItens();
     if (msg) {
@@ -195,9 +198,17 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
       return;
     }
     if (!podeAvancar()) return;
+
+    // Captura NCM snapshot
+    const itensComSnapshot = form.itens.map(it => {
+      if (it.ncm) return it;
+      const p = carregarProdutos().find(prod => prod.id === it.produtoId);
+      return { ...it, ncm: p?.ncm };
+    });
+
     const dados: PedidoInput = {
       clienteId: form.clienteId,
-      itens: form.itens,
+      itens: itensComSnapshot,
       arquivos: form.arquivos,
       desconto: parseValorInput(form.descontoStr),
       frete: parseValorInput(form.freteStr),
@@ -207,6 +218,7 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
     onSalvar(dados, pedido?.id);
     onFechar();
   }
+
 
   return (
     <Sheet open={aberto} onOpenChange={(v) => (!v ? onFechar() : null)}>
