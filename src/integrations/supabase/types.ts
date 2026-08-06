@@ -183,6 +183,9 @@ export type Database = {
           ncm: string
           nome_amigavel: string
           situacao: string | null
+          tenant_id: string | null
+          unidade_comercial: string | null
+          unidade_tributavel: string | null
         }
         Insert: {
           atualizado_em?: string | null
@@ -192,6 +195,9 @@ export type Database = {
           ncm: string
           nome_amigavel: string
           situacao?: string | null
+          tenant_id?: string | null
+          unidade_comercial?: string | null
+          unidade_tributavel?: string | null
         }
         Update: {
           atualizado_em?: string | null
@@ -201,8 +207,19 @@ export type Database = {
           ncm?: string
           nome_amigavel?: string
           situacao?: string | null
+          tenant_id?: string | null
+          unidade_comercial?: string | null
+          unidade_tributavel?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categorias_fiscais_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes: {
         Row: {
