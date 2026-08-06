@@ -128,14 +128,17 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
   const [form, setForm] = useState<FormState>(() => estadoInicial(produto));
   const [categoriasFiscais, setCategoriasFiscais] = useState<any[]>([]);
   const [openFiscal, setOpenFiscal] = useState(false);
+  const [buscaFiscal, setBuscaFiscal] = useState("");
   
-  const fetchFiscais = useServerFn(getCategoriasFiscais);
+  const searchFiscais = useServerFn(searchCategoriasFiscais);
 
   useEffect(() => {
     if (aberto) {
-      void fetchFiscais().then(setCategoriasFiscais).catch(() => {});
+      void searchFiscais({ data: { query: buscaFiscal || " " } })
+        .then(setCategoriasFiscais)
+        .catch(() => {});
     }
-  }, [aberto]);
+  }, [aberto, buscaFiscal]);
 
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
