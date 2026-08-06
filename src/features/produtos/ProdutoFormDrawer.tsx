@@ -325,28 +325,41 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                 </Popover>
                 {form.ncm && (
                   <p className="text-[10px] text-muted-foreground px-1">
-                    NCM vinculado: <code className="bg-muted px-1 rounded">{form.ncm}</code>
+                    NCM: <code className="bg-muted px-1 rounded">{form.ncm}</code>
+                    <span className="mx-1">•</span>
+                    Desc: <span className="italic">{form.descricaoFiscal}</span>
                   </p>
                 )}
                 {erros.categoriaFiscalId && <p className="text-xs text-destructive">{erros.categoriaFiscalId}</p>}
               </div>
-              <div className="space-y-1.5">
-                <Label>Categoria *</Label>
-                <Select
-                  value={form.categoria}
-                  onValueChange={(v) => upd("categoria", v as CategoriaProduto)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categoriasProduto.map((c) => (
-                      <SelectItem key={c.id} value={c.nome}>
-                        {c.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Categoria *</Label>
+                  <Select
+                    value={form.categoria}
+                    onValueChange={(v) => upd("categoria", v as CategoriaProduto)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoriasProduto.map((c) => (
+                        <SelectItem key={c.id} value={c.nome}>
+                          {c.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="estoque">Estoque (Opcional)</Label>
+                  <Input 
+                    id="estoque" 
+                    placeholder="Qtd" 
+                    type="number" 
+                    onChange={() => {}} // Campo ilustrativo conforme pedido
+                  />
+                </div>
               </div>
             </div>
 

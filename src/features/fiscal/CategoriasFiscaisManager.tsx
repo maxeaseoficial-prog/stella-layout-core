@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { Plus, Search, ShieldCheck, Tag, Edit2, Power, PowerOff, FileText, Check, X, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Plus, Search, Tag, Edit2, Power, PowerOff, FileText, Loader2, Upload } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,12 +20,15 @@ export function CategoriasFiscaisManager() {
   const [importando, setImportando] = useState(false);
   const [modalAberto, setModalAberto] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [form, setForm] = useState({
     nome_amigavel: "",
     ncm: "",
     descricao_oficial: "",
-    situacao: "ativo" as "ativo" | "inativo"
+    situacao: "ativo" as "ativo" | "inativo",
+    unidade_comercial: "UN",
+    unidade_tributavel: "UN"
   });
 
   const fetchCategorias = useServerFn(getCategoriasFiscais);
@@ -53,7 +57,9 @@ export function CategoriasFiscaisManager() {
       nome_amigavel: cat.nome_amigavel,
       ncm: cat.ncm,
       descricao_oficial: cat.descricao_oficial || "",
-      situacao: cat.situacao
+      situacao: cat.situacao,
+      unidade_comercial: cat.unidade_comercial || "UN",
+      unidade_tributavel: cat.unidade_tributavel || "UN"
     });
     setModalAberto(true);
   };
@@ -91,30 +97,75 @@ export function CategoriasFiscaisManager() {
     }
   };
 
-  const handleImport = async () => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setImportando(true);
+    const toastId = toast.loading("Lendo planilha...");
+
     try {
-      const response = await fetch("/tmp/ncm/full_data.json");
-      if (!response.ok) throw new Error("Falha ao ler dados da planilha.");
-      const data = await response.json();
-      
-      // Dividir em chunks para evitar estouro de limite de payload do server function
-      const chunkSize = 500;
-      let importados = 0;
-      
-      for (let i = 0; i < data.length; i += chunkSize) {
-        const chunk = data.slice(i, i + chunkSize);
-        await importAction({ data: chunk });
-        importados += chunk.length;
-      }
-      
-      toast.success(`${importados} NCMs importados com sucesso!`);
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const data = new Uint8Array(event.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet) as any[];
+
+          if (rows.length === 0) {
+            toast.error("Planilha vazia.");
+            toast.dismiss(toastId);
+            setImportando(false);
+            return;
+          }
+
+          toast.loading(`Importando ${rows.length} registros...`, { id: toastId });
+
+          // Mapear colunas da planilha (tentar ser flexível com nomes de colunas)
+          const mappedData = rows.map(row => {
+            const codigo = String(row.codigo || row.NCM || row.ncm || row.Codigo || row.Ncm || "").replace(/\D/g, '');
+            const descricao = row.descricao || row.Descricao || row.Descrição || row.nome || row.Descricao_Oficial || "";
+            const nomeAmigavel = row.nome_amigavel || row.Categoria || row.Nome || row.nome || descricao.slice(0, 30) || `NCM ${codigo}`;
+            
+            return {
+              nome_amigavel: nomeAmigavel,
+              ncm: codigo,
+              descricao_oficial: descricao,
+              unidade_comercial: String(row.unidade_comercial || row.UN || row.Unidade || "UN"),
+              unidade_tributavel: String(row.unidade_tributavel || row.UNTRIB || row.UnidadeTrib || "UN"),
+              situacao: 'ativo'
+            };
+          }).filter(r => r.ncm.length >= 2);
+
+          const chunkSize = 100;
+          let importadosCount = 0;
+          
+          for (let i = 0; i < mappedData.length; i += chunkSize) {
+            const chunk = mappedData.slice(i, i + chunkSize);
+            await importAction({ data: chunk });
+            importadosCount += chunk.length;
+          }
+          
+          toast.success(`${importadosCount} NCMs importados e atualizados!`, { id: toastId });
+          carregar();
+        } catch (err) {
+          console.error(err);
+          toast.error("Erro ao processar arquivo Excel.", { id: toastId });
+        } finally {
+          setImportando(false);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }
+      };
+      reader.readAsArrayBuffer(file);
     } catch (error) {
-      console.error(error);
-      toast.error("Erro ao importar planilha. Verifique se o arquivo existe.");
-    } finally {
+      toast.error("Falha ao abrir arquivo.", { id: toastId });
       setImportando(false);
     }
+  };
+
+  const triggerImport = () => {
+    fileInputRef.current?.click();
   };
 
   const filtered = categorias.filter(c => 
@@ -125,11 +176,22 @@ export function CategoriasFiscaisManager() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end gap-2">
-         <Button variant="outline" size="sm" onClick={handleImport} disabled={importando}>
-            <FileText className={cn("h-4 w-4 mr-2", importando && "animate-spin")} />
+         <input 
+           type="file" 
+           ref={fileInputRef} 
+           className="hidden" 
+           accept=".xlsx,.xls" 
+           onChange={handleFileChange} 
+         />
+         <Button variant="outline" size="sm" onClick={triggerImport} disabled={importando}>
+            {importando ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-2" />
+            )}
             {importando ? "Importando..." : "Importar Planilha NCM"}
          </Button>
-         <Button size="sm" onClick={() => { setEditing(null); setForm({ nome_amigavel: "", ncm: "", descricao_oficial: "", situacao: "ativo" }); setModalAberto(true); }}>
+         <Button size="sm" onClick={() => { setEditing(null); setForm({ nome_amigavel: "", ncm: "", descricao_oficial: "", situacao: "ativo", unidade_comercial: "UN", unidade_tributavel: "UN" }); setModalAberto(true); }}>
             <Plus className="h-4 w-4 mr-2" /> Nova Categoria
          </Button>
       </div>
@@ -162,7 +224,8 @@ export function CategoriasFiscaisManager() {
                 <TableRow>
                   <TableHead>Nome Amigável</TableHead>
                   <TableHead>NCM</TableHead>
-                  <TableHead>Descrição Oficial</TableHead>
+                   <TableHead>Descrição Oficial</TableHead>
+                  <TableHead>UN (Com/Trib)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -177,8 +240,11 @@ export function CategoriasFiscaisManager() {
                     <TableRow key={c.id} className={c.situacao === 'inativo' ? 'opacity-50' : ''}>
                       <TableCell className="font-medium">{c.nome_amigavel}</TableCell>
                       <TableCell><code className="bg-muted px-1.5 py-0.5 rounded text-xs">{c.ncm}</code></TableCell>
-                      <TableCell className="max-w-[300px] truncate text-xs text-muted-foreground" title={c.descricao_oficial}>
+                      <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground" title={c.descricao_oficial}>
                         {c.descricao_oficial || "-"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {c.unidade_comercial} / {c.unidade_tributavel}
                       </TableCell>
                       <TableCell>
                         <Badge variant={c.situacao === 'ativo' ? 'outline' : 'secondary'} className={c.situacao === 'ativo' ? 'bg-emerald-50 text-emerald-700' : ''}>
@@ -222,7 +288,17 @@ export function CategoriasFiscaisManager() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="desc">Descrição Oficial da Receita (Opcional)</Label>
-                <Input id="desc" value={form.descricao_oficial} onChange={e => setForm({...form, descricao_oficial: e.target.value})} />
+               <Input id="desc" value={form.descricao_oficial} onChange={e => setForm({...form, descricao_oficial: e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="un_com">Un. Comercial</Label>
+                  <Input id="un_com" value={form.unidade_comercial} onChange={e => setForm({...form, unidade_comercial: e.target.value})} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="un_trib">Un. Tributável</Label>
+                  <Input id="un_trib" value={form.unidade_tributavel} onChange={e => setForm({...form, unidade_tributavel: e.target.value})} />
+                </div>
               </div>
             </div>
             <DialogFooter>
