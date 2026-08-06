@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Building2, 
   Settings2, 
@@ -18,9 +18,16 @@ import { toast } from "@/lib/toast";
 import { testarConexaoFiscal } from "@/lib/fiscal.functions";
 
 export function ConfiguracoesFiscaisForm() {
-  const { config, salvar } = useFiscalConfig();
+  const { config, salvar, carregando } = useFiscalConfig();
   const [form, setForm] = useState(config);
   const [testando, setTestando] = useState(false);
+
+  // Sincroniza o estado local quando os dados são carregados do backend
+  useEffect(() => {
+    if (!carregando) {
+      setForm(config);
+    }
+  }, [config, carregando]);
 
   async function handleSalvar() {
     try {
@@ -69,6 +76,11 @@ export function ConfiguracoesFiscaisForm() {
           <div className="grid gap-2">
             <Label>Inscrição Estadual</Label>
             <Input value={form.empresa.inscricaoEstadual} onChange={e => setForm({...form, empresa: {...form.empresa, inscricaoEstadual: e.target.value}})} />
+          </div>
+          <div className="pt-2">
+            <Button size="sm" className="w-full gap-2" onClick={handleSalvar}>
+              <Save className="h-4 w-4" /> Salvar Dados da Empresa
+            </Button>
           </div>
         </CardContent>
       </Card>
