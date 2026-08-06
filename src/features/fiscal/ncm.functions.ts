@@ -91,10 +91,18 @@ export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     
+    // Buscar tenant do usuário
+    const { data: userData } = await context.supabase
+      .from('empresa_usuarios')
+      .select('empresa_id')
+      .eq('user_id', context.userId)
+      .single();
+
     const { data: result, error } = await context.supabase
       .from('categorias_fiscais')
       .upsert({
         ...data,
+        tenant_id: userData?.empresa_id,
         atualizado_em: new Date().toISOString()
       })
       .select()
