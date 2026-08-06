@@ -57,7 +57,9 @@ export function CategoriasFiscaisManager() {
       nome_amigavel: cat.nome_amigavel,
       ncm: cat.ncm,
       descricao_oficial: cat.descricao_oficial || "",
-      situacao: cat.situacao
+      situacao: cat.situacao,
+      unidade_comercial: cat.unidade_comercial || "UN",
+      unidade_tributavel: cat.unidade_tributavel || "UN"
     });
     setModalAberto(true);
   };
