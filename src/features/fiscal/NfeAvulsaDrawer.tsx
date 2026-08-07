@@ -81,8 +81,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       quantidade: 1,
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
-      ncm: p?.ncm || config.tributacao.ncm,
-      classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId
+      ncm: p?.ncm || config.tributacao.ncm || "",
+      classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId || "",
+      descricaoFiscal: (p as any)?.descricaoFiscal || ""
+
     };
     setItens([...itens, novo]);
   };
@@ -114,9 +116,11 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       if (!it.descricao || it.descricao.trim().length < 2) return `Item com descrição inválida.`;
       if (!(it.quantidade > 0)) return `A quantidade do item "${it.descricao}" deve ser maior que zero.`;
       if (!(it.valorUnitario >= 0)) return `O valor do item "${it.descricao}" não pode ser negativo.`;
-      if (!it.ncm || it.ncm.replace(/\D/g, "").length !== 8) {
+      const ncm = (it.ncm || "").replace(/\D/g, "");
+      if (ncm.length !== 8) {
         return `O produto "${it.descricao}" não possui uma classificação fiscal (NCM) válida de 8 dígitos.`;
       }
+
     }
     return null;
   };

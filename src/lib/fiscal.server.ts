@@ -97,9 +97,13 @@ export function validarConfigFiscal(config: FiscalConfig): string | null {
   if (!apiKeyParaAmbiente(config, config.ambiente)) {
     return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
-  if (apenasDigitos(config.tributacao.ncm).length !== 8) {
-    return "Informe um NCM válido (8 dígitos) na tributação padrão (Configurações → Fiscal).";
+  // Se todos os itens já possuem NCM, o NCM da tributação padrão é opcional.
+  // No entanto, ainda é bom ter um NCM padrão válido se algum item for adicionado sem.
+  const ncmPadrao = apenasDigitos(config.tributacao.ncm);
+  if (ncmPadrao.length > 0 && ncmPadrao.length !== 8) {
+    return "O NCM da tributação padrão (Configurações → Fiscal) deve ter exatamente 8 dígitos.";
   }
+
   return null;
 }
 
@@ -299,24 +303,33 @@ export function montarPayloadNfe(
     });
   }
 
-  const ncmPadrao = apenasDigitos(t.ncm);
+  const ncmPadrao = apenasDigitos(config.tributacao.ncm);
   const taxes = montarImpostos(t);
 
-  const items = ajustados.map((i) => ({
-    code: i.code,
-    description: i.description,
-    ncm: apenasDigitos(i.ncm) || ncmPadrao,
-    cfop,
-    unit: "UN",
-    quantity: i.quantity,
-    unitAmount: i.unitAmount,
-    totalAmount: i.totalAmount,
-    unitTax: "UN",
-    quantityTax: i.quantity,
-    unitTaxAmount: i.unitAmount,
-    makeupTotal: true,
-    taxes: taxes(i.totalAmount),
-  }));
+  const items = ajustados.map((i) => {
+    const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
+    
+    if (ncmItem.length !== 8) {
+      throw new Error(`O produto "${i.description}" não possui um NCM válido de 8 dígitos cadastrado.`);
+    }
+
+    return {
+      code: i.code,
+      description: i.description,
+      ncm: ncmItem,
+      cfop,
+      unit: "UN",
+      quantity: i.quantity,
+      unitAmount: i.unitAmount,
+      totalAmount: i.totalAmount,
+      unitTax: "UN",
+      quantityTax: i.quantity,
+      unitTaxAmount: i.unitAmount,
+      makeupTotal: true,
+      taxes: taxes(i.totalAmount),
+    };
+  });
+
 
   const total: Record<string, number> = {
     invoiceAmount: totalPedido,
