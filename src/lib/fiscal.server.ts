@@ -407,6 +407,7 @@ export function montarPayloadNfeAvulsa(
         street: avulsa.destinatario.logradouro || "",
         number: avulsa.destinatario.numero || "",
         district: avulsa.destinatario.bairro || "",
+        complement: avulsa.destinatario.complemento || "",
         postalCode: apenasDigitos(avulsa.destinatario.cep),
         city: {
           name: avulsa.destinatario.cidade || "",
