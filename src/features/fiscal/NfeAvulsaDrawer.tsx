@@ -489,16 +489,26 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                         <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
                       </summary>
                       <div className="pt-2 space-y-2 border-t mt-1">
-                        {itens.map((it, idx) => (
-                          <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
-                            <p className="font-medium truncate">{it.descricao}</p>
-                            <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
-                              <span>NCM: {it.ncm || config.tributacao.ncm}</span>
-                              <span>CFOP: {destinatario.estado === config.empresa.estado ? config.tributacao.cfopInterno : config.tributacao.cfopInterestadual}</span>
-                              <span>CST/CSOSN: {config.tributacao.csosn || config.tributacao.icmsCst}</span>
+                        {itens.map((it, idx) => {
+                          const ncmItem = (it.ncm || config.tributacao.ncm || "").replace(/\D/g, "");
+                          const cfop = (destinatario.estado === config.empresa.estado) 
+                            ? config.tributacao.cfopInterno 
+                            : config.tributacao.cfopInterestadual;
+                          const isSimples = config.tributacao.regime === "simplesNacional";
+
+                          return (
+                            <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
+                              <p className="font-medium truncate">{it.descricao}</p>
+                              <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
+                                <span>NCM: {ncmItem || <span className="text-red-500">Pendente</span>}</span>
+                                <span>CFOP: {cfop}</span>
+                                <span>{isSimples ? "CSOSN" : "CST"}: {isSimples ? config.tributacao.csosn : config.tributacao.icmsCst}</span>
+                                {it.descricaoFiscal && <span className="col-span-2 italic truncate">{it.descricaoFiscal}</span>}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
+
                       </div>
                     </details>
                     <div className="flex justify-between text-xs">
