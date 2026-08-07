@@ -157,7 +157,8 @@ export async function spedyFetch(
   init?: RequestInit,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
-  const res = await fetch(`${SPEDY_BASE_URLS[ambiente]}${path}`, {
+  const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
+  const response = await fetch(url, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -165,14 +166,32 @@ export async function spedyFetch(
       ...(init?.headers ?? {}),
     },
   });
-  const text = await res.text();
-  let body: unknown = null;
+
+  const text = await response.text();
+  let body: any = null;
   try {
     body = text ? JSON.parse(text) : null;
   } catch {
-    body = null;
+    body = { raw: text };
   }
-  if (!res.ok) throw new SpedyError(res.status, extrairMensagemErro(res.status, body));
+
+  if (!response.ok) {
+    const errorMsg = extrairMensagemErro(response.status, body);
+    console.error(`[Spedy Error] Status: ${response.status}`, {
+      url,
+      method: init?.method || "GET",
+      response: body,
+    });
+    
+    // Incluir detalhes da rejeição se houver
+    if (body?.errors && Array.isArray(body.errors)) {
+      const details = body.errors.map((e: any) => `${e.code || "ERR"}: ${e.message}`).join(" | ");
+      throw new SpedyError(response.status, `${errorMsg} (${details})`);
+    }
+    
+    throw new SpedyError(response.status, errorMsg);
+  }
+
   return body;
 }
 
