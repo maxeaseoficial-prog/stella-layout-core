@@ -397,6 +397,11 @@ export function montarPayloadNfeAvulsa(
 
   const items = avulsa.itens.map((i: any) => {
     const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
+    
+    if (ncmItem.length !== 8) {
+      throw new Error(`O produto "${i.descricao}" não possui um NCM válido de 8 dígitos.`);
+    }
+
     const valorItemTotal = round2(i.quantidade * i.valorUnitario);
     
     return {
@@ -412,6 +417,7 @@ export function montarPayloadNfeAvulsa(
       taxes: taxes(valorItemTotal),
     };
   });
+
 
   return {
     isFinalCustomer: true,
