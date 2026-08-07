@@ -6,8 +6,14 @@ import { supabase } from './client'
 // the browser never attaches the bearer token to serverFn RPCs.
 export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
   async ({ next }) => {
-    // Get the current session
-    let { data: { session } } = await supabase.auth.getSession()
+    try {
+      // Get the current session
+      let { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error("[Auth Attacher] getSession error:", sessionError);
+      }
+
     
     // If no session or expired, try to get user which might trigger a refresh
     if (!session) {
