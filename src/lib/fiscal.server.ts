@@ -33,15 +33,28 @@ export function apenasDigitos(s?: string | null): string {
 
 /** Somente administradores podem usar a integração fiscal (emissão, teste, cancelamento). */
 export async function assertAdminFiscal(supabase: Supabase, userId: string) {
-  const { data } = await supabase
+  if (!userId) {
+    console.error("[Fiscal Server] assertAdminFiscal: No userId provided.");
+    throw new Error("Usuário não autenticado. (ERR: Usuário não autenticado.)");
+  }
+
+  const { data, error } = await supabase
     .from("empresa_usuarios")
     .select("papel")
     .eq("user_id", userId)
     .maybeSingle();
+
+  if (error) {
+    console.error("[Fiscal Server] Erro ao validar permissões do usuário:", error);
+    throw new Error("Falha ao validar permissões de acesso.");
+  }
+
   if ((data?.papel as string | undefined) !== "administrador") {
+    console.warn(`[Fiscal Server] Acesso negado: Usuário ${userId} tentou operação fiscal com papel ${data?.papel}`);
     throw new Error("Apenas administradores podem usar a integração fiscal.");
   }
 }
+
 
 export async function carregarFiscalConfigServer(
   supabase: Supabase,
