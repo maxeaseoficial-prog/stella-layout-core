@@ -177,39 +177,57 @@ export type Database = {
       categorias_fiscais: {
         Row: {
           atualizado_em: string | null
+          codigo: string | null
           criado_em: string | null
           descricao_oficial: string | null
           id: string
+          natureza_receita: string | null
           ncm: string
           nome_amigavel: string
+          rec_cofins: string | null
+          rec_pis: string | null
           situacao: string | null
           tenant_id: string | null
+          tipo_contribuicao: string | null
           unidade_comercial: string | null
           unidade_tributavel: string | null
+          vigencia: string | null
         }
         Insert: {
           atualizado_em?: string | null
+          codigo?: string | null
           criado_em?: string | null
           descricao_oficial?: string | null
           id?: string
+          natureza_receita?: string | null
           ncm: string
           nome_amigavel: string
+          rec_cofins?: string | null
+          rec_pis?: string | null
           situacao?: string | null
           tenant_id?: string | null
+          tipo_contribuicao?: string | null
           unidade_comercial?: string | null
           unidade_tributavel?: string | null
+          vigencia?: string | null
         }
         Update: {
           atualizado_em?: string | null
+          codigo?: string | null
           criado_em?: string | null
           descricao_oficial?: string | null
           id?: string
+          natureza_receita?: string | null
           ncm?: string
           nome_amigavel?: string
+          rec_cofins?: string | null
+          rec_pis?: string | null
           situacao?: string | null
           tenant_id?: string | null
+          tipo_contribuicao?: string | null
           unidade_comercial?: string | null
           unidade_tributavel?: string | null
+          vigencia?: string | null
         }
         Relationships: [
           {
