@@ -53,7 +53,12 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ pedidoId: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
+    console.log("[Fiscal Pedido] Emitindo NF-e:", {
+      userId: context.userId,
+      pedidoId: data.pedidoId
+    });
     await assertAdminFiscal(context.supabase, context.userId);
+
     const config = await carregarFiscalConfigServer(context.supabase);
     const erroConfig = validarConfigFiscal(config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };

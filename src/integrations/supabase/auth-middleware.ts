@@ -47,16 +47,24 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     }
     
     const request = getRequest();
+    
+    // Diagnostic logs
+    const authHeader = request?.headers?.get('authorization');
+    console.log("[Auth Middleware] Diagnostic:", {
+      hasRequest: !!request,
+      hasHeaders: !!request?.headers,
+      authHeaderExists: !!authHeader,
+      authHeaderPrefix: authHeader?.substring(0, 15) + "...",
+    });
 
     if (!request?.headers) {
       throw new Error('Unauthorized: No request headers available');
     }
 
-    const authHeader = request.headers.get('authorization');
-
     if (!authHeader) {
       throw new Error('Unauthorized: No authorization header provided');
     }
+
 
     if (!authHeader.startsWith('Bearer ')) {
       throw new Error('Unauthorized: Only Bearer tokens are supported');

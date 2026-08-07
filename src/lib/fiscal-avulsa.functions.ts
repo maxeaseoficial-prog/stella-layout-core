@@ -40,7 +40,12 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     outrasDespesas: z.number(),
   }).parse(data))
   .handler(async ({ data, context }) => {
+    console.log("[Fiscal Avulsa] Handler reached:", {
+      userId: context.userId,
+      hasSupabase: !!context.supabase,
+    });
     await assertAdminFiscal(context.supabase, context.userId);
+
     const config = await carregarFiscalConfigServer(context.supabase);
     const erroConfig = validarConfigFiscal(config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
