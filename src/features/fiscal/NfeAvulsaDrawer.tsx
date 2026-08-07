@@ -103,7 +103,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     if (!destinatario.cidade) return "O município do destinatário é obrigatório.";
     if (!destinatario.estado) return "A UF do destinatário é obrigatória.";
     if (!destinatario.cep) return "O CEP do destinatário é obrigatório.";
-    if (!destinatario.endereco) return "O logradouro (endereço) do destinatário é obrigatório.";
+    if (!destinatario.logradouro) return "O logradouro (endereço) do destinatário é obrigatório.";
     
     return null;
   };
@@ -454,7 +454,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                       Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {destinatario.endereco || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
+                      {destinatario.logradouro || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}

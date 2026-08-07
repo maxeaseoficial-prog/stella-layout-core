@@ -336,6 +336,14 @@ export function montarPayloadNfe(
   const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : cliente?.cpf);
   if (doc) receiver.federalTaxNumber = doc;
   if (cliente?.cidade && cliente?.estado) {
+    console.log("[Fiscal] Montando receiver para Pedido. Cliente:", {
+      logradouro: cliente.logradouro,
+      numero: cliente.numero,
+      bairro: cliente.bairro,
+      cep: cliente.cep,
+      cidade: cliente.cidade,
+      estado: cliente.estado
+    });
     receiver.address = {
       street: cliente.logradouro || "",
       number: cliente.numero || "",

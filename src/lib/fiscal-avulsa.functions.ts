@@ -45,6 +45,8 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     const erroConfig = validarConfigFiscal(config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
+    console.log("[Fiscal] Payload Destinatário:", JSON.stringify(data.destinatario, null, 2));
+
     const payload = montarPayloadNfeAvulsa(data, config);
     try {
       const res = await spedyFetch(

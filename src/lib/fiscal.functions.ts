@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+import { getClienteNome } from "@/features/clientes/types";
 import {
   apiKeyParaAmbiente,
   assertAdminFiscal,
@@ -63,6 +64,18 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     if (erroPedido) return { ok: false as const, mensagem: erroPedido };
 
     const cliente = await carregarClienteServer(context.supabase, pedido.clienteId);
+    
+    console.log("[Fiscal] Payload Destinatário (Pedido):", JSON.stringify({
+      id: cliente?.id,
+      nome: cliente ? getClienteNome(cliente) : "Não encontrado",
+      cep: cliente?.cep,
+      logradouro: cliente?.logradouro,
+      numero: cliente?.numero,
+      bairro: cliente?.bairro,
+      cidade: cliente?.cidade,
+      estado: cliente?.estado
+    }, null, 2));
+
     const payload = montarPayloadNfe(pedido, cliente, config);
     try {
       const res = await spedyFetch(
