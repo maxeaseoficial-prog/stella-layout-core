@@ -314,8 +314,12 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                                 )}
                               />
                               <div className="flex flex-col">
-                                <span>{cat.nome_amigavel}</span>
-                                <span className="text-[10px] text-muted-foreground">NCM: {cat.ncm}</span>
+                                <span className="font-semibold">{cat.nome_amigavel}</span>
+                                <div className="flex gap-2 text-[10px] text-muted-foreground">
+                                  <span>Código: {cat.codigo || "-"}</span>
+                                  <span>•</span>
+                                  <span>NCM: {cat.ncm}</span>
+                                </div>
                               </div>
                             </CommandItem>
                           ))}
@@ -324,12 +328,17 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {form.ncm && (
-                  <p className="text-[10px] text-muted-foreground px-1">
-                    NCM: <code className="bg-muted px-1 rounded">{form.ncm}</code>
-                    <span className="mx-1">•</span>
-                    Desc: <span className="italic">{form.descricaoFiscal}</span>
-                  </p>
+                {form.categoriaFiscalId && (
+                  <div className="text-[10px] text-muted-foreground px-1 space-y-0.5">
+                    <p>
+                      Código: <span className="font-mono bg-muted px-1 rounded">{categoriasFiscais.find(c => c.id === form.categoriaFiscalId)?.codigo || "-"}</span>
+                      <span className="mx-1">•</span>
+                      NCM: <code className="bg-muted px-1 rounded">{form.ncm}</code>
+                    </p>
+                    {form.descricaoFiscal && (
+                      <p className="italic">Desc: {form.descricaoFiscal}</p>
+                    )}
+                  </div>
                 )}
                 {erros.categoriaFiscalId && <p className="text-xs text-destructive">{erros.categoriaFiscalId}</p>}
               </div>
