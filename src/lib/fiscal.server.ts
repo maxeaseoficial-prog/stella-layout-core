@@ -337,7 +337,11 @@ export function montarPayloadNfe(
   if (doc) receiver.federalTaxNumber = doc;
   if (cliente?.cidade && cliente?.estado) {
     receiver.address = {
-      street: cliente.endereco || "",
+      street: cliente.logradouro || "",
+      number: cliente.numero || "",
+      district: cliente.bairro || "",
+      complement: cliente.complemento || "",
+      postalCode: apenasDigitos(cliente.cep),
       city: { name: cliente.cidade, state: cliente.estado.trim().toUpperCase() },
     };
   }

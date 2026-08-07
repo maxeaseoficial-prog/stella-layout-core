@@ -151,7 +151,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
           documento: (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "",
           email: destinatario.email || undefined,
           cep: destinatario.cep || undefined,
-          logradouro: destinatario.endereco || undefined,
+          logradouro: destinatario.logradouro || undefined,
           numero: destinatario.numero || undefined,
           bairro: destinatario.bairro || undefined,
           cidade: destinatario.cidade || undefined,
