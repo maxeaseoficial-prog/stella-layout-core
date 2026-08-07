@@ -6,25 +6,39 @@ import {
   AlertCircle, 
   Settings, 
   History,
-  FileSearch
+  FileSearch,
+  Plus,
+  FileText
 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { FiscalDashboard } from "./FiscalDashboard";
 import { PedidosPendentesFiscal } from "./PedidosPendentesFiscal";
 import { NotasEmitidasFiscal } from "./NotasEmitidasFiscal";
 import { TodasNotasFiscal } from "./TodasNotasFiscal";
 import { CategoriasFiscaisManager } from "./CategoriasFiscaisManager";
 import { ConfiguracoesFiscaisForm } from "./ConfiguracoesFiscaisForm";
+import { NotasAvulsasFiscal } from "./NotasAvulsasFiscal";
+import { NfeAvulsaDrawer } from "./NfeAvulsaDrawer";
 
 export function FiscalLayout() {
   const [abaAtiva, setAbaAtiva] = useState("visao-geral");
+  const [nfeAvulsaAberta, setNfeAvulsaAberta] = useState(false);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Fiscal"
         description="Gestão completa de NF-e, categorias tributárias e integração fiscal."
+        actions={
+          <Button 
+            className="gap-2 bg-primary hover:bg-primary/90" 
+            onClick={() => setNfeAvulsaAberta(true)}
+          >
+            <Plus className="h-4 w-4" /> Emitir NF-e avulsa
+          </Button>
+        }
       />
 
       <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="space-y-6">
@@ -40,6 +54,9 @@ export function FiscalLayout() {
           </TabsTrigger>
           <TabsTrigger value="todas" className="gap-2 px-4">
             <FileSearch className="h-4 w-4" /> Todas
+          </TabsTrigger>
+          <TabsTrigger value="avulsas" className="gap-2 px-4">
+            <FileText className="h-4 w-4" /> NF-e Avulsas
           </TabsTrigger>
           <TabsTrigger value="categorias" className="gap-2 px-4">
             <Settings className="h-4 w-4" /> Categorias Fiscais
@@ -61,6 +78,9 @@ export function FiscalLayout() {
         <TabsContent value="todas">
           <TodasNotasFiscal />
         </TabsContent>
+        <TabsContent value="avulsas">
+          <NotasAvulsasFiscal />
+        </TabsContent>
         <TabsContent value="categorias">
           <CategoriasFiscaisManager />
         </TabsContent>
@@ -68,6 +88,11 @@ export function FiscalLayout() {
           <ConfiguracoesFiscaisForm />
         </TabsContent>
       </Tabs>
+
+      <NfeAvulsaDrawer 
+        aberto={nfeAvulsaAberta} 
+        onFechar={() => setNfeAvulsaAberta(false)} 
+      />
     </div>
   );
 }
