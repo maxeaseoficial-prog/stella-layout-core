@@ -23,9 +23,15 @@ export function CategoriasFiscaisManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [form, setForm] = useState({
+    codigo: "",
     nome_amigavel: "",
     ncm: "",
     descricao_oficial: "",
+    vigencia: "",
+    rec_pis: "0",
+    rec_cofins: "0",
+    natureza_receita: "0",
+    tipo_contribuicao: "Sem incidência",
     situacao: "ativo" as "ativo" | "inativo",
     unidade_comercial: "UN",
     unidade_tributavel: "UN"
@@ -54,9 +60,15 @@ export function CategoriasFiscaisManager() {
   const handleEdit = (cat: any) => {
     setEditing(cat);
     setForm({
+      codigo: cat.codigo || "",
       nome_amigavel: cat.nome_amigavel,
       ncm: cat.ncm,
       descricao_oficial: cat.descricao_oficial || "",
+      vigencia: cat.vigencia || "",
+      rec_pis: cat.rec_pis || "0",
+      rec_cofins: cat.rec_cofins || "0",
+      natureza_receita: cat.natureza_receita || "0",
+      tipo_contribuicao: cat.tipo_contribuicao || "Sem incidência",
       situacao: cat.situacao,
       unidade_comercial: cat.unidade_comercial || "UN",
       unidade_tributavel: cat.unidade_tributavel || "UN"
@@ -234,7 +246,8 @@ export function CategoriasFiscaisManager() {
 
   const filtered = categorias.filter(c => 
     c.nome_amigavel.toLowerCase().includes(busca.toLowerCase()) || 
-    c.ncm.includes(busca)
+    c.ncm.includes(busca) ||
+    (c.codigo && c.codigo.toLowerCase().includes(busca.toLowerCase()))
   );
 
   return (
@@ -255,7 +268,7 @@ export function CategoriasFiscaisManager() {
             )}
             {importando ? "Importando..." : "Importar Planilha NCM"}
          </Button>
-         <Button size="sm" onClick={() => { setEditing(null); setForm({ nome_amigavel: "", ncm: "", descricao_oficial: "", situacao: "ativo", unidade_comercial: "UN", unidade_tributavel: "UN" }); setModalAberto(true); }}>
+         <Button size="sm" onClick={() => { setEditing(null); setForm({ codigo: "", nome_amigavel: "", ncm: "", descricao_oficial: "", vigencia: "", rec_pis: "0", rec_cofins: "0", natureza_receita: "0", tipo_contribuicao: "Sem incidência", situacao: "ativo", unidade_comercial: "UN", unidade_tributavel: "UN" }); setModalAberto(true); }}>
             <Plus className="h-4 w-4 mr-2" /> Nova Categoria
          </Button>
       </div>
@@ -286,29 +299,37 @@ export function CategoriasFiscaisManager() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome Amigável</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Descrição Stella</TableHead>
                   <TableHead>NCM</TableHead>
-                   <TableHead>Descrição Oficial</TableHead>
-                  <TableHead>UN (Com/Trib)</TableHead>
+                  <TableHead>Vigência</TableHead>
+                  <TableHead>PIS/COFINS</TableHead>
+                  <TableHead>Nat. Rec.</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {carregando ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma categoria encontrada.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Nenhuma categoria encontrada.</TableCell></TableRow>
                 ) : (
                   filtered.map(c => (
                     <TableRow key={c.id} className={c.situacao === 'inativo' ? 'opacity-50' : ''}>
-                      <TableCell className="font-medium">{c.nome_amigavel}</TableCell>
+                      <TableCell className="font-mono text-xs">{c.codigo || "-"}</TableCell>
+                      <TableCell className="font-medium max-w-[200px] truncate" title={c.nome_amigavel}>
+                        {c.nome_amigavel}
+                      </TableCell>
                       <TableCell><code className="bg-muted px-1.5 py-0.5 rounded text-xs">{c.ncm}</code></TableCell>
-                      <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground" title={c.descricao_oficial}>
-                        {c.descricao_oficial || "-"}
+                      <TableCell className="text-xs text-muted-foreground">
+                        {c.vigencia ? new Date(c.vigencia).toLocaleDateString('pt-BR') : "-"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {c.unidade_comercial} / {c.unidade_tributavel}
+                        {c.rec_pis || "0"} / {c.rec_cofins || "0"}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {c.natureza_receita || "0"}
                       </TableCell>
                       <TableCell>
                         <Badge variant={c.situacao === 'ativo' ? 'outline' : 'secondary'} className={c.situacao === 'ativo' ? 'bg-emerald-50 text-emerald-700' : ''}>
@@ -341,18 +362,44 @@ export function CategoriasFiscaisManager() {
               <DialogTitle>{editing ? "Editar Categoria" : "Nova Categoria Fiscal"}</DialogTitle>
               <DialogDescription>Preencha os dados da categoria para emissão de nota.</DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="codigo">Código *</Label>
+                  <Input id="codigo" placeholder="Ex: 402022" value={form.codigo} onChange={e => setForm({...form, codigo: e.target.value})} required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="ncm">NCM (8 dígitos) *</Label>
+                  <Input id="ncm" placeholder="61091000" value={form.ncm} onChange={e => setForm({...form, ncm: e.target.value})} required />
+                </div>
+              </div>
               <div className="grid gap-2">
-                <Label htmlFor="nome">Nome Amigável Stella *</Label>
+                <Label htmlFor="nome">Descrição Stella *</Label>
                 <Input id="nome" placeholder="Ex: Camiseta de Algodão" value={form.nome_amigavel} onChange={e => setForm({...form, nome_amigavel: e.target.value})} required />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="ncm">NCM Oficial (8 dígitos) *</Label>
-                <Input id="ncm" placeholder="61091000" value={form.ncm} onChange={e => setForm({...form, ncm: e.target.value})} required />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="vigencia">Vigência</Label>
+                  <Input id="vigencia" type="date" value={form.vigencia} onChange={e => setForm({...form, vigencia: e.target.value})} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="tipo_cont">Tipo Contribuição</Label>
+                  <Input id="tipo_cont" value={form.tipo_contribuicao} onChange={e => setForm({...form, tipo_contribuicao: e.target.value})} />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="desc">Descrição Oficial da Receita (Opcional)</Label>
-               <Input id="desc" value={form.descricao_oficial} onChange={e => setForm({...form, descricao_oficial: e.target.value})} />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="rec_pis">Rec. PIS</Label>
+                  <Input id="rec_pis" value={form.rec_pis} onChange={e => setForm({...form, rec_pis: e.target.value})} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="rec_cof">Rec. COFINS</Label>
+                  <Input id="rec_cof" value={form.rec_cofins} onChange={e => setForm({...form, rec_cofins: e.target.value})} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="nat_rec">Nat. Receita</Label>
+                  <Input id="nat_rec" value={form.natureza_receita} onChange={e => setForm({...form, natureza_receita: e.target.value})} />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -363,6 +410,10 @@ export function CategoriasFiscaisManager() {
                   <Label htmlFor="un_trib">Un. Tributável</Label>
                   <Input id="un_trib" value={form.unidade_tributavel} onChange={e => setForm({...form, unidade_tributavel: e.target.value})} />
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="desc">Descrição Oficial (Opcional)</Label>
+                <Input id="desc" value={form.descricao_oficial} onChange={e => setForm({...form, descricao_oficial: e.target.value})} />
               </div>
             </div>
             <DialogFooter>
