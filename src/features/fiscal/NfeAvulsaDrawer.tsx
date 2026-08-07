@@ -82,7 +82,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
       ncm: p?.ncm || config.tributacao.ncm,
-      classificacaoFiscalId: p?.classificacaoFiscalId
+      classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId
     };
     setItens([...itens, novo]);
   };
@@ -93,8 +93,54 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     setItens(itens.map(it => it.id === id ? { ...it, [campo]: valor } : it));
   };
 
+  const validarDestinatario = () => {
+    if (!destinatario) return "Selecione um destinatário.";
+    
+    const doc = (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "";
+    if (doc.replace(/\D/g, "").length < 11) return "O destinatário não possui CPF/CNPJ válido cadastrado.";
+    
+    if (!destinatario.nome || destinatario.nome.trim().length < 2) return "O nome do destinatário é obrigatório.";
+    if (!destinatario.cidade) return "O município do destinatário é obrigatório.";
+    if (!destinatario.estado) return "A UF do destinatário é obrigatória.";
+    if (!destinatario.cep) return "O CEP do destinatário é obrigatório.";
+    if (!destinatario.endereco) return "O logradouro (endereço) do destinatário é obrigatório.";
+    
+    return null;
+  };
+
+  const validarItens = () => {
+    if (itens.length === 0) return "Adicione ao menos um item à nota.";
+    for (const it of itens) {
+      if (!it.descricao || it.descricao.trim().length < 2) return `Item com descrição inválida.`;
+      if (!(it.quantidade > 0)) return `A quantidade do item "${it.descricao}" deve ser maior que zero.`;
+      if (!(it.valorUnitario >= 0)) return `O valor do item "${it.descricao}" não pode ser negativo.`;
+      if (!it.ncm || it.ncm.replace(/\D/g, "").length !== 8) {
+        return `O produto "${it.descricao}" não possui uma classificação fiscal (NCM) válida de 8 dígitos.`;
+      }
+    }
+    return null;
+  };
+
   const handleEmitir = async () => {
-    if (!destinatario || itens.length === 0) return;
+    const erroDest = validarDestinatario();
+    if (erroDest) {
+      toast.error(erroDest);
+      setEtapa(1);
+      return;
+    }
+
+    const erroItens = validarItens();
+    if (erroItens) {
+      toast.error(erroItens);
+      setEtapa(2);
+      return;
+    }
+
+    if (total <= 0) {
+      toast.error("O total da nota deve ser maior que zero.");
+      setEtapa(3);
+      return;
+    }
     
     setEmitindo(true);
     try {
@@ -102,20 +148,20 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         id: novoId(),
         destinatario: {
           nome: getClienteNome(destinatario),
-          documento: destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf,
-          email: destinatario.email,
-          cep: destinatario.cep,
-          logradouro: destinatario.endereco,
-          numero: destinatario.numero,
-          bairro: destinatario.bairro,
-          cidade: destinatario.cidade,
-          estado: destinatario.estado,
+          documento: (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "",
+          email: destinatario.email || undefined,
+          cep: destinatario.cep || undefined,
+          logradouro: destinatario.endereco || undefined,
+          numero: destinatario.numero || undefined,
+          bairro: destinatario.bairro || undefined,
+          cidade: destinatario.cidade || undefined,
+          estado: destinatario.estado || undefined,
         },
         itens: itens.map(it => ({
           id: it.id,
           descricao: it.descricao,
           quantidade: it.quantidade,
-          unidade: it.unidade,
+          unidade: it.unidade || "UN",
           valorUnitario: it.valorUnitario,
           desconto: 0,
           ncm: it.ncm,
@@ -144,8 +190,9 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       } else {
         toast.error(res.mensagem || "Erro ao emitir NF-e");
       }
-    } catch (err) {
-      toast.error("Erro inesperado ao emitir NF-e");
+    } catch (err: any) {
+      const msg = err?.message || "Erro inesperado ao emitir NF-e";
+      toast.error(msg);
     } finally {
       setEmitindo(false);
     }
@@ -389,28 +436,66 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] text-primary"
+                      onClick={() => setEtapa(1)}
+                    >
+                      Corrigir dados
+                    </Button>
+                  </div>
                   <div className="border rounded-xl p-4 bg-surface space-y-2">
                     <p className="font-semibold text-sm">{getClienteNome(destinatario)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Documento: {destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf}
+                      Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {destinatario.endereco}, {destinatario.numero} - {destinatario.bairro}
+                      {destinatario.endereco || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {destinatario.cidade}/{destinatario.estado} - {destinatario.cep}
+                      {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] text-primary"
+                      onClick={() => setEtapa(2)}
+                    >
+                      Corrigir itens
+                    </Button>
+                  </div>
                   <div className="border rounded-xl p-4 bg-surface space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Itens</span>
                       <span>{itens.length} produtos</span>
                     </div>
+                    <details className="group">
+                      <summary className="flex justify-between text-xs cursor-pointer hover:text-primary transition-colors py-1 list-none">
+                        <span className="text-muted-foreground">Dados fiscais detalhados</span>
+                        <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="pt-2 space-y-2 border-t mt-1">
+                        {itens.map((it, idx) => (
+                          <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
+                            <p className="font-medium truncate">{it.descricao}</p>
+                            <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
+                              <span>NCM: {it.ncm || config.tributacao.ncm}</span>
+                              <span>CFOP: {destinatario.estado === config.empresa.estado ? config.tributacao.cfopInterno : config.tributacao.cfopInterestadual}</span>
+                              <span>CST/CSOSN: {config.tributacao.csosn || config.tributacao.icmsCst}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Ambiente</span>
                       <span className="font-semibold text-primary uppercase">{config.ambiente}</span>
