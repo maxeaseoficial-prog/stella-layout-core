@@ -35,13 +35,6 @@ function DashboardPage() {
 
   if (papel === "caixa") {
     const hoje = new Date().toISOString().split("T")[0];
-    const faturamentoHoje = (totais as any).movimentacoes
-      ? (totais as any).movimentacoes
-          .filter((m: any) => m.data === hoje && m.tipo === "entrada" && m.status !== "cancelada")
-          .reduce((acc: number, m: any) => acc + m.valor, 0)
-      : 0;
-
-    // Se useCaixa não expõe as movimentações nos totais, pegamos do hook principal
     const { movimentacoes } = useCaixa();
     const faturamentoReal = movimentacoes
       .filter((m) => m.data === hoje && m.tipo === "entrada" && m.status !== "cancelada")
