@@ -7,12 +7,14 @@ import {
   ShieldAlert,
   ArrowRight,
   Settings,
-  History
+  History,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { usePedidos } from "@/features/pedidos/usePedidos";
 import { useFiscalConfig } from "./useFiscalConfig";
+import { useNfeAvulsas } from "./useNfeAvulsas";
 import { formatarMoeda } from "@/features/pedidos/utils";
 
 interface Props {
@@ -21,6 +23,7 @@ interface Props {
 
 export function FiscalDashboard({ onNavegar }: Props) {
   const { pedidos } = usePedidos();
+  const { notas: avulsas } = useNfeAvulsas();
   const { config } = useFiscalConfig();
 
   const stats = useMemo(() => {
@@ -30,6 +33,11 @@ export function FiscalDashboard({ onNavegar }: Props) {
 
     const pedidosMes = pedidos.filter(p => {
       const data = new Date(p.criadoEm);
+      return data.getMonth() === esteMes && data.getFullYear() === esteAno;
+    });
+
+    const avulsasMes = avulsas.filter(n => {
+      const data = new Date(n.criadaEm);
       return data.getMonth() === esteMes && data.getFullYear() === esteAno;
     });
 
@@ -44,21 +52,25 @@ export function FiscalDashboard({ onNavegar }: Props) {
       return ['finalizado', 'entregue'].includes(p.statusProducao);
     });
 
-    const emitidasMes = pedidosMes.filter(p => p.notaFiscal?.status === 'authorized');
-    const faturamentoMes = emitidasMes.reduce((acc, p) => acc + (p.notaFiscal?.valor ?? p.total), 0);
-    const rejeitadas = pedidosMes.filter(p => p.notaFiscal?.status === 'rejected');
+    const emitidasPedidosMes = pedidosMes.filter(p => p.notaFiscal?.status === 'authorized');
+    const emitidasAvulsasMes = avulsasMes.filter(n => n.notaFiscal?.status === 'authorized');
     
-    // Simulação de erro de configuração (itens sem NCM snapshot)
+    const faturamentoPedidos = emitidasPedidosMes.reduce((acc, p) => acc + (p.notaFiscal?.valor ?? p.total), 0);
+    const faturamentoAvulsas = emitidasAvulsasMes.reduce((acc, n) => acc + (n.notaFiscal?.valor ?? n.total), 0);
+
+    const rejeitadasPedidos = pedidosMes.filter(p => p.notaFiscal?.status === 'rejected');
+    const rejeitadasAvulsas = avulsasMes.filter(n => n.notaFiscal?.status === 'rejected');
+    
     const errosConfig = aguardando.filter(p => p.itens.some(it => !it.ncm)).length;
 
     return {
       aguardando: aguardando.length,
-      emitidas: emitidasMes.length,
-      faturamento: faturamentoMes,
-      rejeitadas: rejeitadas.length,
+      emitidas: emitidasPedidosMes.length + emitidasAvulsasMes.length,
+      faturamento: faturamentoPedidos + faturamentoAvulsas,
+      rejeitadas: rejeitadasPedidos.length + rejeitadasAvulsas.length,
       errosConfig
     };
-  }, [pedidos, config.liberacaoPedido]);
+  }, [pedidos, avulsas, config.liberacaoPedido]);
 
   return (
     <div className="space-y-6">
@@ -111,6 +123,9 @@ export function FiscalDashboard({ onNavegar }: Props) {
             </Button>
             <Button variant="outline" className="justify-start gap-2" onClick={() => onNavegar('categorias')}>
               <Settings className="h-4 w-4" /> Configurar categorias
+            </Button>
+            <Button variant="outline" className="justify-start gap-2" onClick={() => onNavegar('avulsas')}>
+              <FileText className="h-4 w-4" /> Notas avulsas
             </Button>
             <Button variant="outline" className="justify-start gap-2" onClick={() => onNavegar('todas')}>
               <History className="h-4 w-4" /> Abrir histórico
