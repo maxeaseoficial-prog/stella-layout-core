@@ -82,7 +82,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
       ncm: p?.ncm || config.tributacao.ncm,
-      classificacaoFiscalId: p?.classificacaoFiscalId
+      classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId
     };
     setItens([...itens, novo]);
   };
