@@ -201,7 +201,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                 key={item.id}
                 className="space-y-2 rounded-xl border border-border bg-surface-muted/40 p-3"
               >
-                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_100px_80px_110px_120px_auto]">
+                <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_120px_100px_110px_120px_auto]">
                   <button
                     type="button"
                     onClick={() => setSelecionandoPara(item.id)}
@@ -250,15 +250,6 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                       )}
                     </SelectContent>
                   </Select>
-                  <Input
-                    value={item.ncm ?? ""}
-                    onChange={(e) => {
-                      atualizarItem(item.id, "ncm", e.target.value.replace(/\D/g, "").slice(0, 8));
-                    }}
-                    placeholder="NCM"
-                    className="font-mono text-xs"
-                    title="NCM do produto (snapshot fiscal)"
-                  />
                   <Input
 
                     value={rascunho.quantidadeStr}
