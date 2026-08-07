@@ -159,6 +159,15 @@ export function ClienteFormDrawer({
     }
     if (!form.telefone.trim()) e.telefone = "Informe o telefone / WhatsApp.";
     if (!form.dataCadastro) e.dataCadastro = "Informe a data de cadastro.";
+    
+    // Validações para NF-e
+    if (!form.cep.trim()) e.cep = "CEP é obrigatório para NF-e.";
+    if (!form.logradouro.trim()) e.logradouro = "Logradouro é obrigatório para NF-e.";
+    if (!form.bairro.trim()) e.bairro = "Bairro é obrigatório para NF-e.";
+    if (!form.cidade.trim()) e.cidade = "Cidade é obrigatória para NF-e.";
+    if (!form.estado.trim()) e.estado = "Estado (UF) é obrigatório para NF-e.";
+    if (!form.numero.trim()) e.numero = "Número é obrigatório para NF-e.";
+
     setErros(e);
     return Object.keys(e).length === 0;
   }
