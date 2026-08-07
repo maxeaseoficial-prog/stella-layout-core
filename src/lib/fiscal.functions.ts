@@ -9,11 +9,11 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+import { getClienteNome } from "@/features/clientes/types";
 import {
   apiKeyParaAmbiente,
   assertAdminFiscal,
   carregarClienteServer,
-  getClienteNome,
   carregarFiscalConfigServer,
   carregarPedidoServer,
   montarPayloadNfe,
