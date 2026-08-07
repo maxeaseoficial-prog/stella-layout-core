@@ -11,7 +11,7 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
     descricao_oficial: z.string().optional(),
     unidade_comercial: z.string().optional(),
     unidade_tributavel: z.string().optional(),
-    situacao: z.string().optional()
+    situacao: z.string().optional(),
   })).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
@@ -27,7 +27,7 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from('categorias_fiscais')
       .upsert(data.map(item => ({
-        ncm: item.ncm.replace(/[^0-9]/g, ''), 
+        ncm: item.ncm, 
         nome_amigavel: item.nome_amigavel || item.descricao_oficial?.slice(0, 50) || 'NCM ' + item.ncm,
         descricao_oficial: item.descricao_oficial,
         unidade_comercial: item.unidade_comercial || 'UN',
