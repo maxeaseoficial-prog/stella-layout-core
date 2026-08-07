@@ -283,14 +283,18 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <PopoverContent 
+                    className="w-[--radix-popover-trigger-width] p-0" 
+                    align="start"
+                    onWheel={(e) => e.stopPropagation()}
+                  >
                     <Command shouldFilter={false}>
                       <CommandInput 
                         placeholder="Pesquisar camiseta, moletom..." 
                         value={buscaFiscal}
                         onValueChange={setBuscaFiscal}
                       />
-                      <CommandList className="max-h-[320px] overflow-y-auto overflow-x-hidden scrollbar-thin">
+                      <CommandList className="max-h-[350px] overflow-y-auto overflow-x-hidden scrollbar-thin overscroll-contain">
                         <CommandEmpty>Nenhuma classificação encontrada.</CommandEmpty>
                         <CommandGroup>
                           {categoriasFiscais.map((cat) => (
