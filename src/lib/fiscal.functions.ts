@@ -13,6 +13,7 @@ import {
   apiKeyParaAmbiente,
   assertAdminFiscal,
   carregarClienteServer,
+  getClienteNome,
   carregarFiscalConfigServer,
   carregarPedidoServer,
   montarPayloadNfe,
