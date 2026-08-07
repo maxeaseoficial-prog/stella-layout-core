@@ -80,7 +80,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       descricao: p?.nome || "",
       quantidade: 1,
       unidade: p?.unidade || "UN",
-      valorUnitario: p?.preco || 0,
+      valorUnitario: p?.precoBase || 0,
       ncm: p?.ncm || config.tributacao.ncm,
       classificacaoFiscalId: p?.classificacaoFiscalId
     };
@@ -112,10 +112,12 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
           estado: destinatario.estado,
         },
         itens: itens.map(it => ({
+          id: it.id,
           descricao: it.descricao,
           quantidade: it.quantidade,
           unidade: it.unidade,
           valorUnitario: it.valorUnitario,
+          desconto: 0,
           ncm: it.ncm,
         })),
         subtotal,
@@ -126,7 +128,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         movimentarEstoque: valores.movimentarEstoque,
       };
 
-      const res = await emitirFn(payload);
+      const res = await emitirFn({ data: payload });
       
       if (res.ok) {
         criar({
@@ -224,7 +226,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                             {produtos.map(p => (
                               <CommandItem key={p.id} onSelect={() => adicionarItem(p)}>
                                 <span>{p.nome}</span>
-                                <span className="ml-auto text-xs text-muted-foreground">{formatarMoeda(p.preco)}</span>
+                                <span className="ml-auto text-xs text-muted-foreground">{formatarMoeda(p.precoBase)}</span>
                               </CommandItem>
                             ))}
                           </CommandGroup>
