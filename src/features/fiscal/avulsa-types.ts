@@ -24,6 +24,7 @@ export interface NfeAvulsa {
     logradouro?: string;
     numero?: string;
     bairro?: string;
+    complemento?: string;
     cidade?: string;
     estado?: string;
   };

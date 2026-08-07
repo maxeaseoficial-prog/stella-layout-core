@@ -337,7 +337,11 @@ export function montarPayloadNfe(
   if (doc) receiver.federalTaxNumber = doc;
   if (cliente?.cidade && cliente?.estado) {
     receiver.address = {
-      street: cliente.endereco || "",
+      street: cliente.logradouro || "",
+      number: cliente.numero || "",
+      district: cliente.bairro || "",
+      complement: cliente.complemento || "",
+      postalCode: apenasDigitos(cliente.cep),
       city: { name: cliente.cidade, state: cliente.estado.trim().toUpperCase() },
     };
   }
@@ -403,6 +407,7 @@ export function montarPayloadNfeAvulsa(
         street: avulsa.destinatario.logradouro || "",
         number: avulsa.destinatario.numero || "",
         district: avulsa.destinatario.bairro || "",
+        complement: avulsa.destinatario.complemento || "",
         postalCode: apenasDigitos(avulsa.destinatario.cep),
         city: {
           name: avulsa.destinatario.cidade || "",

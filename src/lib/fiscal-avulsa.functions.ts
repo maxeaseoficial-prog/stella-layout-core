@@ -23,6 +23,7 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
       logradouro: z.string().optional(),
       numero: z.string().optional(),
       bairro: z.string().optional(),
+      complemento: z.string().optional(),
       cidade: z.string().optional(),
       estado: z.string().optional(),
     }),

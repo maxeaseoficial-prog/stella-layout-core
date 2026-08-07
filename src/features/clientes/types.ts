@@ -18,7 +18,12 @@ interface ClienteBase {
   tipo: TipoCliente;
   telefone: string;
   email?: string;
-  endereco?: string;
+  // Endereço completo para NF-e
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  complemento?: string;
   cidade?: string;
   estado?: string;
   observacoes?: string;
@@ -28,7 +33,6 @@ interface ClienteBase {
   atualizadoEm: string; // ISO timestamp
   imagem?: string; // avatar/logo data url
   arquivos: ClienteArquivo[];
-  // Reservado para expansão futura (pedidos, orçamentos, notas, matrizes, logos, histórico)
 }
 
 export interface ClientePessoaFisica extends ClienteBase {
@@ -50,7 +54,11 @@ export type Cliente = ClientePessoaFisica | ClienteEmpresa;
 type BaseInput = {
   telefone: string;
   email?: string;
-  endereco?: string;
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  bairro?: string;
+  complemento?: string;
   cidade?: string;
   estado?: string;
   observacoes?: string;
