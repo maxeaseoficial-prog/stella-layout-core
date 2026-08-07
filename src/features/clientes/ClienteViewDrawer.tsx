@@ -109,8 +109,11 @@ export function ClienteViewDrawer({
                     icon={MapPin}
                     label="Endereço"
                     valor={[
-                      cliente.endereco,
+                      cliente.logradouro,
+                      cliente.numero,
+                      cliente.bairro,
                       [cliente.cidade, cliente.estado].filter(Boolean).join(" - "),
+                      cliente.cep ? `CEP: ${cliente.cep}` : null
                     ]
                       .filter(Boolean)
                       .join(" • ")}

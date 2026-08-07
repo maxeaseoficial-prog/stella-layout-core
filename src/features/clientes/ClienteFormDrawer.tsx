@@ -32,10 +32,6 @@ import { ClienteAvatar } from "./ClienteAvatar";
 import { ClienteFilesUploader } from "./ClienteFilesUploader";
 import {
   fileToDataUrl,
-  formatarCNPJ,
-  formatarCPF,
-  formatarTelefone,
-  getIniciais,
   hojeISO,
 } from "./utils";
 
@@ -63,7 +59,11 @@ interface FormState {
   // Comuns opcionais
   telefone: string;
   email: string;
-  endereco: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  bairro: string;
+  complemento: string;
   cidade: string;
   estado: string;
   observacoes: string;
@@ -85,7 +85,11 @@ function estadoInicial(cliente?: Cliente | null): FormState {
       inscricaoEstadual: "",
       telefone: "",
       email: "",
-      endereco: "",
+      cep: "",
+      logradouro: "",
+      numero: "",
+      bairro: "",
+      complemento: "",
       cidade: "",
       estado: "",
       observacoes: "",
@@ -106,12 +110,18 @@ function estadoInicial(cliente?: Cliente | null): FormState {
       cliente.tipo === "empresa" ? cliente.inscricaoEstadual ?? "" : "",
     telefone: cliente.telefone,
     email: cliente.email ?? "",
-    endereco: cliente.endereco ?? "",
+    cep: cliente.cep ?? "",
+    logradouro: cliente.logradouro ?? "",
+    numero: cliente.numero ?? "",
+    bairro: cliente.bairro ?? "",
+    complemento: cliente.complemento ?? "",
     cidade: cliente.cidade ?? "",
     estado: cliente.estado ?? "",
     observacoes: cliente.observacoes ?? "",
   };
 }
+
+import { formatarCEP, buscarCep, formatarCNPJ, formatarCPF, formatarTelefone, getIniciais, hojeISO } from "./utils";
 
 export function ClienteFormDrawer({
   aberto,
@@ -159,7 +169,11 @@ export function ClienteFormDrawer({
     const base = {
       telefone: form.telefone.trim(),
       email: form.email.trim() || undefined,
-      endereco: form.endereco.trim() || undefined,
+      cep: form.cep.trim() || undefined,
+      logradouro: form.logradouro.trim() || undefined,
+      numero: form.numero.trim() || undefined,
+      bairro: form.bairro.trim() || undefined,
+      complemento: form.complemento.trim() || undefined,
       cidade: form.cidade.trim() || undefined,
       estado: form.estado.trim() || undefined,
       observacoes: form.observacoes.trim() || undefined,
@@ -388,13 +402,37 @@ export function ClienteFormDrawer({
                     placeholder="cliente@email.com"
                   />
                 </Campo>
-                <Campo label="Endereço" className="sm:col-span-2">
+
+                <Campo label="CEP">
                   <Input
-                    value={form.endereco}
-                    onChange={(e) => up("endereco", e.target.value)}
-                    placeholder="Rua, número, bairro"
+                    value={form.cep}
+                    onChange={async (e) => {
+                      const v = formatarCEP(e.target.value);
+                      up("cep", v);
+                      if (v.length === 9) {
+                        const dados = await buscarCep(v);
+                        if (dados) {
+                          up("logradouro", dados.logradouro);
+                          up("bairro", dados.bairro);
+                          up("cidade", dados.cidade);
+                          up("estado", dados.estado);
+                        }
+                      }
+                    }}
+                    placeholder="00000-000"
+                    inputMode="numeric"
                   />
                 </Campo>
+
+                <Campo label="Estado">
+                  <Input
+                    value={form.estado}
+                    onChange={(e) => up("estado", e.target.value.toUpperCase().slice(0, 2))}
+                    placeholder="UF"
+                    maxLength={2}
+                  />
+                </Campo>
+
                 <Campo label="Cidade">
                   <Input
                     value={form.cidade}
@@ -402,12 +440,36 @@ export function ClienteFormDrawer({
                     placeholder="Ex.: São Paulo"
                   />
                 </Campo>
-                <Campo label="Estado">
+
+                <Campo label="Bairro">
                   <Input
-                    value={form.estado}
-                    onChange={(e) => up("estado", e.target.value.toUpperCase().slice(0, 2))}
-                    placeholder="UF"
-                    maxLength={2}
+                    value={form.bairro}
+                    onChange={(e) => up("bairro", e.target.value)}
+                    placeholder="Ex.: Centro"
+                  />
+                </Campo>
+
+                <Campo label="Logradouro" className="sm:col-span-2">
+                  <Input
+                    value={form.logradouro}
+                    onChange={(e) => up("logradouro", e.target.value)}
+                    placeholder="Rua, Avenida, etc."
+                  />
+                </Campo>
+
+                <Campo label="Número">
+                  <Input
+                    value={form.numero}
+                    onChange={(e) => up("numero", e.target.value)}
+                    placeholder="Ex.: 123"
+                  />
+                </Campo>
+
+                <Campo label="Complemento">
+                  <Input
+                    value={form.complemento}
+                    onChange={(e) => up("complemento", e.target.value)}
+                    placeholder="Opcional"
                   />
                 </Campo>
               </div>
