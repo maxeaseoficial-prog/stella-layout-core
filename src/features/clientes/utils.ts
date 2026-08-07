@@ -77,3 +77,29 @@ export function novoId(): string {
   }
   return `id-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
+
+export function formatarCEP(valor: string): string {
+  const d = valor.replace(/\D/g, "").slice(0, 8);
+  if (d.length <= 5) return d;
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
+
+export async function buscarCep(cep: string) {
+  const cleanCep = cep.replace(/\D/g, "");
+  if (cleanCep.length !== 8) return null;
+  
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+    const data = await res.json();
+    if (data.erro) return null;
+    return {
+      logradouro: data.logradouro,
+      bairro: data.bairro,
+      cidade: data.localidade,
+      estado: data.uf,
+    };
+  } catch (err) {
+    console.error("Erro ao buscar CEP:", err);
+    return null;
+  }
+}
