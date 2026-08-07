@@ -294,7 +294,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                         value={buscaFiscal}
                         onValueChange={setBuscaFiscal}
                       />
-                      <CommandList className="max-h-[320px] overflow-y-auto overflow-x-hidden scrollbar-thin">
+                      <CommandList className="max-h-[350px] overflow-y-auto overflow-x-hidden scrollbar-thin overscroll-contain">
                         <CommandEmpty>Nenhuma classificação encontrada.</CommandEmpty>
                         <CommandGroup>
                           {categoriasFiscais.map((cat) => (
