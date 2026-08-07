@@ -32,7 +32,6 @@ import { ClienteAvatar } from "./ClienteAvatar";
 import { ClienteFilesUploader } from "./ClienteFilesUploader";
 import {
   fileToDataUrl,
-  hojeISO,
 } from "./utils";
 
 interface ClienteFormDrawerProps {

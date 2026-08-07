@@ -154,6 +154,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
           logradouro: destinatario.logradouro || undefined,
           numero: destinatario.numero || undefined,
           bairro: destinatario.bairro || undefined,
+          complemento: destinatario.complemento || undefined,
           cidade: destinatario.cidade || undefined,
           estado: destinatario.estado || undefined,
         },
