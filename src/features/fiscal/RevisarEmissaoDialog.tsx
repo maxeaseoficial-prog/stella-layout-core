@@ -45,10 +45,12 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
 
     // Validar itens
     for (const it of pedido.itens) {
-      if (!it.ncm) {
-        erros.push(`Produto "${it.produto}" não possui NCM configurado.`);
+      const ncm = (it.ncm || config?.tributacao?.ncm || "").replace(/\D/g, "");
+      if (ncm.length !== 8) {
+        erros.push(`Produto "${it.produto}" não possui NCM válido de 8 dígitos.`);
       }
     }
+
 
     // Validar cliente (simplificado)
     if (!pedido.clienteId) {
@@ -152,25 +154,41 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
                 <Package className="h-4 w-4 text-primary" /> Itens e Classificação Fiscal
               </h4>
               <div className="grid gap-2">
-                {pedido.itens.map((it: any) => (
-                  <div key={it.id} className="rounded-md border border-border p-3 text-sm space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{it.produto}</p>
-                        <p className="text-[10px] text-muted-foreground">{it.quantidade} un. x {formatarMoeda(it.valorUnitario)}</p>
+                {pedido.itens.map((it: any) => {
+                  const ncmItem = (it.ncm || config?.tributacao?.ncm || "").replace(/\D/g, "");
+                  const isSimples = config?.tributacao?.regime === "simplesNacional";
+                  const cfop = (pedido.cliente?.estado !== config?.empresa?.estado) 
+                    ? config?.tributacao?.cfopInterestadual 
+                    : config?.tributacao?.cfopInterno;
+
+                  return (
+                    <div key={it.id} className="rounded-md border border-border p-3 text-sm space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{it.produto}</p>
+                          <p className="text-[10px] text-muted-foreground">{it.quantidade} un. x {formatarMoeda(it.valorUnitario)}</p>
+                        </div>
+                        <div className="text-right flex flex-col items-end gap-1">
+                          <p className="text-[10px] font-mono bg-muted px-2 py-0.5 rounded flex items-center gap-1">
+                            NCM: {ncmItem || <span className="text-red-500">Pendente</span>}
+                          </p>
+                          <div className="flex gap-1">
+                            <Badge variant="outline" className="text-[8px] h-4 py-0 px-1 font-mono">
+                              CFOP: {cfop}
+                            </Badge>
+                            <Badge variant="outline" className="text-[8px] h-4 py-0 px-1 font-mono">
+                              {isSimples ? `CSOSN: ${config?.tributacao?.csosn}` : `CST: ${config?.tributacao?.icmsCst}`}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-mono bg-muted px-2 py-0.5 rounded flex items-center gap-1">
-                          NCM: {it.ncm || <span className="text-red-500">Pendente</span>}
+                      
+                      {(it.ncm || it.descricaoFiscal) && (
+                        <p className="text-[10px] text-muted-foreground leading-tight italic">
+                          {it.descricaoFiscal || "Classificação Fiscal vinculada ao item"}
                         </p>
-                      </div>
-                    </div>
-                    
-                    {it.ncm && it.descricaoFiscal && (
-                      <p className="text-[10px] text-muted-foreground leading-tight italic">
-                        {it.descricaoFiscal}
-                      </p>
-                    )}
+                      )}
+
 
                     {it.adicionais && it.adicionais.length > 0 && (
                       <div className="pt-1 border-t border-dashed border-border mt-1">
@@ -183,8 +201,10 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
                         ))}
                       </div>
                     )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
+
               </div>
             </div>
 
