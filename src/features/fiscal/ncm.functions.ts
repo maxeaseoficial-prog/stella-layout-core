@@ -12,7 +12,6 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
     unidade_comercial: z.string().optional(),
     unidade_tributavel: z.string().optional(),
     situacao: z.string().optional(),
-    metadata: z.any().optional()
   })).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
@@ -35,7 +34,6 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
         unidade_tributavel: item.unidade_tributavel || 'UN',
         situacao: item.situacao || 'ativo',
         tenant_id: userData?.empresa_id,
-        metadata: item.metadata,
         atualizado_em: new Date().toISOString()
       })), { onConflict: 'ncm,tenant_id' });
 

@@ -180,15 +180,7 @@ export function CategoriasFiscaisManager() {
                 descricao_oficial: descricao,
                 unidade_comercial: "UN",
                 unidade_tributavel: "UN",
-                situacao: 'ativo',
-                // Metadados adicionais que podem ser úteis para o backend tratar vigência/unicidade
-                metadata: {
-                  codigo: String(codigo),
-                  vigencia,
-                  rec_pis: recPis,
-                  rec_cofins: recCofins,
-                  nat_receita: natReceita
-                }
+                situacao: 'ativo'
               });
             } catch (err: any) {
               rejectedRows.push({ index: index + 2, reason: err.message || "Erro desconhecido" });
