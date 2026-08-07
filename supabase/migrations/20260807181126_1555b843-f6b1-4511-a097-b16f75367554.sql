@@ -1,0 +1,1 @@
+GRANT ALL PRIVILEGES ON TABLE public.categorias_fiscais TO sandbox_exec;
