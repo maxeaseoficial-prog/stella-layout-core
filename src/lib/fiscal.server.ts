@@ -362,26 +362,31 @@ export function montarPayloadNfeAvulsa(
   config: FiscalConfig
 ): Record<string, unknown> {
   const t = config.tributacao;
-  const ufEmitente = config.empresa.estado.trim().toUpperCase();
-  const ufDestino = (avulsa.destinatario.estado ?? "").trim().toUpperCase();
+  const ufEmitente = (config.empresa.estado || "").trim().toUpperCase();
+  const ufDestino = (avulsa.destinatario.estado || "").trim().toUpperCase();
   const interestadual = !!ufDestino && !!ufEmitente && ufDestino !== ufEmitente;
   const destination = interestadual ? "interstate" : "internal";
   const cfop = interestadual ? t.cfopInterestadual : t.cfopInterno;
   const ncmPadrao = apenasDigitos(t.ncm);
   const taxes = montarImpostos(t);
 
-  const items = avulsa.itens.map((i: any) => ({
-    code: "AVULSO",
-    description: i.descricao,
-    ncm: apenasDigitos(i.ncm) || ncmPadrao,
-    cfop,
-    unit: i.unidade || "UN",
-    quantity: i.quantidade,
-    unitAmount: i.valorUnitario,
-    totalAmount: round2(i.quantidade * i.valorUnitario),
-    makeupTotal: true,
-    taxes: taxes(round2(i.quantidade * i.valorUnitario)),
-  }));
+  const items = avulsa.itens.map((i: any) => {
+    const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
+    const valorItemTotal = round2(i.quantidade * i.valorUnitario);
+    
+    return {
+      code: "AVULSO",
+      description: i.descricao,
+      ncm: ncmItem,
+      cfop,
+      unit: i.unidade || "UN",
+      quantity: i.quantidade,
+      unitAmount: i.valorUnitario,
+      totalAmount: valorItemTotal,
+      makeupTotal: true,
+      taxes: taxes(valorItemTotal),
+    };
+  });
 
   return {
     isFinalCustomer: true,

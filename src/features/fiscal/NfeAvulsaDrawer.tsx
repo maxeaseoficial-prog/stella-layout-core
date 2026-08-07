@@ -436,28 +436,66 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] text-primary"
+                      onClick={() => setEtapa(1)}
+                    >
+                      Corrigir dados
+                    </Button>
+                  </div>
                   <div className="border rounded-xl p-4 bg-surface space-y-2">
                     <p className="font-semibold text-sm">{getClienteNome(destinatario)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Documento: {destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf}
+                      Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {destinatario.endereco}, {destinatario.numero} - {destinatario.bairro}
+                      {destinatario.endereco || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {destinatario.cidade}/{destinatario.estado} - {destinatario.cep}
+                      {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 text-[10px] text-primary"
+                      onClick={() => setEtapa(2)}
+                    >
+                      Corrigir itens
+                    </Button>
+                  </div>
                   <div className="border rounded-xl p-4 bg-surface space-y-2">
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Itens</span>
                       <span>{itens.length} produtos</span>
                     </div>
+                    <details className="group">
+                      <summary className="flex justify-between text-xs cursor-pointer hover:text-primary transition-colors py-1 list-none">
+                        <span className="text-muted-foreground">Dados fiscais detalhados</span>
+                        <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="pt-2 space-y-2 border-t mt-1">
+                        {itens.map((it, idx) => (
+                          <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
+                            <p className="font-medium truncate">{it.descricao}</p>
+                            <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
+                              <span>NCM: {it.ncm || config.tributacao.ncm}</span>
+                              <span>CFOP: {destinatario.estado === config.empresa.estado ? config.tributacao.cfopInterno : config.tributacao.cfopInterestadual}</span>
+                              <span>CST/CSOSN: {config.tributacao.csosn || config.tributacao.icmsCst}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                     <div className="flex justify-between text-xs">
                       <span className="text-muted-foreground">Ambiente</span>
                       <span className="font-semibold text-primary uppercase">{config.ambiente}</span>
