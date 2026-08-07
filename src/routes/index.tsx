@@ -1,3 +1,7 @@
+export const Route = createFileRoute("/")({
+  component: DashboardPage,
+});
+
 import { createFileRoute } from "@tanstack/react-router";
 import {
   DollarSign,
@@ -20,10 +24,6 @@ import { formatarMoeda } from "@/features/caixa/utils";
 
 import { useAuth } from "@/features/auth/useAuth";
 import { MatrizDashboard } from "@/features/dashboard/MatrizDashboard";
-
-export const Route = createFileRoute("/")({
-  component: DashboardPage,
-});
 
 function DashboardPage() {
   const { papel } = useAuth();

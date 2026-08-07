@@ -110,8 +110,16 @@ export function CategoriasFiscaisManager() {
         try {
           const data = new Uint8Array(event.target?.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet) as any[];
+          
+          // Localizar aba PIS-COFINS ou usar a primeira
+          const sheetName = workbook.SheetNames.find(name => name.toUpperCase() === "PIS-COFINS") || workbook.SheetNames[0];
+          const firstSheet = workbook.Sheets[sheetName];
+          
+          // Opções para tratar datas e garantir leitura correta
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { 
+            defval: null,
+            raw: true
+          }) as any[];
 
           if (rows.length === 0) {
             toast.error("Planilha vazia.");
@@ -122,21 +130,79 @@ export function CategoriasFiscaisManager() {
 
           toast.loading(`Importando ${rows.length} registros...`, { id: toastId });
 
-          // Mapear colunas da planilha (tentar ser flexível com nomes de colunas)
-          const mappedData = rows.map(row => {
-            const codigo = String(row.codigo || row.NCM || row.ncm || row.Codigo || row.Ncm || "").replace(/\D/g, '');
-            const descricao = row.descricao || row.Descricao || row.Descrição || row.nome || row.Descricao_Oficial || "";
-            const nomeAmigavel = row.nome_amigavel || row.Categoria || row.Nome || row.nome || descricao.slice(0, 30) || `NCM ${codigo}`;
-            
-            return {
-              nome_amigavel: nomeAmigavel,
-              ncm: codigo,
-              descricao_oficial: descricao,
-              unidade_comercial: String(row.unidade_comercial || row.UN || row.Unidade || "UN"),
-              unidade_tributavel: String(row.unidade_tributavel || row.UNTRIB || row.UnidadeTrib || "UN"),
-              situacao: 'ativo'
-            };
-          }).filter(r => r.ncm.length >= 2);
+          // Função para converter serial de data do Excel para string ISO
+          const excelDateToISO = (serial: any) => {
+            if (!serial || isNaN(Number(serial))) return serial;
+            try {
+              const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
+              return date.toISOString().split('T')[0];
+            } catch (e) {
+              return serial;
+            }
+          };
+
+          const mappedData: any[] = [];
+          const rejectedRows: any[] = [];
+
+          rows.forEach((row, index) => {
+            try {
+              // Ignorar linhas totalmente vazias
+              const values = Object.values(row).filter(v => v !== null && v !== undefined && v !== "");
+              if (values.length === 0) return;
+
+              // Mapear cabeçalhos exatos e flexíveis
+              const ncmRaw = String(row.NCM || row.ncm || "").trim();
+              if (!ncmRaw) {
+                rejectedRows.push({ index: index + 2, reason: "NCM não encontrado" });
+                return;
+              }
+
+              // Tratar NCM como texto de 8 dígitos, preservando zeros à esquerda
+              const ncm = ncmRaw.replace(/\D/g, '').padStart(8, '0');
+              
+              // Tratar Código como texto
+              const codigo = row.Código || row.Codigo || row.codigo || "";
+              
+              // Descrição
+              const descricao = row.Descrição || row.Descricao || row.descricao || "";
+              
+              // Vigência (converter se for serial)
+              const vigencia = excelDateToISO(row.Vigência || row.Vigencia || row.vigencia);
+              
+              // Valores numéricos
+              const recPis = Number(row["Rec. PIS"] || row.rec_pis || 0);
+              const recCofins = Number(row["Rec. COFINS"] || row.rec_cofins || 0);
+              const natReceita = Number(row["Nat. Receita"] || row.nat_receita || 0);
+
+              mappedData.push({
+                ncm,
+                nome_amigavel: `${descricao.slice(0, 30)} (${ncm})`,
+                descricao_oficial: descricao,
+                unidade_comercial: "UN",
+                unidade_tributavel: "UN",
+                situacao: 'ativo',
+                // Metadados adicionais que podem ser úteis para o backend tratar vigência/unicidade
+                metadata: {
+                  codigo: String(codigo),
+                  vigencia,
+                  rec_pis: recPis,
+                  rec_cofins: recCofins,
+                  nat_receita: natReceita
+                }
+              });
+            } catch (err: any) {
+              rejectedRows.push({ index: index + 2, reason: err.message || "Erro desconhecido" });
+            }
+          });
+
+          if (mappedData.length === 0 && rejectedRows.length > 0) {
+            toast.error(`Nenhuma linha válida. ${rejectedRows.length} rejeitadas.`);
+            toast.dismiss(toastId);
+            setImportando(false);
+            return;
+          }
+
+          toast.loading(`Importando ${mappedData.length} registros...`, { id: toastId });
 
           const chunkSize = 100;
           let importadosCount = 0;
@@ -147,7 +213,13 @@ export function CategoriasFiscaisManager() {
             importadosCount += chunk.length;
           }
           
-          toast.success(`${importadosCount} NCMs importados e atualizados!`, { id: toastId });
+          let feedbackMsg = `${importadosCount} registros importados com sucesso!`;
+          if (rejectedRows.length > 0) {
+            feedbackMsg += ` (${rejectedRows.length} linhas ignoradas/erro)`;
+            console.log("Linhas rejeitadas:", rejectedRows);
+          }
+
+          toast.success(feedbackMsg, { id: toastId, duration: 5000 });
           carregar();
         } catch (err) {
           console.error(err);
