@@ -16,7 +16,6 @@ import {
   carregarFiscalConfigServer,
   carregarPedidoServer,
   montarPayloadNfe,
-  montarPayloadNfeAvulsa,
   notaFiscalDeResposta,
   spedyFetch,
   validarConfigFiscal,

@@ -88,9 +88,6 @@ export function apiKeyParaAmbiente(
   config: FiscalConfig,
   ambiente: AmbienteSpedy,
 ): string {
-  // A Spedy emite uma única chave por conta. Ela fica salva como segredo
-  // de servidor (SPEDY_API_KEY) e nunca aparece no código nem no banco.
-  // Fallback: chaves legadas salvas na configuração fiscal.
   const envKey = process.env["SPEDY_API_KEY"]?.trim();
   if (envKey) return envKey;
   return (ambiente === "sandbox" ? config.apiKeySandbox : config.apiKeyProducao).trim();
@@ -180,7 +177,7 @@ export async function spedyFetch(
 }
 
 // ---------------------------------------------------------------------------
-// Montagem do payload da NF-e (modo completo /v1/product-invoices)
+// Montagem do payload da NF-e
 // ---------------------------------------------------------------------------
 
 const MAPA_PAGAMENTO_SPEDY: Record<FormaPagamentoPedido, string> = {
@@ -195,15 +192,12 @@ const MAPA_PAGAMENTO_SPEDY: Record<FormaPagamentoPedido, string> = {
 function montarImpostos(t: TributacaoPadrao) {
   return (base: number) => {
     if (t.regime === "simplesNacional") {
-      // Exemplo A da documentação: CSOSN 400 + PIS/COFINS CST 07.
       return {
         icms: { origin: 0, csosn: t.csosn },
         pis: { cst: t.pisCst },
         cofins: { cst: t.cofinsCst },
       };
     }
-    // Exemplo B da documentação: CST 00 + alíquotas; valores calculados
-    // são enviados explicitamente (a doc permite informar rate ou valor).
     return {
       icms: {
         origin: 0,
@@ -230,16 +224,6 @@ function montarImpostos(t: TributacaoPadrao) {
   };
 }
 
-interface ItemBruto {
-  id: string; // ID original do item para correlação
-  code: string;
-  description: string;
-  quantity: number;
-  unitAmount: number;
-  totalAmount: number;
-  ncm?: string;
-}
-
 export function montarPayloadNfe(
   pedido: Pedido,
   cliente: Cliente | null,
@@ -252,24 +236,17 @@ export function montarPayloadNfe(
   const destination = interestadual ? "interstate" : "internal";
   const cfop = interestadual ? t.cfopInterestadual : t.cfopInterno;
 
-  // 1) Itens "brutos": produtos + adicionais já orçados.
-  // Conforme requisito 8, cada produto e seus adicionais geram itens individuais na NF-e.
-  const brutos: ItemBruto[] = [];
+  const brutos: any[] = [];
   for (const it of pedido.itens) {
-    // Produto base
     brutos.push({
       id: it.id,
       code: (it.produtoId ?? it.id).slice(0, 60),
-      description: it.tamanho
-        ? `${it.produto} (Tam: ${it.tamanho})`
-        : it.produto,
+      description: it.tamanho ? `${it.produto} (Tam: ${it.tamanho})` : it.produto,
       quantity: it.quantidade,
       unitAmount: it.valorUnitario,
       totalAmount: round2(it.quantidade * it.valorUnitario),
       ncm: it.ncm,
     });
-    
-    // Adicionais do item
     for (const a of it.adicionais ?? []) {
       if (a.pendencia) continue;
       const qtd = a.unico ? 1 : it.quantidade;
@@ -280,16 +257,11 @@ export function montarPayloadNfe(
         quantity: qtd,
         unitAmount: a.valor,
         totalAmount: round2(qtd * a.valor),
-        // Adicionais podem usar o NCM do produto pai se não tiverem um próprio
         ncm: it.ncm,
       });
     }
   }
 
-  // 2) A soma dos totalAmount precisa ser exatamente o total da nota.
-  //    Quando há desconto/frete no pedido, rateia a diferença
-  //    proporcionalmente ao valor de cada item (último item absorve o
-  //    arredondamento de centavos).
   const somaBruta = round2(brutos.reduce((s, i) => s + i.totalAmount, 0));
   const totalPedido = round2(pedido.total);
   let ajustados = brutos;
@@ -311,76 +283,43 @@ export function montarPayloadNfe(
   const ncmPadrao = apenasDigitos(t.ncm);
   const taxes = montarImpostos(t);
 
-  const items = ajustados.map((i) => {
-    // Busca o NCM no snapshot (armazenado em brutos) ou usa o padrão
-    const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
-
-    return {
-      code: i.code,
-      description: i.description,
-      ncm: ncmItem,
-      cfop,
-      unit: "UN",
-      quantity: i.quantity,
-      unitAmount: i.unitAmount,
-      totalAmount: i.totalAmount,
-      unitTax: "UN",
-      quantityTax: i.quantity,
-      unitTaxAmount: i.unitAmount,
-      makeupTotal: true,
-      taxes: taxes(i.totalAmount),
-    };
-  });
+  const items = ajustados.map((i) => ({
+    code: i.code,
+    description: i.description,
+    ncm: apenasDigitos(i.ncm) || ncmPadrao,
+    cfop,
+    unit: "UN",
+    quantity: i.quantity,
+    unitAmount: i.unitAmount,
+    totalAmount: i.totalAmount,
+    unitTax: "UN",
+    quantityTax: i.quantity,
+    unitTaxAmount: i.unitAmount,
+    makeupTotal: true,
+    taxes: taxes(i.totalAmount),
+  }));
 
   const total: Record<string, number> = {
     invoiceAmount: totalPedido,
     productAmount: totalPedido,
   };
-  if (t.regime === "regimeNormal") {
-    total.icmsBaseTax = totalPedido;
-    total.icmsAmount = round2(items.reduce((s, i) => s + (i.taxes.icms as { amount: number }).amount, 0));
-    total.pisAmount = round2(items.reduce((s, i) => s + (i.taxes.pis as { amount: number }).amount, 0));
-    total.cofinsAmount = round2(items.reduce((s, i) => s + (i.taxes.cofins as { amount: number }).amount, 0));
-  }
 
-  // Pagamentos: quando os recebimentos do pedido fecham o total, espelha as
-  // formas reais; caso contrário envia uma única entrada com o total da nota
-  // (a NF-e precisa do pagamento compatível com o valor total).
-  const somaPagamentos = round2(pedido.pagamentos.reduce((s, p) => s + p.valor, 0));
-  const payments =
-    pedido.pagamentos.length > 0 && Math.abs(somaPagamentos - totalPedido) < 0.01
-      ? pedido.pagamentos.map((p) => ({
-          method: MAPA_PAGAMENTO_SPEDY[p.forma] ?? "other",
-          amount: round2(p.valor),
-        }))
-      : [
-          {
-            method:
-              pedido.pagamentos.length > 0
-                ? (MAPA_PAGAMENTO_SPEDY[pedido.pagamentos[0].forma] ?? "other")
-                : "other",
-            amount: totalPedido,
-          },
-        ];
+  const payments = [
+    {
+      method: pedido.pagamentos.length > 0 ? (MAPA_PAGAMENTO_SPEDY[pedido.pagamentos[0].forma] ?? "other") : "other",
+      amount: totalPedido,
+    }
+  ];
 
-  // Destinatário: documento apenas números; cidade por nome + UF (a Spedy
-  // resolve o município). Campos ausentes são validados pela própria Spedy,
-  // que devolve a mensagem exata do erro.
   const receiver: Record<string, unknown> = {
     name: cliente ? getClienteNome(cliente) : "Consumidor Final",
   };
-  const doc = apenasDigitos(
-    cliente?.tipo === "empresa" ? cliente.cnpj : cliente?.cpf,
-  );
+  const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : cliente?.cpf);
   if (doc) receiver.federalTaxNumber = doc;
-  if (cliente?.email) receiver.email = cliente.email;
   if (cliente?.cidade && cliente?.estado) {
     receiver.address = {
-      ...(cliente.endereco ? { street: cliente.endereco } : {}),
-      city: {
-        name: cliente.cidade,
-        state: cliente.estado.trim().toUpperCase(),
-      },
+      street: cliente.endereco || "",
+      city: { name: cliente.cidade, state: cliente.estado.trim().toUpperCase() },
     };
   }
 
@@ -391,8 +330,6 @@ export function montarPayloadNfe(
     presenceType: "presence",
     operationNature: "Venda de Mercadoria",
     sendEmailToCustomer: false,
-    // Idempotência: retry/duplo clique atualiza a mesma nota em vez de
-    // criar outra; rejeitada é corrigida reenviando o mesmo integrationId.
     integrationId: pedido.id.slice(0, 36),
     receiver,
     items,
@@ -401,11 +338,63 @@ export function montarPayloadNfe(
   };
 }
 
-// ---------------------------------------------------------------------------
-// Conversão da resposta da Spedy para o registro persistido no pedido
-// ---------------------------------------------------------------------------
+export function montarPayloadNfeAvulsa(
+  avulsa: any,
+  config: FiscalConfig
+): Record<string, unknown> {
+  const t = config.tributacao;
+  const ufEmitente = config.empresa.estado.trim().toUpperCase();
+  const ufDestino = (avulsa.destinatario.estado ?? "").trim().toUpperCase();
+  const interestadual = !!ufDestino && !!ufEmitente && ufDestino !== ufEmitente;
+  const destination = interestadual ? "interstate" : "internal";
+  const cfop = interestadual ? t.cfopInterestadual : t.cfopInterno;
+  const ncmPadrao = apenasDigitos(t.ncm);
+  const taxes = montarImpostos(t);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const items = avulsa.itens.map((i: any) => ({
+    code: "AVULSO",
+    description: i.descricao,
+    ncm: apenasDigitos(i.ncm) || ncmPadrao,
+    cfop,
+    unit: i.unidade || "UN",
+    quantity: i.quantidade,
+    unitAmount: i.valorUnitario,
+    totalAmount: round2(i.quantidade * i.valorUnitario),
+    makeupTotal: true,
+    taxes: taxes(round2(i.quantidade * i.valorUnitario)),
+  }));
+
+  return {
+    isFinalCustomer: true,
+    operationType: "outgoing",
+    destination,
+    presenceType: "presence",
+    operationNature: "Venda de Mercadoria",
+    integrationId: avulsa.id.slice(0, 36),
+    receiver: {
+      name: avulsa.destinatario.nome,
+      federalTaxNumber: apenasDigitos(avulsa.destinatario.documento),
+      email: avulsa.destinatario.email,
+      address: {
+        street: avulsa.destinatario.logradouro || "",
+        number: avulsa.destinatario.numero || "",
+        district: avulsa.destinatario.bairro || "",
+        postalCode: apenasDigitos(avulsa.destinatario.cep),
+        city: {
+          name: avulsa.destinatario.cidade || "",
+          state: ufDestino
+        }
+      }
+    },
+    items,
+    payments: [{ method: "other", amount: avulsa.total }],
+    total: {
+      invoiceAmount: avulsa.total,
+      productAmount: avulsa.total
+    }
+  };
+}
+
 export function notaFiscalDeResposta(
   res: any,
   ambiente: AmbienteSpedy,
