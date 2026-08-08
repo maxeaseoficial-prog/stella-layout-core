@@ -50,11 +50,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     
     // Diagnostic logs
     const authHeader = request?.headers?.get('authorization');
-    console.log("[Auth Middleware] Diagnostic:", {
-      hasRequest: !!request,
-      hasHeaders: !!request?.headers,
+    console.log("[Auth Middleware] Diagnostic Header:", {
       authHeaderExists: !!authHeader,
+      authHeaderLength: authHeader?.length,
       authHeaderPrefix: authHeader?.substring(0, 15) + "...",
+      userAgent: request?.headers?.get('user-agent'),
     });
 
     if (!request?.headers) {
