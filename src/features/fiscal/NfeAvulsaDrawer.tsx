@@ -621,3 +621,91 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     </Dialog>
   );
 }
+
+function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChange: (cat: any) => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+  const searchFn = useServerFn(searchCategoriasFiscais);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (query.length < 2) {
+        setResults([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await searchFn({ data: { query } });
+        setResults(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between h-8 text-xs font-normal px-2"
+        >
+          {value ? (
+            <span className="truncate max-w-[180px]">
+              {results.find(c => c.id === value)?.nome_amigavel || "Classificação Selecionada"}
+            </span>
+          ) : (
+            <span className="text-muted-foreground italic">Selecionar...</span>
+          )}
+          <Search className="ml-2 h-3 w-3 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Buscar por nome, NCM ou código..." 
+            value={query}
+            onValueChange={setQuery}
+          />
+          <CommandList>
+            {loading && <div className="p-4 text-center text-xs text-muted-foreground">Buscando...</div>}
+            {!loading && query.length >= 2 && results.length === 0 && (
+              <CommandEmpty>Nenhuma classificação encontrada.</CommandEmpty>
+            )}
+            <CommandGroup>
+              {results.map((cat) => (
+                <CommandItem
+                  key={cat.id}
+                  value={cat.id}
+                  onSelect={() => {
+                    onChange(cat);
+                    setOpen(false);
+                  }}
+                  className="text-xs"
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-3 w-3",
+                      value === cat.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span>{cat.nome_amigavel}</span>
+                    <span className="text-[10px] text-muted-foreground">NCM: {cat.ncm} | Cód: {cat.codigo}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
