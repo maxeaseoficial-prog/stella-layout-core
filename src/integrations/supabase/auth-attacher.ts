@@ -25,6 +25,12 @@ export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
 
       const token = session?.access_token
       
+      console.log("[Auth Attacher] RPC call starting:", {
+        fn: next.name,
+        hasToken: !!token,
+        tokenPrefix: token ? token.substring(0, 10) + "..." : "none"
+      });
+
       if (!token) {
         console.warn("[Auth Attacher] No session token found to attach to server function call.");
       }
