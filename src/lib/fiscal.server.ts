@@ -35,7 +35,7 @@ export function apenasDigitos(s?: string | null): string {
 export async function assertAdminFiscal(supabase: Supabase, userId: string) {
   if (!userId) {
     console.error("[Fiscal Server] assertAdminFiscal: No userId provided.");
-    throw new Error("Usuário não autenticado. (ERR: Usuário não autenticado.)");
+    throw new Error("AUTH_CONTEXT_MISSING_USER_ID");
   }
 
   const { data, error } = await supabase
