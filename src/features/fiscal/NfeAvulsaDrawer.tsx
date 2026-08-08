@@ -82,7 +82,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       quantidade: 1,
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
-      ncm: p?.ncm || config.tributacao.ncm || "",
+      ncm: p?.ncm || config.tributacao.ncm || "61091000",
       classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId || "",
       descricaoFiscal: (p as any)?.descricaoFiscal || ""
 
