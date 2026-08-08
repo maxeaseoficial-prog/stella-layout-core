@@ -46,33 +46,38 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     
     const request = getRequest();
     
+    if (!request?.headers) {
+      console.error("[Auth Middleware] No request headers available");
+      throw new Error('Unauthorized: No request headers available');
+    }
+
     // Diagnostic logs
-    const authHeader = request?.headers?.get('authorization');
+    const authHeader = request.headers.get('authorization');
     console.log("[Auth Middleware] Diagnostic Header:", {
       authHeaderExists: !!authHeader,
       authHeaderLength: authHeader?.length,
       authHeaderPrefix: authHeader?.substring(0, 15) + "...",
-      userAgent: request?.headers?.get('user-agent'),
+      userAgent: request.headers.get('user-agent'),
     });
 
-    if (!request?.headers) {
-      throw new Error('Unauthorized: No request headers available');
-    }
-
     if (!authHeader) {
+      console.error("[Auth Middleware] No authorization header provided");
       throw new Error('Unauthorized: No authorization header provided');
     }
 
     if (!authHeader.startsWith('Bearer ')) {
+      console.error("[Auth Middleware] Only Bearer tokens are supported");
       throw new Error('Unauthorized: Only Bearer tokens are supported');
     }
 
     const token = authHeader.replace('Bearer ', '');
     if (!token) {
+      console.error("[Auth Middleware] No token provided");
       throw new Error('Unauthorized: No token provided');
     }
 
     if (token.split('.').length !== 3) {
+      console.error("[Auth Middleware] Invalid token structure");
       throw new Error('Unauthorized: Invalid token');
     }
 
@@ -112,6 +117,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     }
 
     if (!claims?.sub) {
+      console.error("[Auth Middleware] No user ID found in token");
       throw new Error('Unauthorized: No user ID found in token');
     }
 
