@@ -24,6 +24,7 @@ import { formatarMoeda, novoId } from "@/features/pedidos/utils";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { emitirNfeAvulsa } from "@/lib/fiscal-avulsa.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { searchCategoriasFiscais } from "./ncm.functions";
 import { 
   Command, 
@@ -146,6 +147,22 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       return;
     }
     
+    console.log("[NfeAvulsaDrawer] Iniciando emissão. Verificando sessão Supabase...");
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("[NfeAvulsaDrawer] Diagnóstico Sessão:", {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      hasToken: !!session?.access_token,
+      expiresAt: session?.expires_at,
+      now: Math.floor(Date.now() / 1000)
+    });
+
+    if (!session) {
+      toast.error("Sessão não encontrada. Por favor, faça login novamente.");
+      setEmitindo(false);
+      return;
+    }
+
     setEmitindo(true);
     try {
       const payload = {
