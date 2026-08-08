@@ -70,6 +70,20 @@ export const searchNCM = createServerFn({ method: "GET" })
     return ncms;
   });
 
+export const getCategoriaFiscalPorId = createServerFn({ method: "GET" })
+  .middleware([supabaseAuthMiddleware])
+  .inputValidator((data) => z.object({ id: z.string() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: cat, error } = await context.supabase
+      .from('categorias_fiscais')
+      .select('*')
+      .eq('id', data.id)
+      .single();
+
+    if (error) return null;
+    return cat;
+  });
+
 export const searchCategoriasFiscais = createServerFn({ method: "GET" })
   .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
