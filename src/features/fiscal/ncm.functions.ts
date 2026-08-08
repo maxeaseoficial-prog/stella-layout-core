@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAuthMiddleware } from "@/lib/auth-middleware";
 import { assertAdminFiscal } from "@/lib/fiscal.server";
 
 export const importarPlanilhaNCM = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.array(z.object({
     codigo: z.string(),
     ncm: z.string(),
@@ -54,7 +54,7 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
   });
 
 export const searchNCM = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     // Normalizar a busca: se for número, tirar pontuação
@@ -71,7 +71,7 @@ export const searchNCM = createServerFn({ method: "GET" })
   });
 
 export const searchCategoriasFiscais = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: cats, error } = await context.supabase
@@ -86,7 +86,7 @@ export const searchCategoriasFiscais = createServerFn({ method: "GET" })
   });
 
 export const getCategoriasFiscais = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from('categorias_fiscais')
@@ -98,7 +98,7 @@ export const getCategoriasFiscais = createServerFn({ method: "GET" })
   });
 
 export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({
     id: z.string().optional(),
     codigo: z.string().optional(),
