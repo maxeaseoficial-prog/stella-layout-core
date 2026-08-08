@@ -82,9 +82,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       quantidade: 1,
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
-      ncm: p?.ncm || config.tributacao.ncm || "61091000",
+      ncm: p?.ncm || "",
       classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId || "",
-      descricaoFiscal: (p as any)?.descricaoFiscal || ""
+      descricaoFiscal: (p as any)?.descricaoFiscal || "",
+      categoriaFiscal: (p as any)?.categoriaFiscal || null,
 
     };
     setItens([...itens, novo]);
@@ -117,11 +118,15 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       if (!it.descricao || it.descricao.trim().length < 2) return `Item com descrição inválida.`;
       if (!(it.quantidade > 0)) return `A quantidade do item "${it.descricao}" deve ser maior que zero.`;
       if (!(it.valorUnitario >= 0)) return `O valor do item "${it.descricao}" não pode ser negativo.`;
+      
+      if (!it.classificacaoFiscalId) {
+        return `Selecione a classificação fiscal do item "${it.descricao}" antes de emitir a NF-e.`;
+      }
+
       const ncm = (it.ncm || "").replace(/\D/g, "");
       if (ncm.length !== 8) {
         return `O produto "${it.descricao}" não possui uma classificação fiscal (NCM) válida de 8 dígitos.`;
       }
-
     }
     return null;
   };
@@ -187,6 +192,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
           valorUnitario: it.valorUnitario,
           desconto: 0,
           ncm: it.ncm,
+          classificacaoFiscal: it.categoriaFiscal,
         })),
         subtotal,
         desconto: valores.desconto,
@@ -311,6 +317,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                   <thead className="bg-surface-muted border-b">
                     <tr>
                       <th className="px-4 py-3 text-left font-medium">Descrição</th>
+                      <th className="px-4 py-3 text-left font-medium w-64">Classificação Fiscal</th>
                       <th className="px-4 py-3 text-left font-medium w-24">Qtd</th>
                       <th className="px-4 py-3 text-left font-medium w-32">Valor Unit.</th>
                       <th className="px-4 py-3 text-left font-medium w-32">Total</th>
@@ -332,6 +339,16 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                             value={it.descricao} 
                             onChange={(e) => atualizarItem(it.id, 'descricao', e.target.value)}
                             className="h-8 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <ClassificacaoFiscalPicker 
+                            value={it.classificacaoFiscalId}
+                            onChange={(cat) => {
+                              atualizarItem(it.id, 'classificacaoFiscalId', cat?.id || "");
+                              atualizarItem(it.id, 'ncm', cat?.ncm || "");
+                              atualizarItem(it.id, 'categoriaFiscal', cat);
+                            }}
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -602,5 +619,93 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChange: (cat: any) => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+  const searchFn = useServerFn(searchCategoriasFiscais);
+
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (query.length < 2) {
+        setResults([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await searchFn({ data: { query } });
+        setResults(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between h-8 text-xs font-normal px-2"
+        >
+          {value ? (
+            <span className="truncate max-w-[180px]">
+              {results.find(c => c.id === value)?.nome_amigavel || "Classificação Selecionada"}
+            </span>
+          ) : (
+            <span className="text-muted-foreground italic">Selecionar...</span>
+          )}
+          <Search className="ml-2 h-3 w-3 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Buscar por nome, NCM ou código..." 
+            value={query}
+            onValueChange={setQuery}
+          />
+          <CommandList>
+            {loading && <div className="p-4 text-center text-xs text-muted-foreground">Buscando...</div>}
+            {!loading && query.length >= 2 && results.length === 0 && (
+              <CommandEmpty>Nenhuma classificação encontrada.</CommandEmpty>
+            )}
+            <CommandGroup>
+              {results.map((cat) => (
+                <CommandItem
+                  key={cat.id}
+                  value={cat.id}
+                  onSelect={() => {
+                    onChange(cat);
+                    setOpen(false);
+                  }}
+                  className="text-xs"
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-3 w-3",
+                      value === cat.id ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <div className="flex flex-col">
+                    <span>{cat.nome_amigavel}</span>
+                    <span className="text-[10px] text-muted-foreground">NCM: {cat.ncm} | Cód: {cat.codigo}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
