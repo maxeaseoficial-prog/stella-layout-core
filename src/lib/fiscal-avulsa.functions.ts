@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAuthMiddleware } from "./auth-middleware";
 import { 
   assertAdminFiscal, 
   carregarFiscalConfigServer, 
@@ -12,7 +12,7 @@ import {
 } from "./fiscal.server";
 
 export const emitirNfeAvulsa = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({
     id: z.string(),
     destinatario: z.object({
@@ -40,10 +40,18 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     outrasDespesas: z.number(),
   }).parse(data))
   .handler(async ({ data, context }) => {
-    console.log("[Fiscal Avulsa] Handler reached:", {
-      userId: context.userId,
-      hasSupabase: !!context.supabase,
+    console.log("[Fiscal Avulsa] HANDLER:", {
+      contextSupabaseExists: !!context.supabase,
+      contextUserId: context.userId,
     });
+
+    if (!context.supabase) {
+      throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
+    }
+    if (!context.userId) {
+      throw new Error("AUTH_CONTEXT_MISSING_USER_ID");
+    }
+
     await assertAdminFiscal(context.supabase, context.userId);
 
     const config = await carregarFiscalConfigServer(context.supabase);
