@@ -74,7 +74,25 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const subtotal = useMemo(() => itens.reduce((acc, it) => acc + (it.quantidade * it.valorUnitario), 0), [itens]);
   const total = useMemo(() => Math.max(0, subtotal - valores.desconto + valores.frete + valores.outrasDespesas), [subtotal, valores]);
 
-  const adicionarItem = (p?: any) => {
+  const getByIdFn = useServerFn(getCategoriaFiscalPorId);
+
+  const adicionarItem = async (p?: any) => {
+    let catFiscal = (p as any)?.categoriaFiscal || null;
+    let ncm = p?.ncm || "";
+    
+    // Se for um produto cadastrado com ID mas sem o objeto completo, tentar buscar
+    if (p?.categoriaFiscalId && !catFiscal) {
+      try {
+        const cat = await getByIdFn({ data: { id: p.categoriaFiscalId } });
+        if (cat) {
+          catFiscal = cat;
+          ncm = cat.ncm;
+        }
+      } catch (err) {
+        console.error("[NfeAvulsaDrawer] Erro ao buscar categoria fiscal do produto:", err);
+      }
+    }
+
     const novo = {
       id: novoId(),
       produtoId: p?.id,
@@ -82,11 +100,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       quantidade: 1,
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
-      ncm: p?.ncm || "",
+      ncm: ncm,
       categoriaFiscalId: p?.categoriaFiscalId || "",
       descricaoFiscal: (p as any)?.descricaoFiscal || "",
-      categoriaFiscal: (p as any)?.categoriaFiscal || null,
-
+      categoriaFiscal: catFiscal,
     };
     setItens([...itens, novo]);
   };
@@ -344,6 +361,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                         <td className="px-4 py-3">
                           <ClassificacaoFiscalPicker 
                             value={it.categoriaFiscalId}
+                            selectedObject={it.categoriaFiscal}
                             onChange={(cat) => {
                               atualizarItem(it.id, 'categoriaFiscalId', cat?.id || "");
                               atualizarItem(it.id, 'ncm', cat?.ncm || "");
@@ -622,15 +640,30 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   );
 }
 
-function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChange: (cat: any) => void }) {
+function ClassificacaoFiscalPicker({ 
+  value, 
+  selectedObject,
+  onChange 
+}: { 
+  value: string, 
+  selectedObject?: any,
+  onChange: (cat: any) => void 
+}) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<any>(selectedObject || null);
   
   const searchFn = useServerFn(searchCategoriasFiscais);
   const getByIdFn = useServerFn(getCategoriaFiscalPorId);
+
+  // Sincronizar com prop externo
+  useEffect(() => {
+    if (selectedObject) {
+      setSelectedCategory(selectedObject);
+    }
+  }, [selectedObject]);
 
   // Hidratar se tiver valor mas não tiver objeto selecionado ou se o valor mudou
   useEffect(() => {
@@ -644,7 +677,7 @@ function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChang
           .catch(err => console.error("[ClassificacaoFiscalPicker] Erro ao hidratar:", err))
           .finally(() => setLoading(false));
       }
-    } else {
+    } else if (!value) {
       setSelectedCategory(null);
     }
   }, [value, getByIdFn]);
