@@ -4,8 +4,6 @@ import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
-
-
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
 }
@@ -65,7 +63,6 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       throw new Error('Unauthorized: No authorization header provided');
     }
 
-
     if (!authHeader.startsWith('Bearer ')) {
       throw new Error('Unauthorized: Only Bearer tokens are supported');
     }
@@ -97,10 +94,11 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       }
     );
 
-    let claims = data?.claims;
+    let claims: any = null;
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     
-    if (error || !claims) {
-      console.warn("[Auth Middleware] getClaims failed, trying getUser to verify token:", error);
+    if (claimsError || !claimsData?.claims) {
+      console.warn("[Auth Middleware] getClaims failed, trying getUser to verify token:", claimsError);
       const { data: userData, error: userError } = await supabase.auth.getUser(token);
       
       if (userError || !userData?.user) {
@@ -108,19 +106,20 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         throw new Error('Unauthorized: Invalid token');
       }
       
-      // Construct minimal claims if getClaims failed but getUser succeeded
-      claims = { sub: userData.user.id } as any;
+      claims = { sub: userData.user.id };
+    } else {
+      claims = claimsData.claims;
     }
 
-    if (!data.claims.sub) {
+    if (!claims?.sub) {
       throw new Error('Unauthorized: No user ID found in token');
     }
 
     return next({
       context: {
         supabase,
-        userId: data.claims.sub,
-        claims: data.claims,
+        userId: claims.sub,
+        claims,
       },
     });
   },
