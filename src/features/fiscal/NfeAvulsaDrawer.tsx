@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { emitirNfeAvulsa } from "@/lib/fiscal-avulsa.functions";
 import { supabase } from "@/integrations/supabase/client";
-import { searchCategoriasFiscais } from "./ncm.functions";
+import { searchCategoriasFiscais, getCategoriaFiscalPorId } from "./ncm.functions";
 import { 
   Command, 
   CommandEmpty, 
@@ -83,7 +83,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
       ncm: p?.ncm || "",
-      classificacaoFiscalId: p?.classificacaoFiscalId || p?.categoriaFiscalId || "",
+      categoriaFiscalId: p?.categoriaFiscalId || "",
       descricaoFiscal: (p as any)?.descricaoFiscal || "",
       categoriaFiscal: (p as any)?.categoriaFiscal || null,
 
@@ -119,7 +119,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       if (!(it.quantidade > 0)) return `A quantidade do item "${it.descricao}" deve ser maior que zero.`;
       if (!(it.valorUnitario >= 0)) return `O valor do item "${it.descricao}" não pode ser negativo.`;
       
-      if (!it.classificacaoFiscalId) {
+      if (!it.categoriaFiscalId) {
         return `Selecione a classificação fiscal do item "${it.descricao}" antes de emitir a NF-e.`;
       }
 
@@ -343,9 +343,9 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                         </td>
                         <td className="px-4 py-3">
                           <ClassificacaoFiscalPicker 
-                            value={it.classificacaoFiscalId}
+                            value={it.categoriaFiscalId}
                             onChange={(cat) => {
-                              atualizarItem(it.id, 'classificacaoFiscalId', cat?.id || "");
+                              atualizarItem(it.id, 'categoriaFiscalId', cat?.id || "");
                               atualizarItem(it.id, 'ncm', cat?.ncm || "");
                               atualizarItem(it.id, 'categoriaFiscal', cat);
                             }}
@@ -627,7 +627,27 @@ function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChang
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  
   const searchFn = useServerFn(searchCategoriasFiscais);
+  const getByIdFn = useServerFn(getCategoriaFiscalPorId);
+
+  // Hidratar se tiver valor mas não tiver objeto selecionado ou se o valor mudou
+  useEffect(() => {
+    if (value) {
+      if (!selectedCategory || selectedCategory.id !== value) {
+        setLoading(true);
+        getByIdFn({ data: { id: value } })
+          .then(cat => {
+            if (cat) setSelectedCategory(cat);
+          })
+          .catch(err => console.error("[ClassificacaoFiscalPicker] Erro ao hidratar:", err))
+          .finally(() => setLoading(false));
+      }
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [value, getByIdFn]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -638,15 +658,15 @@ function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChang
       setLoading(true);
       try {
         const data = await searchFn({ data: { query } });
-        setResults(data);
+        setResults(data || []);
       } catch (err) {
-        console.error(err);
+        console.error("[ClassificacaoFiscalPicker] Erro na busca:", err);
       } finally {
         setLoading(false);
       }
     }, 300);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, searchFn]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -657,9 +677,9 @@ function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChang
           aria-expanded={open}
           className="w-full justify-between h-8 text-xs font-normal px-2"
         >
-          {value ? (
+          {selectedCategory ? (
             <span className="truncate max-w-[180px]">
-              {results.find(c => c.id === value)?.nome_amigavel || "Classificação Selecionada"}
+              {selectedCategory.nome_amigavel}
             </span>
           ) : (
             <span className="text-muted-foreground italic">Selecionar...</span>
@@ -685,6 +705,7 @@ function ClassificacaoFiscalPicker({ value, onChange }: { value: string, onChang
                   key={cat.id}
                   value={cat.id}
                   onSelect={() => {
+                    setSelectedCategory(cat);
                     onChange(cat);
                     setOpen(false);
                   }}
