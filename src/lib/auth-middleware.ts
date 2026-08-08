@@ -33,8 +33,10 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
       },
     });
   })
-  .server(async ({ next, request }) => {
-    const authHeader = request.headers.get("authorization");
+  .server(async ({ next }) => {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const request = getRequest();
+    const authHeader = request?.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
 
     console.log("[Supabase Auth Middleware] SERVER:", {
