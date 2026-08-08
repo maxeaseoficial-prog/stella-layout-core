@@ -25,6 +25,7 @@ export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
 
       const token = session?.access_token
       
+      // We log diagnostic info without revealing the full token
       console.log("[Auth Attacher] RPC call starting:", {
         fn: next.name,
         hasToken: !!token,
@@ -35,11 +36,15 @@ export const attachSupabaseAuth = createMiddleware({ type: 'function' }).client(
         console.warn("[Auth Attacher] No session token found to attach to server function call.");
       }
 
+      // IMPORTANT: TanStack React Start uses `headers` in the `next` call of a client middleware
+      // to propagate them to the server-side middleware and handler.
       return next({
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       })
     } catch (err) {
-      console.error("[Auth Attacher] Unexpected error:", err);
+      console.error("[Auth Attacher] Unexpected error in Auth Attacher:", err);
       return next();
     }
   },
