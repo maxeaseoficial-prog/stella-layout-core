@@ -64,8 +64,6 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
       throw new Error("AUTH_TOKEN_MISSING_TOKEN (AUTH-DEBUG-V5-01a2d8f1)");
     }
 
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       throw new Error("SUPABASE_ENV_MISSING");
