@@ -313,17 +313,17 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                     <p className="text-xs text-blue-800 dark:text-blue-300 font-medium">Ações Disponíveis</p>
                     <div className="grid grid-cols-2 gap-2">
                       <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
-                        <a href={`https://sandbox-api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
+                        <a href={`https://${notaSucesso.ambiente === 'sandbox' ? 'sandbox-' : ''}api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4" /> Visualizar DANFE
                         </a>
                       </Button>
                       <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
-                        <a href={`https://sandbox-api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${notaSucesso.numero}.pdf`}>
+                        <a href={`https://${notaSucesso.ambiente === 'sandbox' ? 'sandbox-' : ''}api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${notaSucesso.numero}.pdf`}>
                           <Download className="h-4 w-4" /> Baixar PDF
                         </a>
                       </Button>
                       <Button variant="outline" size="sm" className="bg-surface gap-2 col-span-2" asChild>
-                        <a href={`https://sandbox-api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${notaSucesso.numero}.xml`}>
+                        <a href={`https://${notaSucesso.ambiente === 'sandbox' ? 'sandbox-' : ''}api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${notaSucesso.numero}.xml`}>
                           <Download className="h-4 w-4" /> Baixar XML Autorizado
                         </a>
                       </Button>
