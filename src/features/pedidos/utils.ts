@@ -1,6 +1,6 @@
 import type { PendenciaAdicional } from "@/features/adicionais/types";
 
-import type {
+import {
   EtapaKanban,
   ItemAdicional,
   ItemPedido,

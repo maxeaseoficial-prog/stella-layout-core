@@ -16,7 +16,7 @@ import { usePedidos } from "@/features/pedidos/usePedidos";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { useNfeAvulsas } from "./useNfeAvulsas";
 import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
-import { StatusProducaoValues } from "@/features/pedidos/types";
+import { StatusProducaoValues, type StatusProducao } from "@/features/pedidos/types";
 
 interface Props {
   onNavegar: (aba: string) => void;
@@ -47,7 +47,7 @@ export function FiscalDashboard({ onNavegar }: Props) {
       if (p.statusFinanceiro === 'cancelado') return false;
       const statusLiberacao = config.liberacaoPedido || 'producao';
       
-      const statusElegiveisProducao = [
+      const statusElegiveisProducao: StatusProducao[] = [
         StatusProducaoValues.ORCAMENTO_APROVADO,
         StatusProducaoValues.PRODUCAO,
         StatusProducaoValues.BORDADO,
@@ -56,7 +56,7 @@ export function FiscalDashboard({ onNavegar }: Props) {
         StatusProducaoValues.ENTREGUE
       ];
 
-      const statusElegiveisFinalizado = [
+      const statusElegiveisFinalizado: StatusProducao[] = [
         StatusProducaoValues.FINALIZADO,
         StatusProducaoValues.ENTREGUE
       ];

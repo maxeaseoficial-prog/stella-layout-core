@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatarMoeda, formatarDataBR, totalItensPedido, corStatusProducao } from "@/features/pedidos/utils";
-import { LABEL_STATUS_PRODUCAO, StatusProducaoValues } from "@/features/pedidos/types";
+import { LABEL_STATUS_PRODUCAO, StatusProducaoValues, type StatusProducao } from "@/features/pedidos/types";
 import { RevisarEmissaoDialog } from "./RevisarEmissaoDialog";
 
 export function PedidosPendentesFiscal() {
@@ -38,7 +38,7 @@ export function PedidosPendentesFiscal() {
       const statusLiberacao = config.liberacaoPedido || 'producao';
       let apto = false;
       
-      const statusElegiveisProducao = [
+      const statusElegiveisProducao: StatusProducao[] = [
         StatusProducaoValues.ORCAMENTO_APROVADO,
         StatusProducaoValues.PRODUCAO,
         StatusProducaoValues.BORDADO,
@@ -47,7 +47,7 @@ export function PedidosPendentesFiscal() {
         StatusProducaoValues.ENTREGUE
       ];
 
-      const statusElegiveisFinalizado = [
+      const statusElegiveisFinalizado: StatusProducao[] = [
         StatusProducaoValues.FINALIZADO,
         StatusProducaoValues.ENTREGUE
       ];
