@@ -89,13 +89,27 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
       );
+      const nota = notaFiscalDeResposta(res, config.ambiente, pedido.id.slice(0, 36));
+      
+      // Persistência no banco
+      await persistirNfeNoBanco(
+        context.supabase,
+        nota,
+        "pedido",
+        payload,
+        cliente,
+        cliente?.id,
+        pedido.id
+      );
+
       return {
         ok: true as const,
-        nota: notaFiscalDeResposta(res, config.ambiente, pedido.id.slice(0, 36)),
+        nota,
       };
     } catch (e) {
       return { ok: false as const, mensagem: mensagemDe(e, "Falha ao emitir a NF-e.") };
     }
+
   });
 
 export const consultarNfePedido = createServerFn({ method: "POST" })

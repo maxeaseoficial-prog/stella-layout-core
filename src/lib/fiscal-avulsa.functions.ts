@@ -8,7 +8,8 @@ import {
   montarPayloadNfeAvulsa, 
   spedyFetch, 
   apiKeyParaAmbiente, 
-  notaFiscalDeResposta 
+  notaFiscalDeResposta,
+  persistirNfeNoBanco
 } from "./fiscal.server";
 
 export const emitirNfeAvulsa = createServerFn({ method: "POST" })
@@ -16,6 +17,7 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
     id: z.string(),
     destinatario: z.object({
+      id: z.string().optional(),
       nome: z.string(),
       documento: z.string(),
       email: z.string().optional(),
@@ -28,6 +30,7 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
       estado: z.string().optional(),
     }),
     itens: z.array(z.object({
+      id: z.string(),
       descricao: z.string(),
       quantidade: z.number(),
       unidade: z.string(),
@@ -40,26 +43,14 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     outrasDespesas: z.number(),
   }).parse(data))
   .handler(async ({ data, context }) => {
-    console.log("[NF-E BUILD] AUTH-V3", "557aee41");
-    console.log("[Fiscal Avulsa] HANDLER:", {
-      contextSupabaseExists: !!context.supabase,
-      contextUserId: context.userId,
-    });
-
-    if (!context.supabase) {
-      throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
-    }
-    if (!context.userId) {
-      throw new Error("AUTH_CONTEXT_MISSING_USER_ID");
-    }
+    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
+    if (!context.userId) throw new Error("AUTH_CONTEXT_MISSING_USER_ID");
 
     await assertAdminFiscal(context.supabase, context.userId);
 
     const config = await carregarFiscalConfigServer(context.supabase);
     const erroConfig = validarConfigFiscal(config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
-
-    console.log("[Fiscal] Payload Destinatário:", JSON.stringify(data.destinatario, null, 2));
 
     const payload = montarPayloadNfeAvulsa(data, config);
     try {
@@ -69,11 +60,53 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
       );
-      return {
-        ok: true as const,
-        nota: notaFiscalDeResposta(res, config.ambiente, data.id.slice(0, 36)),
-      };
+      
+      const nota = notaFiscalDeResposta(res, config.ambiente, data.id.slice(0, 36));
+      
+      // Persistência imediata
+      await persistirNfeNoBanco(
+        context.supabase,
+        nota,
+        "avulsa",
+        payload,
+        data.destinatario,
+        data.destinatario.id,
+        null
+      );
+
+      return { ok: true as const, nota };
     } catch (e) {
       return { ok: false as const, mensagem: e instanceof Error ? e.message : "Falha ao emitir a NF-e Avulsa." };
+    }
+  });
+
+export const consultarStatusNfe = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .inputValidator((data) => z.object({ spedyId: z.string(), ambiente: z.enum(["sandbox", "producao"]) }).parse(data))
+  .handler(async ({ data, context }) => {
+    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
+    await assertAdminFiscal(context.supabase, context.userId);
+    
+    const config = await carregarFiscalConfigServer(context.supabase);
+    const apiKey = apiKeyParaAmbiente(config, data.ambiente);
+    
+    try {
+      const res = await spedyFetch(apiKey, data.ambiente, `/product-invoices/${data.spedyId}`);
+      const nota = notaFiscalDeResposta(res, data.ambiente, res.integrationId || "");
+      
+      // Atualiza persistência
+      await persistirNfeNoBanco(
+        context.supabase,
+        nota,
+        "avulsa", // Simplificação, persistirNfeNoBanco lida com upsert por spedy_id
+        null,
+        null,
+        null,
+        null
+      );
+      
+      return { ok: true as const, nota };
+    } catch (e) {
+      return { ok: false as const, mensagem: e instanceof Error ? e.message : "Falha ao consultar status." };
     }
   });
