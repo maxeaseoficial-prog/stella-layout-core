@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BarChart3, 
   Clock, 
@@ -21,10 +21,26 @@ import { CategoriasFiscaisManager } from "./CategoriasFiscaisManager";
 import { ConfiguracoesFiscaisForm } from "./ConfiguracoesFiscaisForm";
 import { NotasAvulsasFiscal } from "./NotasAvulsasFiscal";
 import { NfeAvulsaDrawer } from "./NfeAvulsaDrawer";
+import { useServerFn } from "@tanstack/react-start";
+import { getBuildInfo } from "@/lib/debug.functions";
 
 export function FiscalLayout() {
   const [abaAtiva, setAbaAtiva] = useState("visao-geral");
   const [nfeAvulsaAberta, setNfeAvulsaAberta] = useState(false);
+  const buildInfoFn = useServerFn(getBuildInfo);
+
+  useEffect(() => {
+    buildInfoFn()
+      .then(info => {
+        console.log("=== BUILD INFO (SERVER-SIDE) ===");
+        console.log("Commit SHA:", info.commitSha);
+        console.log("Timestamp:", info.buildTimestamp);
+        console.log("Environment:", info.environment);
+        console.log("Marker:", info.serverMarker);
+        console.log("================================");
+      })
+      .catch(err => console.error("Falha ao obter Build Info:", err));
+  }, []);
 
   return (
     <div className="space-y-6">
