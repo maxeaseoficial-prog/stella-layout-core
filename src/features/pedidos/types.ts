@@ -100,23 +100,26 @@ export interface Pagamento {
   criadoEm: string;
 }
 
-export type StatusProducao =
-  | "em_orcamento"
-  | "pendente_orcamento"
-  | "pendente_orcamento_estampa"
-  | "pendente_orcamento_matriz"
-  | "aguardando_orcamento_matriz"
-  | "orcamento_matriz_realizado"
-  | "aguardando_aprovacao"
-  | "orcamento_aprovado"
-  | "producao_matriz"
-  | "matriz_concluida"
-  | "producao"
-  | "bordado"
-  | "costura"
-  | "finalizado"
-  | "entregue"
-  | "cancelado";
+export const StatusProducaoValues = {
+  EM_ORCAMENTO: "em_orcamento",
+  PENDENTE_ORCAMENTO: "pendente_orcamento",
+  PENDENTE_ORCAMENTO_ESTAMPA: "pendente_orcamento_estampa",
+  PENDENTE_ORCAMENTO_MATRIZ: "pendente_orcamento_matriz",
+  AGUARDANDO_ORCAMENTO_MATRIZ: "aguardando_orcamento_matriz",
+  ORCAMENTO_MATRIZ_REALIZADO: "orcamento_matriz_realizado",
+  AGUARDANDO_APROVACAO: "aguardando_aprovacao",
+  ORCAMENTO_APROVADO: "orcamento_aprovado",
+  PRODUCAO_MATRIZ: "producao_matriz",
+  MATRIZ_CONCLUIDA: "matriz_concluida",
+  PRODUCAO: "producao",
+  BORDADO: "bordado",
+  COSTURA: "costura",
+  FINALIZADO: "finalizado",
+  ENTREGUE: "entregue",
+  CANCELADO: "cancelado",
+} as const;
+
+export type StatusProducao = (typeof StatusProducaoValues)[keyof typeof StatusProducaoValues];
 
 export type StatusFinanceiro =
   | "aguardando_pagamento"

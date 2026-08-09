@@ -7,6 +7,7 @@ import type {
   Pedido,
   StatusFinanceiro,
   StatusProducao,
+  StatusProducaoValues,
 } from "./types";
 
 export function novoId(): string {
@@ -175,10 +176,10 @@ export function corStatusProducao(status: StatusProducao): string {
     case "aguardando_aprovacao":
       return "border-amber-300 bg-amber-100 text-amber-900";
     // 🔵 Azul — em produção
-    case "producao_matriz":
-    case "producao":
-    case "bordado":
-    case "costura":
+    case StatusProducaoValues.PRODUCAO_MATRIZ:
+    case StatusProducaoValues.PRODUCAO:
+    case StatusProducaoValues.BORDADO:
+    case StatusProducaoValues.COSTURA:
       return "border-blue-300 bg-blue-100 text-blue-800";
     // 🟢 Verde — orçamento aprovado / concluído / entregue
     case "orcamento_aprovado":
@@ -225,16 +226,16 @@ export function calcularEtapa(
   if (pedido.statusFinanceiro === "cancelado") return "em_elaboracao";
   if (pendenciasDoPedido(pedido.itens).length > 0) return "pendencias_orcamento";
   switch (pedido.statusProducao) {
-    case "entregue":
+    case StatusProducaoValues.ENTREGUE:
       return "entregue";
-    case "finalizado":
+    case StatusProducaoValues.FINALIZADO:
       return "finalizado";
-    case "orcamento_aprovado":
-    case "producao_matriz":
-    case "matriz_concluida":
-    case "producao":
-    case "bordado":
-    case "costura":
+    case StatusProducaoValues.ORCAMENTO_APROVADO:
+    case StatusProducaoValues.PRODUCAO_MATRIZ:
+    case StatusProducaoValues.MATRIZ_CONCLUIDA:
+    case StatusProducaoValues.PRODUCAO:
+    case StatusProducaoValues.BORDADO:
+    case StatusProducaoValues.COSTURA:
       return "em_producao";
     case "aguardando_aprovacao":
       return "aguardando_aprovacao";
