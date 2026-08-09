@@ -34,8 +34,8 @@ export function apenasDigitos(s?: string | null): string {
 /** Somente administradores podem usar a integração fiscal (emissão, teste, cancelamento). */
 export async function assertAdminFiscal(supabase: Supabase, userId: string) {
   if (!userId) {
-    console.error("[Fiscal Server] assertAdminFiscal: No userId provided.");
-    throw new Error("AUTH_CONTEXT_MISSING_USER_ID");
+    console.error("[Fiscal Server] AUTH_STAGE_ADMIN_FAILED: No userId provided.");
+    throw new Error("AUTH_STAGE_ADMIN_FAILED (AUTH-DEBUG-V5-aa26f1dc)");
   }
 
   const { data, error } = await supabase
