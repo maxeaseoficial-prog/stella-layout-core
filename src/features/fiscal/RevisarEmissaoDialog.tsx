@@ -8,7 +8,9 @@ import {
   Package, 
   Send,
   Loader2,
-  X
+  X,
+  ExternalLink,
+  Download
 } from "lucide-react";
 import { 
   Dialog, 
