@@ -1,3 +1,7 @@
+/** 
+ * DASHBOARD PRINCIPAL
+ * Este arquivo foi restaurado para o layout original.
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import {
   DollarSign,
