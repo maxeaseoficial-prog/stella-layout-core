@@ -34,6 +34,20 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
     });
   })
   .server(async ({ next }) => {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    
+    // Safety check for Project ID / URL matching
+    // Extract project ref from URL: https://wjshquqnkzkbubgigxvh.supabase.co -> wjshquqnkzkbubgigxvh
+    const extractRef = (url?: string) => url?.split('//')[1]?.split('.')[0];
+    const serverRef = extractRef(SUPABASE_URL);
+
+    console.log("[Supabase Auth Middleware] PROJECT_CHECK:", {
+      serverRef,
+      hasUrl: !!SUPABASE_URL,
+      hasKey: !!SUPABASE_PUBLISHABLE_KEY
+    });
+
     const { getRequest } = await import("@tanstack/react-start/server");
     const request = getRequest();
     const authHeader = request?.headers.get("authorization");
@@ -50,8 +64,6 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
       throw new Error("AUTH_TOKEN_MISSING_TOKEN (AUTH-DEBUG-V5-01a2d8f1)");
     }
 
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       throw new Error("SUPABASE_ENV_MISSING");

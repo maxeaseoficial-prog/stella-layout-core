@@ -7,7 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAuthMiddleware } from "./auth-middleware";
 
 import { getClienteNome } from "@/features/clientes/types";
 import {
@@ -30,7 +30,7 @@ function mensagemDe(e: unknown, fallback: string): string {
 }
 
 export const testarConexaoFiscal = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .handler(async ({ context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     const config = await carregarFiscalConfigServer(context.supabase);
@@ -52,7 +52,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
   });
 
 export const emitirNfePedido = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ pedidoId: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     console.log("[Fiscal Pedido] Emitindo NF-e:", {
@@ -115,7 +115,7 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
   });
 
 export const consultarNfePedido = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ pedidoId: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
@@ -141,7 +141,7 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
   });
 
 export const cancelarNfePedido = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) =>
     z
       .object({
@@ -188,7 +188,7 @@ export const cancelarNfePedido = createServerFn({ method: "POST" })
   });
 
 export const reenviarDanfePedido = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ pedidoId: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
