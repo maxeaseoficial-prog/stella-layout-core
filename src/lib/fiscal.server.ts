@@ -104,7 +104,7 @@ export async function persistirNfeNoBanco(
 ) {
   // Use the provided supabase client (already authenticated in middleware)
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Usuário não autenticado no servidor.");
+  if (!user) throw new Error("AUTH_STAGE_PERSISTENCE_FAILED: Usuário não autenticado no servidor. (AUTH-DEBUG-V5-aa26f1dc)");
 
   const { data: empUser } = await supabase
     .from("empresa_usuarios")

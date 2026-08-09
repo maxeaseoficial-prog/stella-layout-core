@@ -238,6 +238,14 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         toast.error(res.mensagem || "Erro ao emitir NF-e");
       }
     } catch (err: any) {
+      console.error("[NfeAvulsaDrawer] Error detail:", {
+        name: err?.name,
+        message: err?.message,
+        cause: err?.cause,
+        status: err?.status,
+        statusCode: err?.statusCode,
+        fullError: err
+      });
       const msg = err?.message || "Erro inesperado ao emitir NF-e";
       toast.error(msg);
     } finally {

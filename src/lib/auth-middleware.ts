@@ -22,7 +22,7 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
-    console.log("[Supabase Auth Middleware] CLIENT:", {
+    console.log("[Supabase Auth Middleware] AUTH_STAGE_CLIENT:", {
       sessionExists: !!session,
       tokenExists: !!token,
     });
@@ -39,7 +39,7 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
     const authHeader = request?.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
 
-    console.log("[Supabase Auth Middleware] SERVER:", {
+    console.log("[Supabase Auth Middleware] AUTH_STAGE_MIDDLEWARE_RECEIVE:", {
       authorizationHeaderExists: !!authHeader,
       tokenReceived: !!token,
       requestId: request?.headers.get("x-request-id") || "N/A"
@@ -47,7 +47,7 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
 
     if (!token) {
       console.error("[Supabase Auth Middleware] ERROR: AUTH_TOKEN_MISSING_TOKEN");
-      throw new Error("AUTH_TOKEN_MISSING_TOKEN (BUILD_AUTH_V3-557aee41)");
+      throw new Error("AUTH_TOKEN_MISSING_TOKEN (AUTH-DEBUG-V5-aa26f1dc)");
     }
 
     const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -75,7 +75,7 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
 
     const { data: { user }, error: userError } = await supabaseServer.auth.getUser(token);
     
-    console.log("[Supabase Auth Middleware] SERVER RESULT:", {
+    console.log("[Supabase Auth Middleware] AUTH_STAGE_MIDDLEWARE_VERIFY:", {
       getUserSuccess: !!user,
       authenticatedUserId: user?.id,
       error: userError?.message,
@@ -83,7 +83,7 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
 
     if (userError || !user) {
       console.error("[Supabase Auth Middleware] ERROR: AUTH_TOKEN_INVALID", userError?.message);
-      throw new Error("AUTH_TOKEN_INVALID (BUILD_AUTH_V3-557aee41)");
+      throw new Error(`AUTH_TOKEN_INVALID: ${userError?.message || 'No user'} (AUTH-DEBUG-V5-aa26f1dc)`);
     }
 
     return next({

@@ -3,9 +3,9 @@ import { createServerFn } from "@tanstack/react-start";
 export const getBuildInfo = createServerFn({ method: "GET" })
   .handler(async () => {
     return {
-      commitSha: "2d1e78e3",
+      commitSha: "aa26f1dc",
       buildTimestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || "production",
-      serverMarker: "NF-E-SERVER-CURRENT-V4"
+      serverMarker: "AUTH-DEBUG-V5"
     };
   });
