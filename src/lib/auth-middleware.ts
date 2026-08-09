@@ -42,10 +42,12 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
     console.log("[Supabase Auth Middleware] SERVER:", {
       authorizationHeaderExists: !!authHeader,
       tokenReceived: !!token,
+      requestId: request?.headers.get("x-request-id") || "N/A"
     });
 
     if (!token) {
-      throw new Error("AUTH_CONTEXT_MISSING_TOKEN");
+      console.error("[Supabase Auth Middleware] ERROR: AUTH_TOKEN_MISSING_TOKEN");
+      throw new Error("AUTH_TOKEN_MISSING_TOKEN (BUILD_AUTH_V3)");
     }
 
     const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -80,7 +82,8 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
     });
 
     if (userError || !user) {
-      throw new Error("AUTH_TOKEN_INVALID");
+      console.error("[Supabase Auth Middleware] ERROR: AUTH_TOKEN_INVALID", userError?.message);
+      throw new Error("AUTH_TOKEN_INVALID (BUILD_AUTH_V3)");
     }
 
     return next({

@@ -40,6 +40,7 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     outrasDespesas: z.number(),
   }).parse(data))
   .handler(async ({ data, context }) => {
+    console.log("[NF-E BUILD] AUTH-V3", "6ad1992");
     console.log("[Fiscal Avulsa] HANDLER:", {
       contextSupabaseExists: !!context.supabase,
       contextUserId: context.userId,
