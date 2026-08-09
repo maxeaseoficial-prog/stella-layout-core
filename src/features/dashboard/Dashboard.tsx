@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { usePedidos } from "@/features/pedidos";
 import { useClientes } from "@/features/clientes";
-import { StatusProducaoValues, type StatusProducao } from "@/features/pedidos/types";
+import { StatusProducaoValues } from "@/features/pedidos/types";
 
 export function Dashboard() {
   const { pedidos } = usePedidos();
@@ -29,16 +29,15 @@ export function Dashboard() {
       p.statusProducao !== StatusProducaoValues.CANCELADO
     ).length;
 
-    const emProducao = pedidos.filter(p => {
-      const elegiveis: StatusProducao[] = [
+    const emProducao = pedidos.filter(p => 
+      [
         StatusProducaoValues.PRODUCAO,
         StatusProducaoValues.BORDADO,
         StatusProducaoValues.COSTURA,
         StatusProducaoValues.PRODUCAO_MATRIZ,
         StatusProducaoValues.ORCAMENTO_APROVADO
-      ];
-      return elegiveis.includes(p.statusProducao);
-    }).length;
+      ].includes(p.statusProducao as any)
+    ).length;
 
     return {
       totalPedidos,
