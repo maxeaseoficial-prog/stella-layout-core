@@ -45,8 +45,8 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     console.log("[emitirNfeAvulsa] AUTH_STAGE_HANDLER_REACHED", { userId: context.userId });
 
-    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE (AUTH-DEBUG-V5-aa26f1dc)");
-    if (!context.userId) throw new Error("AUTH_CONTEXT_MISSING_USER_ID (AUTH-DEBUG-V5-aa26f1dc)");
+    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE (AUTH-DEBUG-V5-46a1c98a)");
+    if (!context.userId) throw new Error("AUTH_CONTEXT_MISSING_USER_ID (AUTH-DEBUG-V5-46a1c98a)");
 
     await assertAdminFiscal(context.supabase, context.userId);
 
