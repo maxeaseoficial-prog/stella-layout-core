@@ -35,7 +35,7 @@ export function apenasDigitos(s?: string | null): string {
 export async function assertAdminFiscal(supabase: Supabase, userId: string) {
   if (!userId) {
     console.error("[Fiscal Server] AUTH_STAGE_ADMIN_FAILED: No userId provided.");
-    throw new Error("AUTH_STAGE_ADMIN_FAILED (AUTH-DEBUG-V5-46a1c98a)");
+    throw new Error("AUTH_STAGE_ADMIN_FAILED (AUTH-DEBUG-V5-01a2d8f1)");
   }
 
   const { data, error } = await supabase
@@ -104,7 +104,7 @@ export async function persistirNfeNoBanco(
 ) {
   // Use the provided supabase client (already authenticated in middleware)
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("AUTH_STAGE_PERSISTENCE_FAILED: Usuário não autenticado no servidor. (AUTH-DEBUG-V5-46a1c98a)");
+  if (!user) throw new Error("AUTH_STAGE_PERSISTENCE_FAILED: Usuário não autenticado no servidor. (AUTH-DEBUG-V5-01a2d8f1)");
 
   const { data: empUser } = await supabase
     .from("empresa_usuarios")
