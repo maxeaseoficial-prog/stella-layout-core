@@ -18,10 +18,12 @@ import {
   carregarPedidoServer,
   montarPayloadNfe,
   notaFiscalDeResposta,
+  persistirNfeNoBanco,
   spedyFetch,
   validarConfigFiscal,
   validarPedidoParaNfe,
 } from "./fiscal.server";
+
 
 function mensagemDe(e: unknown, fallback: string): string {
   return e instanceof Error ? e.message : fallback;
