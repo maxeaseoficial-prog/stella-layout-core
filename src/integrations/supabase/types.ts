@@ -512,6 +512,86 @@ export type Database = {
           },
         ]
       }
+      notas_fiscais: {
+        Row: {
+          ambiente: string
+          chave_acesso: string | null
+          cliente_id: string | null
+          created_at: string
+          data_autorizacao: string | null
+          data_emissao: string | null
+          external_id: string | null
+          id: string
+          mensagem_sefaz: string | null
+          numero: number | null
+          payload_envio: Json | null
+          pedido_id: string | null
+          protocolo: string | null
+          resumo_destinatario: Json | null
+          serie: string | null
+          spedy_id: string
+          status: string
+          tenant_id: string
+          tipo_emissao: string
+          updated_at: string
+          valor_total: number | null
+        }
+        Insert: {
+          ambiente: string
+          chave_acesso?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_autorizacao?: string | null
+          data_emissao?: string | null
+          external_id?: string | null
+          id?: string
+          mensagem_sefaz?: string | null
+          numero?: number | null
+          payload_envio?: Json | null
+          pedido_id?: string | null
+          protocolo?: string | null
+          resumo_destinatario?: Json | null
+          serie?: string | null
+          spedy_id: string
+          status: string
+          tenant_id: string
+          tipo_emissao: string
+          updated_at?: string
+          valor_total?: number | null
+        }
+        Update: {
+          ambiente?: string
+          chave_acesso?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_autorizacao?: string | null
+          data_emissao?: string | null
+          external_id?: string | null
+          id?: string
+          mensagem_sefaz?: string | null
+          numero?: number | null
+          payload_envio?: Json | null
+          pedido_id?: string | null
+          protocolo?: string | null
+          resumo_destinatario?: Json | null
+          serie?: string | null
+          spedy_id?: string
+          status?: string
+          tenant_id?: string
+          tipo_emissao?: string
+          updated_at?: string
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_fiscais_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pedidos: {
         Row: {
           created_at: string
