@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { usePedidos } from "@/features/pedidos/usePedidos";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { useNfeAvulsas } from "./useNfeAvulsas";
-import { formatarMoeda } from "@/features/pedidos/utils";
+import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
+import { StatusProducaoValues, type StatusProducao } from "@/features/pedidos/types";
 
 interface Props {
   onNavegar: (aba: string) => void;
@@ -46,10 +47,24 @@ export function FiscalDashboard({ onNavegar }: Props) {
       if (p.statusFinanceiro === 'cancelado') return false;
       const statusLiberacao = config.liberacaoPedido || 'producao';
       
+      const statusElegiveisProducao: StatusProducao[] = [
+        StatusProducaoValues.ORCAMENTO_APROVADO,
+        StatusProducaoValues.PRODUCAO,
+        StatusProducaoValues.BORDADO,
+        StatusProducaoValues.COSTURA,
+        StatusProducaoValues.FINALIZADO,
+        StatusProducaoValues.ENTREGUE
+      ];
+
+      const statusElegiveisFinalizado: StatusProducao[] = [
+        StatusProducaoValues.FINALIZADO,
+        StatusProducaoValues.ENTREGUE
+      ];
+
       if (statusLiberacao === 'producao') {
-        return ['producao', 'bordado', 'costura', 'finalizado', 'entregue'].includes(p.statusProducao);
+        return statusElegiveisProducao.includes(p.statusProducao);
       }
-      return ['finalizado', 'entregue'].includes(p.statusProducao);
+      return statusElegiveisFinalizado.includes(p.statusProducao);
     });
 
     const emitidasPedidosMes = pedidosMes.filter(p => p.notaFiscal?.status === 'authorized');

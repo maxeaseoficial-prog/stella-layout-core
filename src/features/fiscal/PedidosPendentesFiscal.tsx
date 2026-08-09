@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatarMoeda, formatarDataBR, totalItensPedido, corStatusProducao } from "@/features/pedidos/utils";
-import { LABEL_STATUS_PRODUCAO } from "@/features/pedidos/types";
+import { LABEL_STATUS_PRODUCAO, StatusProducaoValues, type StatusProducao } from "@/features/pedidos/types";
 import { RevisarEmissaoDialog } from "./RevisarEmissaoDialog";
 
 export function PedidosPendentesFiscal() {
@@ -37,10 +37,25 @@ export function PedidosPendentesFiscal() {
       
       const statusLiberacao = config.liberacaoPedido || 'producao';
       let apto = false;
+      
+      const statusElegiveisProducao: StatusProducao[] = [
+        StatusProducaoValues.ORCAMENTO_APROVADO,
+        StatusProducaoValues.PRODUCAO,
+        StatusProducaoValues.BORDADO,
+        StatusProducaoValues.COSTURA,
+        StatusProducaoValues.FINALIZADO,
+        StatusProducaoValues.ENTREGUE
+      ];
+
+      const statusElegiveisFinalizado: StatusProducao[] = [
+        StatusProducaoValues.FINALIZADO,
+        StatusProducaoValues.ENTREGUE
+      ];
+
       if (statusLiberacao === 'producao') {
-        apto = ['producao', 'bordado', 'costura', 'finalizado', 'entregue'].includes(p.statusProducao);
+        apto = statusElegiveisProducao.includes(p.statusProducao);
       } else {
-        apto = ['finalizado', 'entregue'].includes(p.statusProducao);
+        apto = statusElegiveisFinalizado.includes(p.statusProducao);
       }
 
       if (!apto) return false;
