@@ -8,7 +8,9 @@ import {
   Package, 
   Send,
   Loader2,
-  X
+  X,
+  ExternalLink,
+  Download
 } from "lucide-react";
 import { 
   Dialog, 
@@ -37,6 +39,7 @@ interface Props {
 export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
   const { config } = useFiscalConfig();
   const [emitindo, setEmitindo] = useState(false);
+  const [notaSucesso, setNotaSucesso] = useState<any>(null);
   const { salvarNotaFiscal } = usePedidos();
 
   const validacoes = useMemo(() => {
@@ -74,8 +77,8 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
       const res = await emitirNfePedido({ data: { pedidoId: pedido.id } });
       if (res.ok) {
         salvarNotaFiscal(pedido.id, res.nota, "NF-e enviada para emissão via módulo Fiscal.");
-        toast.success("Nota Fiscal enviada com sucesso!");
-        onFechar();
+        setNotaSucesso(res.nota);
+        toast.success("Nota Fiscal autorizada com sucesso!");
       } else {
         toast.error(res.mensagem);
       }
@@ -91,7 +94,73 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
   return (
     <Dialog open={!!pedido} onOpenChange={(v) => !v && onFechar()}>
       <DialogContent className="max-w-2xl gap-0 p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-4">
+        {notaSucesso ? (
+          <div className="flex flex-col animate-in fade-in zoom-in duration-300">
+            <div className="p-8 text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-emerald-100 dark:bg-emerald-950/30 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">NF-e autorizada com sucesso</h2>
+                <p className="text-muted-foreground">O pedido {pedido.numero} foi processado e a nota emitida.</p>
+              </div>
+            </div>
+
+            <div className="px-8 pb-8 space-y-6">
+              <div className="grid gap-4 md:grid-cols-2 bg-surface border rounded-xl p-4 shadow-sm">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Número / Série</p>
+                  <p className="font-bold">{notaSucesso.numero} / {notaSucesso.serie}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Protocolo</p>
+                  <p className="font-mono text-xs">{notaSucesso.protocolo}</p>
+                </div>
+                <div className="col-span-2 space-y-1 pt-2 border-t">
+                  <p className="text-[10px] font-bold uppercase text-muted-foreground">Chave de Acesso</p>
+                  <p className="text-[10px] font-mono break-all bg-surface-muted p-2 rounded border border-border">
+                    {notaSucesso.chaveAcesso}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 p-4 rounded-xl space-y-3">
+                <p className="text-xs text-blue-800 dark:text-blue-300 font-medium">Documentos Fiscais</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
+                    <a href={`https://${notaSucesso.ambiente === 'sandbox' ? 'sandbox-' : ''}api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" /> Visualizar DANFE
+                    </a>
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
+                    <a href={`https://${notaSucesso.ambiente === 'sandbox' ? 'sandbox-' : ''}api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${pedido.numero}.pdf`}>
+                      <Download className="h-4 w-4" /> Baixar PDF
+                    </a>
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-surface gap-2 md:col-span-2" asChild>
+                    <a href={`https://${notaSucesso.ambiente === 'sandbox' ? 'sandbox-' : ''}api.spedy.com.br/v1/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${pedido.numero}.xml`}>
+                      <Download className="h-4 w-4" /> Baixar XML Autorizado
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="p-6 border-t bg-surface-muted/30">
+              <Button 
+                className="w-full" 
+                onClick={() => {
+                  setNotaSucesso(null);
+                  onFechar();
+                }}
+              >
+                Fechar
+              </Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <>
+            <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl">Revisar Pedido {pedido.numero}</DialogTitle>
@@ -230,6 +299,8 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
             </Button>
           )}
         </DialogFooter>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

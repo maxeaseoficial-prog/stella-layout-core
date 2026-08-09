@@ -55,7 +55,6 @@ export async function assertAdminFiscal(supabase: Supabase, userId: string) {
   }
 }
 
-
 export async function carregarFiscalConfigServer(
   supabase: Supabase,
 ): Promise<FiscalConfig> {
@@ -93,6 +92,70 @@ export async function carregarClienteServer(
   return (data?.data as unknown as Cliente | undefined) ?? null;
 }
 
+/** Salva os dados da NF-e no banco de dados persistente. */
+export async function persistirNfeNoBanco(
+  supabase: Supabase,
+  nota: NotaFiscalPedido,
+  tipo: "pedido" | "avulsa",
+  payloadEnvio?: any,
+  resumoDestinatario?: any,
+  clienteId?: string | null,
+  pedidoId?: string | null,
+) {
+  // Use the provided supabase client (already authenticated in middleware)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado no servidor.");
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) throw new Error("Tenant não encontrado para o usuário.");
+
+  const record = {
+    tenant_id: empUser.empresa_id,
+    cliente_id: clienteId || null,
+    pedido_id: pedidoId || null,
+    tipo_emissao: tipo,
+    spedy_id: nota.spedyId,
+    ambiente: nota.ambiente,
+    status: nota.status,
+    numero: nota.numero,
+    serie: nota.serie,
+    chave_acesso: nota.chaveAcesso,
+    protocolo: nota.protocolo,
+    valor_total: nota.valor,
+    data_emissao: nota.emitidaEm,
+    data_autorizacao: nota.autorizadaEm,
+    external_id: nota.integrationId,
+    mensagem_sefaz: nota.processingDetail?.message,
+    payload_envio: payloadEnvio,
+    resumo_destinatario: resumoDestinatario,
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase
+    .from("notas_fiscais")
+    .upsert(record, { onConflict: "spedy_id" });
+
+  if (error) {
+    console.error("[Fiscal Server] Erro ao persistir nota no banco:", error);
+    throw new Error("Falha ao salvar os dados da NF-e no banco.");
+  }
+
+  // Se for pedido, também sincroniza com a tabela de pedidos para retrocompatibilidade
+  if (tipo === "pedido" && pedidoId) {
+    const { data: pData } = await supabase.from("pedidos").select("data").eq("id", pedidoId).single();
+    if (pData) {
+      const p = pData.data as any;
+      p.notaFiscal = nota;
+      await supabase.from("pedidos").update({ data: p }).eq("id", pedidoId);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Config / validações
 // ---------------------------------------------------------------------------
@@ -110,13 +173,10 @@ export function validarConfigFiscal(config: FiscalConfig): string | null {
   if (!apiKeyParaAmbiente(config, config.ambiente)) {
     return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
-  // Se todos os itens já possuem NCM, o NCM da tributação padrão é opcional.
-  // No entanto, ainda é bom ter um NCM padrão válido se algum item for adicionado sem.
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
   if (ncmPadrao.length > 0 && ncmPadrao.length !== 8) {
     return "O NCM da tributação padrão (Configurações → Fiscal) deve ter exatamente 8 dígitos.";
   }
-
   return null;
 }
 
@@ -158,10 +218,10 @@ function extrairMensagemErro(status: number, body: unknown): string {
   if (status === 429) {
     return "Limite de requisições da API atingido. Aguarde um instante e tente novamente.";
   }
-  const errors = (body as { errors?: Array<{ message?: string }> | null } | null)
+  const errors = (body as { errors?: Array<{ message?: string, code?: string }> | null } | null)
     ?.errors;
   if (Array.isArray(errors)) {
-    const msgs = errors.map((e) => e?.message).filter(Boolean) as string[];
+    const msgs = errors.map((e) => `${e?.code ? `(${e.code}) ` : ""}${e?.message}`).filter(Boolean) as string[];
     if (msgs.length > 0) return msgs.join("; ");
   }
   return `Erro ${status} ao comunicar com a API da Spedy.`;
@@ -172,7 +232,6 @@ export async function spedyFetch(
   ambiente: AmbienteSpedy,
   path: string,
   init?: RequestInit,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
   const response = await fetch(url, {
@@ -199,12 +258,6 @@ export async function spedyFetch(
       method: init?.method || "GET",
       response: body,
     });
-    
-    // Incluir detalhes da rejeição se houver
-    if (body?.errors && Array.isArray(body.errors)) {
-      const details = body.errors.map((e: any) => `${e.code || "ERR"}: ${e.message}`).join(" | ");
-      throw new SpedyError(response.status, `${errorMsg} (${details})`);
-    }
     
     throw new SpedyError(response.status, errorMsg);
   }
@@ -343,7 +396,6 @@ export function montarPayloadNfe(
     };
   });
 
-
   const total: Record<string, number> = {
     invoiceAmount: totalPedido,
     productAmount: totalPedido,
@@ -362,14 +414,6 @@ export function montarPayloadNfe(
   const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : cliente?.cpf);
   if (doc) receiver.federalTaxNumber = doc;
   if (cliente?.cidade && cliente?.estado) {
-    console.log("[Fiscal] Montando receiver para Pedido. Cliente:", {
-      logradouro: cliente.logradouro,
-      numero: cliente.numero,
-      bairro: cliente.bairro,
-      cep: cliente.cep,
-      cidade: cliente.cidade,
-      estado: cliente.estado
-    });
     receiver.address = {
       street: cliente.logradouro || "",
       number: cliente.numero || "",
@@ -430,7 +474,6 @@ export function montarPayloadNfeAvulsa(
       taxes: taxes(valorItemTotal),
     };
   });
-
 
   return {
     isFinalCustomer: true,
