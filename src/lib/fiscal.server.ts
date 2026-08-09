@@ -234,6 +234,7 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
+  console.log(`[Fiscal Server] AUTH_STAGE_SPEDY_FETCH: ${path}`, { ambiente });
   const response = await fetch(url, {
     ...init,
     headers: {
