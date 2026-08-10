@@ -11,6 +11,7 @@ import {
   notaFiscalDeResposta,
   persistirNfeNoBanco
 } from "./fiscal.server";
+import { diagnosticarItensFiscais, type DiagnosticoItemFiscal } from "./fiscal-itens";
 
 export const emitirNfeAvulsa = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
