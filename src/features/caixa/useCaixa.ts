@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   FechamentoCaixa,
@@ -20,66 +20,104 @@ export function useCaixa() {
   const [fechamentos, setFechamentos] = useState<FechamentoCaixa[]>([]);
   const [hidratado, setHidratado] = useState(false);
 
+  /** Espelho síncrono do estado — evita ler valores obsoletos em mutações. */
+  const movRef = useRef<Movimentacao[]>([]);
+  const fecRef = useRef<FechamentoCaixa[]>([]);
+
+  const aplicarMovimentacoes = useCallback((lista: Movimentacao[]) => {
+    movRef.current = lista;
+    setMovimentacoes(lista);
+  }, []);
+
+  const aplicarFechamentos = useCallback((lista: FechamentoCaixa[]) => {
+    fecRef.current = lista;
+    setFechamentos(lista);
+  }, []);
+
   useEffect(() => {
-    setMovimentacoes(carregarMovimentacoes());
-    setFechamentos(carregarFechamentos());
+    aplicarMovimentacoes(carregarMovimentacoes());
+    aplicarFechamentos(carregarFechamentos());
     setHidratado(true);
 
     function onUpdate() {
-      setMovimentacoes(carregarMovimentacoes());
-      setFechamentos(carregarFechamentos());
+      aplicarMovimentacoes(carregarMovimentacoes());
+      aplicarFechamentos(carregarFechamentos());
     }
     window.addEventListener(CAIXA_EVENT, onUpdate);
     return () => window.removeEventListener(CAIXA_EVENT, onUpdate);
-  }, []);
+  }, [aplicarMovimentacoes, aplicarFechamentos]);
 
-  useEffect(() => {
-    if (hidratado) salvarMovimentacoes(movimentacoes);
-  }, [movimentacoes, hidratado]);
+  /**
+   * Regra única de escrita: PERSISTE primeiro, depois atualiza o estado
+   * React e só então notifica os demais componentes. Assim o listener
+   * do CAIXA_EVENT nunca recarrega dados antigos do storage.
+   */
+  const commitMovimentacoes = useCallback(
+    (proximas: Movimentacao[]): boolean => {
+      const ok = salvarMovimentacoes(proximas);
+      if (!ok) return false;
+      aplicarMovimentacoes(proximas);
+      notificarCaixaAtualizado();
+      return true;
+    },
+    [aplicarMovimentacoes],
+  );
 
-  useEffect(() => {
-    if (hidratado) salvarFechamentos(fechamentos);
-  }, [fechamentos, hidratado]);
+  const criar = useCallback(
+    (entrada: MovimentacaoInput): Movimentacao | null => {
+      const agora = new Date().toISOString();
+      const nova: Movimentacao = {
+        ...entrada,
+        id: novoId(),
+        criadoEm: agora,
+        atualizadoEm: agora,
+      };
+      const ok = commitMovimentacoes([nova, ...movRef.current]);
+      return ok ? nova : null;
+    },
+    [commitMovimentacoes],
+  );
 
-  const criar = useCallback((entrada: MovimentacaoInput): Movimentacao => {
-    const agora = new Date().toISOString();
-    const nova: Movimentacao = {
-      ...entrada,
-      id: novoId(),
-      criadoEm: agora,
-      atualizadoEm: agora,
-    };
-    setMovimentacoes((atual) => [nova, ...atual]);
-    notificarCaixaAtualizado();
-    return nova;
-  }, []);
-
-  const atualizar = useCallback((id: string, entrada: MovimentacaoInput) => {
-    setMovimentacoes((atual) =>
-      atual.map((m) =>
-        m.id === id
-          ? {
-              ...entrada,
-              id: m.id,
-              criadoEm: m.criadoEm,
-              atualizadoEm: new Date().toISOString(),
-            }
-          : m,
+  const atualizar = useCallback(
+    (id: string, entrada: MovimentacaoInput): boolean =>
+      commitMovimentacoes(
+        movRef.current.map((m) =>
+          m.id === id
+            ? {
+                ...entrada,
+                id: m.id,
+                criadoEm: m.criadoEm,
+                atualizadoEm: new Date().toISOString(),
+              }
+            : m,
+        ),
       ),
-    );
-    notificarCaixaAtualizado();
-  }, []);
+    [commitMovimentacoes],
+  );
 
-  const excluir = useCallback((id: string) => {
-    setMovimentacoes((atual) => atual.filter((m) => m.id !== id));
-    notificarCaixaAtualizado();
-  }, []);
+  const excluir = useCallback(
+    (id: string): boolean =>
+      commitMovimentacoes(movRef.current.filter((m) => m.id !== id)),
+    [commitMovimentacoes],
+  );
+
+  /** Exclusão em massa: uma única gravação, um único evento. */
+  const excluirVarios = useCallback(
+    (ids: string[] | Set<string>): boolean => {
+      const idsSet = ids instanceof Set ? ids : new Set(ids);
+      if (idsSet.size === 0) return true;
+      return commitMovimentacoes(
+        movRef.current.filter((m) => !idsSet.has(m.id)),
+      );
+    },
+    [commitMovimentacoes],
+  );
 
   const fecharDia = useCallback(
     (opts?: { data?: string; saldoInicial?: number }) => {
       const dia = opts?.data ?? hojeISO();
       const saldoInicial = opts?.saldoInicial ?? 0;
-      const doDia = movimentacoes.filter(
+      const doDia = movRef.current.filter(
         (m) => m.data === dia && m.status !== "cancelada",
       );
       const entradas = doDia
@@ -98,11 +136,14 @@ export function useCaixa() {
         totalMovimentacoes: doDia.length,
         fechadoEm: new Date().toISOString(),
       };
-      setFechamentos((atual) => [fechamento, ...atual]);
-      notificarCaixaAtualizado();
+      const proximos = [fechamento, ...fecRef.current];
+      if (salvarFechamentos(proximos)) {
+        aplicarFechamentos(proximos);
+        notificarCaixaAtualizado();
+      }
       return fechamento;
     },
-    [movimentacoes],
+    [aplicarFechamentos],
   );
 
   const totais = useMemo(() => {
@@ -129,6 +170,7 @@ export function useCaixa() {
     criar,
     atualizar,
     excluir,
+    excluirVarios,
     fecharDia,
   };
 }
