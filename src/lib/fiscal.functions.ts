@@ -98,26 +98,37 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     }, null, 2));
 
     const payload = montarPayloadNfe(pedido, cliente, config);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
+    
     try {
-      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
       const res = await spedyFetch(
         apiKeyInfo,
         config.ambienteApi,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
       );
+      
       const nota = notaFiscalDeResposta(res, config.ambienteApi, pedido.id.slice(0, 36));
       
-      // Persistência no banco
-      await persistirNfeNoBanco(
-        context.supabase,
-        nota,
-        "pedido",
-        payload,
-        cliente,
-        cliente?.id,
-        pedido.id
-      );
+      try {
+        await persistirNfeNoBanco(
+          context.supabase,
+          nota,
+          "pedido",
+          payload,
+          cliente,
+          cliente?.id,
+          pedido.id
+        );
+      } catch (persistError) {
+        console.error("[Fiscal Functions] FISCAL_REMOTE_CREATED_LOCAL_PERSIST_FAILED:", {
+          spedyId: nota.spedyId,
+          integrationId: nota.integrationId,
+          status: nota.status,
+          tenant_id: context.tenantId // Assumindo que tenantId está no context se configurado, senão o erro será logado no persistirNfeNoBanco
+        });
+        // Não jogamos o erro para o usuário não achar que falhou a emissão (que deu certo na Spedy)
+      }
 
       return {
         ok: true as const,
