@@ -42,20 +42,31 @@ export const Route = createFileRoute("/caixa")({
 });
 
 function CaixaPage() {
-  const { movimentacoes, hidratado, totais, criar, atualizar, excluir, fecharDia } =
-    useCaixa();
+  const {
+    movimentacoes,
+    hidratado,
+    totais,
+    criar,
+    atualizar,
+    excluir,
+    excluirVarios,
+    fecharDia,
+  } = useCaixa();
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Movimentacao | null>(null);
   const [visualizando, setVisualizando] = useState<Movimentacao | null>(null);
   const [excluindo, setExcluindo] = useState<Movimentacao | null>(null);
   const [fecharAberto, setFecharAberto] = useState(false);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+  const [confirmarMassa, setConfirmarMassa] = useState(false);
 
   const [termo, setTermo] = useState("");
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("todos");
   const [tipo, setTipo] = useState<TipoFiltro>("todos");
   const [dataInicio, setDataInicio] = useState(hojeISO());
   const [dataFim, setDataFim] = useState(hojeISO());
+
 
   const movimentacoesFiltradas = useMemo(() => {
     const hoje = hojeISO();
