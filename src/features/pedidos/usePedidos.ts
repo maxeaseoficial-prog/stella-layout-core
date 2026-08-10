@@ -9,6 +9,7 @@ import type {
   Pedido,
   PedidoInput,
   StatusProducao,
+  FormaPagamentoPedido,
 } from "./types";
 import { LABEL_STATUS_PRODUCAO } from "./types";
 import {
@@ -29,6 +30,7 @@ import {
   calcularTotal,
   gerarNumeroPedido,
   novoId,
+  hojeISO,
   pendenciasDoPedido,
   statusFinanceiroCalculado,
   statusPendenciaAgregado,

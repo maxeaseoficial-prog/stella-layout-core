@@ -18,13 +18,14 @@ import type { Arquivo } from "@/features/arquivos";
 import { arquivoParaObservacoes } from "@/features/arquivos";
 import { carregarProdutos } from "@/features/produtos/storage";
 
-import type { ItemAdicional, ItemPedido, Pedido, PedidoInput } from "./types";
+import type { ItemAdicional, ItemPedido, Pedido, PedidoInput, FormaPagamentoPedido } from "./types";
 
 import { ClienteSelector } from "./ClienteSelector";
 import { ItensPedidoTable } from "./ItensPedidoTable";
 import { PedidoArquivosUploader } from "./PedidoArquivosUploader";
 import { ResumoFinanceiro } from "./ResumoFinanceiro";
-import { calcularSubtotal, novoId, parseValorInput, FORMAS_PAGAMENTO_PEDIDO, LABEL_FORMA_PAGAMENTO_PEDIDO } from "./utils";
+import { calcularSubtotal, novoId, parseValorInput } from "./utils";
+import { FORMAS_PAGAMENTO_PEDIDO, LABEL_FORMA_PAGAMENTO_PEDIDO } from "./types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -539,7 +540,7 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
                       <SelectValue placeholder="Selecione a forma" />
                     </SelectTrigger>
                     <SelectContent>
-                      {FORMAS_PAGAMENTO_PEDIDO.map(f => (
+                      {FORMAS_PAGAMENTO_PEDIDO.map((f: FormaPagamentoPedido) => (
                         <SelectItem key={f} value={f}>
                           {LABEL_FORMA_PAGAMENTO_PEDIDO[f]}
                         </SelectItem>
