@@ -250,8 +250,9 @@ export async function apiKeyParaAmbiente(
   }
 }
 
-export function validarConfigFiscal(config: FiscalConfig): string | null {
-  if (!apiKeyParaAmbiente(config, config.ambiente).key) {
+export async function validarConfigFiscal(supabase: Supabase, config: FiscalConfig): Promise<string | null> {
+  const apiKeyInfo = await apiKeyParaAmbiente(supabase, config, config.ambiente);
+  if (!apiKeyInfo.key) {
     return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
