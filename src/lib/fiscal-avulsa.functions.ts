@@ -55,9 +55,11 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
     const payload = montarPayloadNfeAvulsa(data, config);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
+
     try {
       const res = await spedyFetch(
-        await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi),
+        apiKeyInfo,
         config.ambienteApi,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
@@ -65,16 +67,24 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
       
       const nota = notaFiscalDeResposta(res, config.ambienteApi, data.id.slice(0, 36));
       
-      // Persistência imediata
-      await persistirNfeNoBanco(
-        context.supabase,
-        nota,
-        "avulsa",
-        payload,
-        data.destinatario,
-        data.destinatario.id,
-        null
-      );
+      try {
+        await persistirNfeNoBanco(
+          context.supabase,
+          nota,
+          "avulsa",
+          payload,
+          data.destinatario,
+          data.destinatario.id,
+          null
+        );
+      } catch (persistError) {
+        console.error("[Fiscal Functions] FISCAL_REMOTE_CREATED_LOCAL_PERSIST_FAILED (Avulsa):", {
+          spedyId: nota.spedyId,
+          integrationId: nota.integrationId,
+          status: nota.status,
+          userId: context.userId
+        });
+      }
 
       return { ok: true as const, nota };
     } catch (e) {

@@ -98,26 +98,37 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     }, null, 2));
 
     const payload = montarPayloadNfe(pedido, cliente, config);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
+    
     try {
-      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
       const res = await spedyFetch(
         apiKeyInfo,
         config.ambienteApi,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
       );
+      
       const nota = notaFiscalDeResposta(res, config.ambienteApi, pedido.id.slice(0, 36));
       
-      // Persistência no banco
-      await persistirNfeNoBanco(
-        context.supabase,
-        nota,
-        "pedido",
-        payload,
-        cliente,
-        cliente?.id,
-        pedido.id
-      );
+      try {
+        await persistirNfeNoBanco(
+          context.supabase,
+          nota,
+          "pedido",
+          payload,
+          cliente,
+          cliente?.id,
+          pedido.id
+        );
+      } catch (persistError) {
+        console.error("[Fiscal Functions] FISCAL_REMOTE_CREATED_LOCAL_PERSIST_FAILED:", {
+          spedyId: nota.spedyId,
+          integrationId: nota.integrationId,
+          status: nota.status,
+          userId: context.userId
+        });
+        // Não jogamos o erro para o usuário não achar que falhou a emissão (que deu certo na Spedy)
+      }
 
       return {
         ok: true as const,
@@ -131,25 +142,67 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
 export const consultarNfePedido = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
-  .inputValidator((data) => z.object({ pedidoId: z.string().min(1) }).parse(data))
+  .inputValidator((data) => z.object({ pedidoId: z.string().optional(), spedyId: z.string().optional(), integrationId: z.string().optional() }).parse(data))
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     const config = await carregarFiscalConfigServer(context.supabase);
-    const pedido = await carregarPedidoServer(context.supabase, data.pedidoId);
-    const nota = pedido?.notaFiscal;
-    if (!nota?.spedyId) {
-      return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
+    
+    let spedyId = data.spedyId;
+    let integrationId = data.integrationId;
+    let ambiente = config.ambienteApi;
+    let pedidoId = data.pedidoId;
+
+    if (pedidoId && !spedyId) {
+      const pedido = await carregarPedidoServer(context.supabase, pedidoId);
+      const nota = pedido?.notaFiscal;
+      spedyId = nota?.spedyId;
+      integrationId = nota?.integrationId;
+      ambiente = nota?.ambiente || config.ambienteApi;
     }
+
+    if (!spedyId && !integrationId) {
+      return { ok: false as const, mensagem: "Identificador da NF-e não fornecido." };
+    }
+
     try {
-      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, ambiente);
+      
+      // Se tivermos apenas o integrationId, precisamos listar para achar o ID
+      if (!spedyId && integrationId) {
+        const listRes = await spedyFetch(apiKeyInfo, ambiente, `/product-invoices?integrationId=${integrationId}`);
+        if (listRes?.data?.length > 0) {
+          spedyId = listRes.data[0].id;
+        }
+      }
+
+      if (!spedyId) return { ok: false as const, mensagem: "NF-e não localizada na API." };
+
       const res = await spedyFetch(
         apiKeyInfo,
-        nota.ambiente,
-        `/product-invoices/${nota.spedyId}`,
+        ambiente,
+        `/product-invoices/${spedyId}`,
       );
+      
+      const nota = notaFiscalDeResposta(res, ambiente, integrationId || "");
+      
+      // Sincroniza com o banco local
+      try {
+        await persistirNfeNoBanco(
+          context.supabase,
+          nota,
+          pedidoId ? "pedido" : "avulsa",
+          null,
+          null,
+          null,
+          pedidoId
+        );
+      } catch (e) {
+        console.error("[Fiscal Functions] Sync error during consultation:", e);
+      }
+
       return {
         ok: true as const,
-        nota: notaFiscalDeResposta(res, nota.ambiente, nota.integrationId),
+        nota,
       };
     } catch (e) {
       return { ok: false as const, mensagem: mensagemDe(e, "Falha ao consultar a NF-e.") };

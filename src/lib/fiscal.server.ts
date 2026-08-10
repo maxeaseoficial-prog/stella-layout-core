@@ -142,12 +142,27 @@ export async function persistirNfeNoBanco(
     updated_at: new Date().toISOString()
   };
 
+  // Se o spedy_id for nulo (falha na API), não tentamos upsert
+  if (!record.spedy_id) {
+    console.error("[Fiscal Server] FISCAL_PERSISTENCE_SKIPPED: spedy_id is null.");
+    return;
+  }
+
   const { error } = await supabase
     .from("notas_fiscais")
-    .upsert(record, { onConflict: "spedy_id" });
+    .upsert(record, { onConflict: "tenant_id,spedy_id" });
 
   if (error) {
-    console.error("[Fiscal Server] Erro ao persistir nota no banco:", error);
+    console.error("[Fiscal Server] FISCAL_PERSISTENCE_ERROR:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      table: "notas_fiscais",
+      operation: "upsert",
+      tenant_id: record.tenant_id,
+      spedy_id: record.spedy_id
+    });
     throw new Error("Falha ao salvar os dados da NF-e no banco.");
   }
 
@@ -605,11 +620,23 @@ export function notaFiscalDeResposta(
   ambiente: AmbienteApiSpedy,
   integrationId: string,
 ): NotaFiscalPedido {
+  const detail = res?.processingDetail || {};
+  const status = (res?.status ?? "enqueued") as StatusNfe;
+  
+  // Se estiver rejeitada, extrai as mensagens de erro detalhadas da API
+  let erroSefaz = detail.message;
+  if (status === "rejected" && Array.isArray(res?.errors) && res.errors.length > 0) {
+    const errorMsgs = res.errors
+      .map((e: any) => `${e.code ? `[${e.code}] ` : ""}${e.message}`)
+      .join(" | ");
+    erroSefaz = errorMsgs || erroSefaz;
+  }
+
   return {
     spedyId: String(res?.id ?? ""),
     ambiente,
     integrationId: String(res?.integrationId ?? integrationId),
-    status: (res?.status ?? "enqueued") as StatusNfe,
+    status,
     numero: res?.number ?? null,
     serie: res?.series ?? null,
     chaveAcesso: res?.accessKey ?? null,
@@ -617,7 +644,11 @@ export function notaFiscalDeResposta(
     emitidaEm: res?.issuedOn ?? null,
     autorizadaEm: res?.authorization?.date ?? null,
     valor: typeof res?.amount === "number" ? res.amount : null,
-    processingDetail: res?.processingDetail ?? null,
+    processingDetail: {
+      status: detail.status,
+      message: erroSefaz,
+      code: detail.code
+    },
     erro: null,
     atualizadoEm: new Date().toISOString(),
   };

@@ -6,11 +6,13 @@ import {
   Download,
   Search,
   RefreshCw,
-  FileText
+  FileText,
+  AlertTriangle
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { formatarMoeda, formatarDataBR } from "@/features/pedidos/utils";
 import { urlDanfePdf, urlXmlNfe } from "./spedy";
@@ -63,8 +65,8 @@ export function NotasEmitidasFiscal() {
             <TableRow className="bg-surface-muted/50">
               <TableHead>Número NF-e</TableHead>
               <TableHead>Destinatário</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Data Autorização</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Data</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -95,23 +97,41 @@ export function NotasEmitidasFiscal() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      {n.tipo_emissao === 'avulsa' ? (
-                        <FileText className="h-3.5 w-3.5 text-blue-500" />
-                      ) : (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                      )}
-                      <span className="text-xs capitalize">{n.tipo_emissao}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1.5">
+                        {n.status === 'authorized' ? (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 gap-1 py-0 h-5">
+                            <CheckCircle2 className="h-3 w-3" /> Autorizada
+                          </Badge>
+                        ) : n.status === 'rejected' ? (
+                          <Badge variant="destructive" className="gap-1 py-0 h-5">
+                            <AlertTriangle className="h-3 w-3" /> Rejeitada
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1 py-0 h-5">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> {n.status}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        {n.tipo_emissao === 'avulsa' ? <FileText className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3" />}
+                        <span className="capitalize">{n.tipo_emissao}</span>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {n.data_autorizacao ? formatarDataBR(n.data_autorizacao) : '—'}
+                    {n.data_autorizacao ? formatarDataBR(n.data_autorizacao) : n.data_emissao ? formatarDataBR(n.data_emissao) : '—'}
                   </TableCell>
                   <TableCell className="text-sm font-semibold">
                     {formatarMoeda(n.valor_total ?? 0)}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    <Button size="sm" variant="outline" className="gap-2" asChild>
+                    {n.status === 'rejected' && n.mensagem_sefaz && (
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" title={n.mensagem_sefaz}>
+                        <AlertCircle className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" className="gap-2" asChild disabled={n.status !== 'authorized'}>
                       <a 
                         href={urlDanfePdf({ ambiente: n.ambiente as any, spedyId: n.spedy_id })} 
                         target="_blank" 
@@ -120,7 +140,7 @@ export function NotasEmitidasFiscal() {
                         <ExternalLink className="h-4 w-4" /> DANFE
                       </a>
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" asChild title="Baixar XML">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" asChild title="Baixar XML" disabled={n.status !== 'authorized'}>
                       <a 
                         href={urlXmlNfe({ ambiente: n.ambiente as any, spedyId: n.spedy_id })} 
                         download
