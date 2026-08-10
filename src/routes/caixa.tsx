@@ -316,6 +316,36 @@ function CaixaPage() {
       />
 
       <AlertDialog
+        open={confirmarMassa}
+        onOpenChange={(v) => (!v ? setConfirmarMassa(false) : null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {totalSelecionados === 1
+                ? "Excluir movimentação?"
+                : `Excluir ${totalSelecionados} movimentações?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {totalSelecionados === 1
+                ? "Esta ação não pode ser desfeita."
+                : "As movimentações selecionadas serão removidas do caixa. Esta ação não pode ser desfeita."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmarExclusaoMassa}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+      <AlertDialog
         open={!!excluindo}
         onOpenChange={(v) => (!v ? setExcluindo(null) : null)}
       >
