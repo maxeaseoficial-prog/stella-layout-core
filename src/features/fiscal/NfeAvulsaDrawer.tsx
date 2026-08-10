@@ -194,39 +194,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
 
     setEmitindo(true);
     try {
-      const payload = {
-        id: novoId(),
-        destinatario: {
-          nome: getClienteNome(destinatario),
-          documento: (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "",
-          email: destinatario.email || undefined,
-          cep: destinatario.cep || undefined,
-          logradouro: destinatario.logradouro || undefined,
-          numero: destinatario.numero || undefined,
-          bairro: destinatario.bairro || undefined,
-          complemento: destinatario.complemento || undefined,
-          cidade: destinatario.cidade || undefined,
-          estado: destinatario.estado || undefined,
-        },
-        itens: itens.map(it => ({
-          id: it.id,
-          descricao: it.descricao,
-          quantidade: it.quantidade,
-          unidade: it.unidade || "UN",
-          valorUnitario: it.valorUnitario,
-          desconto: 0,
-          ncm: it.ncm,
-          classificacaoFiscal: it.categoriaFiscal,
-        })),
-        subtotal,
-        desconto: valores.desconto,
-        frete: valores.frete,
-        outrasDespesas: valores.outrasDespesas,
-        total,
-        movimentarEstoque: valores.movimentarEstoque,
-      };
+      const payload = montarDadosEnvio();
 
       const res = await emitirFn({ data: payload });
+
       
       if (res.ok) {
         criar({
