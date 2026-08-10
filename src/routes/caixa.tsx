@@ -150,13 +150,14 @@ function CaixaPage() {
 
   function handleSalvar(dados: MovimentacaoInput, id?: string) {
     if (id) {
-      atualizar(id, dados);
-      toast.success("Movimentação atualizada.");
+      if (atualizar(id, dados)) toast.success("Movimentação atualizada.");
+      else toast.error("Não foi possível salvar a movimentação.");
     } else {
-      criar(dados);
-      toast.success("Movimentação registrada.");
+      if (criar(dados)) toast.success("Movimentação registrada.");
+      else toast.error("Não foi possível salvar a movimentação.");
     }
   }
+
 
   function handleConfirmarExclusao() {
     if (!excluindo) return;
