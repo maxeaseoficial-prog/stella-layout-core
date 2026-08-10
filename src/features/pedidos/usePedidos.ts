@@ -487,7 +487,7 @@ export function usePedidos() {
    * cancelamento); omita para atualizações silenciosas de status.
    */
   const salvarNotaFiscal = useCallback(
-    (id: string, nota: NotaFiscalPedido | undefined, descricaoHistorico?: string) => {
+    (id: string, nota: NotaFiscalPedido | null | undefined, descricaoHistorico?: string) => {
       commit(setPedidos, (atual) =>
         atual.map((p) => {
           if (p.id !== id) return p;

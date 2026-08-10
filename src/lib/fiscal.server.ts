@@ -35,7 +35,7 @@ export function apenasDigitos(s?: string | null): string {
 export async function assertAdminFiscal(supabase: Supabase, userId: string) {
   if (!userId) {
     console.error("[Fiscal Server] AUTH_STAGE_ADMIN_FAILED: No userId provided.");
-    throw new Error("AUTH_STAGE_ADMIN_FAILED (AUTH-DEBUG-V5-01a2d8f1)");
+    throw new Error("AUTH_STAGE_ADMIN_FAILED");
   }
   
   // Confirmação de igualdade entre projeto Supabase do client e do server
@@ -109,7 +109,7 @@ export async function persistirNfeNoBanco(
 ) {
   // Use the provided supabase client (already authenticated in middleware)
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("AUTH_STAGE_PERSISTENCE_FAILED: Usuário não autenticado no servidor. (AUTH-DEBUG-V5-01a2d8f1)");
+  if (!user) throw new Error("AUTH_STAGE_PERSISTENCE_FAILED: Usuário não autenticado no servidor.");
 
   const { data: empUser } = await supabase
     .from("empresa_usuarios")
@@ -165,10 +165,79 @@ export async function persistirNfeNoBanco(
 // Config / validações
 // ---------------------------------------------------------------------------
 
-export function apiKeyParaAmbiente(
+export async function carregarSegredoFiscalServer(supabase: Supabase): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) return null;
+
+  const { data } = await supabase
+    .from("segredos_fiscais")
+    .select("chave_api")
+    .eq("tenant_id", empUser.empresa_id)
+    .maybeSingle();
+  
+  return data?.chave_api ?? null;
+}
+
+export async function salvarSegredoFiscalServer(supabase: Supabase, chave: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado.");
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) throw new Error("Tenant não encontrado.");
+
+  const { error } = await supabase
+    .from("segredos_fiscais")
+    .upsert(
+      { tenant_id: empUser.empresa_id, chave_api: chave, updated_at: new Date().toISOString() },
+      { onConflict: "tenant_id" }
+    );
+
+  if (error) throw new Error("Falha ao salvar segredo fiscal.");
+}
+
+export async function removerSegredoFiscalServer(supabase: Supabase) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado.");
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) throw new Error("Tenant não encontrado.");
+
+  const { error } = await supabase
+    .from("segredos_fiscais")
+    .delete()
+    .eq("tenant_id", empUser.empresa_id);
+
+  if (error) throw new Error("Falha ao remover segredo fiscal.");
+}
+
+export async function apiKeyParaAmbiente(
+  supabase: Supabase,
   config: FiscalConfig,
   ambiente: AmbienteSpedy,
-): { key: string; source: string } {
+): Promise<{ key: string; source: string }> {
+  // A chave agora é única e vem da tabela de segredos
+  const chaveDb = await carregarSegredoFiscalServer(supabase);
+  if (chaveDb) return { key: chaveDb, source: "DATABASE" };
+
+  // Fallback para ENV (legado/suporte)
   const sandboxEnv = process.env["SPEDY_API_KEY_SANDBOX"]?.trim();
   const producaoEnv = process.env["SPEDY_API_KEY_PRODUCAO"]?.trim();
 
@@ -181,8 +250,9 @@ export function apiKeyParaAmbiente(
   }
 }
 
-export function validarConfigFiscal(config: FiscalConfig): string | null {
-  if (!apiKeyParaAmbiente(config, config.ambiente).key) {
+export async function validarConfigFiscal(supabase: Supabase, config: FiscalConfig): Promise<string | null> {
+  const apiKeyInfo = await apiKeyParaAmbiente(supabase, config, config.ambiente);
+  if (!apiKeyInfo.key) {
     return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
@@ -246,15 +316,12 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:${require('crypto').createHash('sha256').update(apiKeyInfo.key).digest('hex').substring(0, 12)}...` : 'none';
+  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:present...` : 'none';
   
-  console.log("[Fiscal Server] SPEDY_DIAGNOSTICS:", {
-    SPEDY_ENVIRONMENT: ambiente,
-    SPEDY_BASE_URL: SPEDY_BASE_URLS[ambiente],
-    SPEDY_KEY_SOURCE: apiKeyInfo.source,
-    SPEDY_API_KEY_PRESENT: !!apiKeyInfo.key,
-    SPEDY_API_KEY_LENGTH: apiKeyInfo.key?.length || 0,
-    SPEDY_API_KEY_FINGERPRINT: apiKeyFingerprint,
+  console.log("[Fiscal Server] API_FISCAL_DIAGNOSTICS:", {
+    API_FISCAL_ENVIRONMENT: ambiente,
+    API_FISCAL_BASE_URL: SPEDY_BASE_URLS[ambiente],
+    API_FISCAL_KEY_PRESENT: !!apiKeyInfo.key,
     path
   });
 
@@ -277,10 +344,10 @@ export async function spedyFetch(
 
   if (!response.ok) {
     const errorMsg = extrairMensagemErro(response.status, body);
-    console.error(`[Spedy Error] SPEDY_HTTP_STATUS: ${response.status}`, {
+    console.error(`[Fiscal API Error] API_FISCAL_HTTP_STATUS: ${response.status}`, {
       url,
       method: init?.method || "GET",
-      SPEDY_RESPONSE_BODY: body,
+      API_FISCAL_RESPONSE_BODY: body,
     });
     
     throw new SpedyError(response.status, errorMsg);

@@ -180,7 +180,7 @@ export interface Pedido {
   /** Badges livres (nota fiscal, prioridade, retirada, etc.). */
   badges?: PedidoBadge[];
   /** Retorno da emissão de NF-e (Spedy). Ausente = "Não emitida". */
-  notaFiscal?: NotaFiscalPedido;
+  notaFiscal?: NotaFiscalPedido | null;
   previsaoEntrega?: string; // ISO date
   observacoes?: string;
   pagamentos: Pagamento[];

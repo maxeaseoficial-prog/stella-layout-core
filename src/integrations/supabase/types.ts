@@ -704,6 +704,35 @@ export type Database = {
           },
         ]
       }
+      segredos_fiscais: {
+        Row: {
+          chave_api: string
+          id: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          chave_api: string
+          id?: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          chave_api?: string
+          id?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segredos_fiscais_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: true
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tarefas: {
         Row: {
           concluida: boolean

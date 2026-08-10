@@ -41,7 +41,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     console.log("[Fiscal Functions] TEST_CONNECTION_ADMIN_VALIDATED");
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambiente);
     
     if (!apiKeyInfo.key) {
       return {
@@ -76,7 +76,7 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     await assertAdminFiscal(context.supabase, context.userId);
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const erroConfig = validarConfigFiscal(config);
+    const erroConfig = await validarConfigFiscal(context.supabase, config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
     const pedido = await carregarPedidoServer(context.supabase, data.pedidoId);
@@ -99,7 +99,7 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     try {
-      const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambiente);
       const res = await spedyFetch(
         apiKeyInfo,
         config.ambiente,
@@ -141,7 +141,7 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
-      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
       const res = await spedyFetch(
         apiKeyInfo,
         nota.ambiente,
@@ -176,7 +176,7 @@ export const cancelarNfePedido = createServerFn({ method: "POST" })
     if (!nota?.spedyId) {
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
-    const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
     try {
       const res = await spedyFetch(apiKeyInfo, nota.ambiente, `/product-invoices/${nota.spedyId}`, {
         method: "DELETE",
@@ -215,7 +215,7 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
-      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
       const res = await spedyFetch(
         apiKeyInfo,
         nota.ambiente,
@@ -229,4 +229,37 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
     } catch (e) {
       return { ok: false as const, mensagem: mensagemDe(e, "Falha ao reenviar o DANFE por e-mail.") };
     }
+  });
+
+export const carregarSegredoFiscal = createServerFn({ method: "GET" })
+  .middleware([supabaseAuthMiddleware])
+  .handler(async ({ context }) => {
+    const { carregarSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    await assertAdminFiscal(context.supabase, context.userId);
+    const chave = await carregarSegredoFiscalServer(context.supabase);
+    if (!chave) return { configurada: false };
+    // Retorna apenas os últimos 4 caracteres para identificação parcial
+    return { 
+      configurada: true, 
+      parcial: `••••••••${chave.slice(-4)}` 
+    };
+  });
+
+export const salvarSegredoFiscal = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .inputValidator((data) => z.object({ chave: z.string().min(1) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { salvarSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    await assertAdminFiscal(context.supabase, context.userId);
+    await salvarSegredoFiscalServer(context.supabase, data.chave);
+    return { ok: true };
+  });
+
+export const removerSegredoFiscal = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .handler(async ({ context }) => {
+    const { removerSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    await assertAdminFiscal(context.supabase, context.userId);
+    await removerSegredoFiscalServer(context.supabase);
+    return { ok: true };
   });

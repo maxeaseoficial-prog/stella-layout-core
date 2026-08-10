@@ -47,7 +47,11 @@ export function useFiscalConfig() {
         {
           id: TENANT_ID,
           tenant_id: TENANT_ID,
-          data: JSON.parse(JSON.stringify(nova)),
+          data: JSON.parse(JSON.stringify({
+            ...nova,
+            apiKeySandbox: "", // Nunca envia credenciais por este canal
+            apiKeyProducao: ""
+          })),
         },
         { onConflict: "id" },
       );

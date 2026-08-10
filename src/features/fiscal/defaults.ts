@@ -49,6 +49,8 @@ export function mergeFiscalConfig(raw: unknown): FiscalConfig {
   return {
     ...base,
     ...p,
+    apiKeySandbox: "", // Força vazio no frontend
+    apiKeyProducao: "", // Força vazio no frontend
     empresa: { ...base.empresa, ...(p.empresa ?? {}) },
     tributacao: { ...base.tributacao, ...(p.tributacao ?? {}) },
   };

@@ -45,19 +45,19 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     console.log("[emitirNfeAvulsa] AUTH_STAGE_HANDLER_REACHED", { userId: context.userId });
 
-    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE (AUTH-DEBUG-V5-01a2d8f1)");
-    if (!context.userId) throw new Error("AUTH_CONTEXT_MISSING_USER_ID (AUTH-DEBUG-V5-01a2d8f1)");
+    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
+    if (!context.userId) throw new Error("AUTH_CONTEXT_MISSING_USER_ID");
 
     await assertAdminFiscal(context.supabase, context.userId);
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const erroConfig = validarConfigFiscal(config);
+    const erroConfig = await validarConfigFiscal(context.supabase, config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
     const payload = montarPayloadNfeAvulsa(data, config);
     try {
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, config.ambiente),
+        await apiKeyParaAmbiente(context.supabase, config, config.ambiente),
         config.ambiente,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
@@ -90,7 +90,7 @@ export const consultarStatusNfe = createServerFn({ method: "POST" })
     await assertAdminFiscal(context.supabase, context.userId);
     
     const config = await carregarFiscalConfigServer(context.supabase);
-    const apiKey = apiKeyParaAmbiente(config, data.ambiente);
+    const apiKey = await apiKeyParaAmbiente(context.supabase, config, data.ambiente);
     
     try {
       const res = await spedyFetch(apiKey, data.ambiente, `/product-invoices/${data.spedyId}`);

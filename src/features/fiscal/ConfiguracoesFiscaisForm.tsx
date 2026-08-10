@@ -6,7 +6,14 @@ import {
   Globe, 
   Save, 
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Key,
+  Eye,
+  EyeOff,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -15,12 +22,46 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { toast } from "@/lib/toast";
-import { testarConexaoFiscal } from "@/lib/fiscal.functions";
+import { 
+  testarConexaoFiscal, 
+  carregarSegredoFiscal, 
+  salvarSegredoFiscal, 
+  removerSegredoFiscal 
+} from "@/lib/fiscal.functions";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function ConfiguracoesFiscaisForm() {
   const { config, salvar, carregando } = useFiscalConfig();
   const [form, setForm] = useState(config);
   const [testando, setTestando] = useState(false);
+  const [salvandoChave, setSalvandoChave] = useState(false);
+  const [removendoChave, setRemovendoChave] = useState(false);
+  const [chaveInput, setChaveInput] = useState("");
+  const [mostrarChave, setMostrarChave] = useState(false);
+  const [statusChave, setStatusChave] = useState<{ configurada: boolean; parcial?: string } | null>(null);
+  const [dialogRemover, setDialogRemover] = useState(false);
+
+  // Carrega status da chave
+  useEffect(() => {
+    async function carregarStatus() {
+      try {
+        const res = await carregarSegredoFiscal();
+        setStatusChave(res);
+      } catch (error) {
+        console.error("Erro ao carregar status da chave:", error);
+      }
+    }
+    carregarStatus();
+  }, []);
 
   // Sincroniza o estado local quando os dados são carregados do backend
   useEffect(() => {
@@ -38,6 +79,36 @@ export function ConfiguracoesFiscaisForm() {
     }
   }
 
+  async function handleSalvarChave() {
+    if (!chaveInput.trim()) return;
+    setSalvandoChave(true);
+    try {
+      await salvarSegredoFiscal({ data: { chave: chaveInput.trim() } });
+      const status = await carregarSegredoFiscal();
+      setStatusChave(status);
+      setChaveInput("");
+      setMostrarChave(false);
+      toast.success("Credencial da API salva com sucesso.");
+    } catch (error) {
+      toast.error("Erro ao salvar credencial.");
+    } finally {
+      setSalvandoChave(false);
+    }
+  }
+
+  async function handleRemoverChave() {
+    setRemovendoChave(true);
+    try {
+      await removerSegredoFiscal();
+      setStatusChave({ configurada: false });
+      setDialogRemover(false);
+      toast.success("Credencial da API removida.");
+    } catch (error) {
+      toast.error("Erro ao remover credencial.");
+    } finally {
+      setRemovendoChave(false);
+    }
+  }
 
   async function handleTestar() {
     setTestando(true);
@@ -46,10 +117,19 @@ export function ConfiguracoesFiscaisForm() {
       if (res.ok) {
         toast.success(res.mensagem);
       } else {
-        toast.error(res.mensagem);
+        // Mapeamento de erros conforme solicitado
+        if (res.mensagem.includes("401")) {
+          toast.error("A credencial da API de Nota Fiscal foi rejeitada. Verifique a chave cadastrada.");
+        } else if (res.mensagem.includes("403")) {
+          toast.error("A credencial não possui permissão para executar esta operação.");
+        } else if (res.mensagem.includes("Spedy") || res.mensagem.includes("conexão")) {
+          toast.error("Não foi possível se comunicar com a API de Nota Fiscal.");
+        } else {
+          toast.error(res.mensagem);
+        }
       }
     } catch (error) {
-      toast.error("Falha ao tentar conectar com a Spedy.");
+      toast.error("Não foi possível se comunicar com a API de Nota Fiscal.");
     } finally {
       setTestando(false);
     }
@@ -87,10 +167,10 @@ export function ConfiguracoesFiscaisForm() {
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Settings2 className="h-4 w-4 text-primary" /> Integração Spedy
+          <CardTitle className="text-sm font-semibold flex items-center gap-2 text-primary">
+            <Key className="h-4 w-4" /> API NOTA FISCAL
           </CardTitle>
-          <CardDescription>Ambiente e chaves de acesso.</CardDescription>
+          <CardDescription>Configure a credencial utilizada para comunicação com o serviço de emissão de Nota Fiscal.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
@@ -100,11 +180,89 @@ export function ConfiguracoesFiscaisForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sandbox">Sandbox (Testes)</SelectItem>
-                <SelectItem value="producao">Produção (Real)</SelectItem>
+                <SelectItem value="sandbox">Homologação</SelectItem>
+                <SelectItem value="producao">Produção</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          
+          <div className="grid gap-2">
+            <Label>Chave da API</Label>
+            <div className="relative">
+              <Input 
+                type={mostrarChave ? "text" : "password"}
+                placeholder="Cole a credencial da API"
+                value={chaveInput}
+                onChange={e => setChaveInput(e.target.value)}
+                className="pr-10"
+              />
+              {chaveInput.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setMostrarChave(!mostrarChave)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {mostrarChave ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[11px] text-muted-foreground">Status:</span>
+              {statusChave?.configurada ? (
+                <span className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Credencial configurada {statusChave.parcial && `(${statusChave.parcial})`}
+                </span>
+              ) : (
+                <span className="text-[11px] font-medium text-amber-600 flex items-center gap-1">
+                  <XCircle className="h-3 w-3" /> Credencial não configurada
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-2 flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button 
+                className="flex-1 gap-2" 
+                onClick={handleSalvarChave}
+                disabled={salvandoChave || !chaveInput.trim()}
+              >
+                {salvandoChave ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                Salvar credencial
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 gap-2" 
+                onClick={handleTestar} 
+                disabled={testando || !statusChave?.configurada}
+              >
+                <RefreshCw className={cn("h-4 w-4", testando && "animate-spin")} />
+                Testar conexão
+              </Button>
+            </div>
+            
+            {statusChave?.configurada && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
+                onClick={() => setDialogRemover(true)}
+              >
+                <Trash2 className="h-4 w-4" /> Remover credencial
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Settings2 className="h-4 w-4 text-primary" /> Preferências Fiscais
+          </CardTitle>
+          <CardDescription>Configurações gerais de comportamento fiscal.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid gap-2">
             <Label>Regra de Liberação</Label>
             <Select value={form.liberacaoPedido} onValueChange={v => setForm({...form, liberacaoPedido: v as any})}>
@@ -118,16 +276,35 @@ export function ConfiguracoesFiscaisForm() {
             </Select>
             <p className="text-[10px] text-muted-foreground">Define quando o pedido aparece no módulo fiscal.</p>
           </div>
-          <div className="pt-2 flex gap-2">
-            <Button variant="outline" size="sm" className="w-full gap-2" onClick={handleTestar} disabled={testando}>
-              <RefreshCw className={cn("h-4 w-4", testando && "animate-spin")} /> Testar Conexão
-            </Button>
+          <div className="pt-2">
             <Button size="sm" className="w-full gap-2" onClick={handleSalvar}>
-              <Save className="h-4 w-4" /> Salvar
+              <Save className="h-4 w-4" /> Salvar Preferências
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={dialogRemover} onOpenChange={setDialogRemover}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover credencial?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja remover a credencial da API de Nota Fiscal?
+              Esta ação impedirá a emissão de novas notas até que uma nova chave seja configurada.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRemoverChave}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={removendoChave}
+            >
+              {removendoChave ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sim, remover"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Card className="md:col-span-2 shadow-sm border-amber-200 bg-amber-50/20">
         <CardHeader>
