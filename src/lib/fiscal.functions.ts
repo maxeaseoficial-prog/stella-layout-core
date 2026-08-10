@@ -41,7 +41,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     console.log("[Fiscal Functions] TEST_CONNECTION_ADMIN_VALIDATED");
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambiente);
     
     if (!apiKeyInfo.key) {
       return {
@@ -76,7 +76,7 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     await assertAdminFiscal(context.supabase, context.userId);
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const erroConfig = validarConfigFiscal(config);
+    const erroConfig = await validarConfigFiscal(context.supabase, config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
     const pedido = await carregarPedidoServer(context.supabase, data.pedidoId);
@@ -99,7 +99,7 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     try {
-      const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambiente);
       const res = await spedyFetch(
         apiKeyInfo,
         config.ambiente,
@@ -141,7 +141,7 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
-      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
       const res = await spedyFetch(
         apiKeyInfo,
         nota.ambiente,
@@ -176,7 +176,7 @@ export const cancelarNfePedido = createServerFn({ method: "POST" })
     if (!nota?.spedyId) {
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
-    const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
     try {
       const res = await spedyFetch(apiKeyInfo, nota.ambiente, `/product-invoices/${nota.spedyId}`, {
         method: "DELETE",
@@ -215,7 +215,7 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
-      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, nota.ambiente);
       const res = await spedyFetch(
         apiKeyInfo,
         nota.ambiente,

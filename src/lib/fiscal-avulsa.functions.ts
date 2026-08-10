@@ -51,13 +51,13 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     await assertAdminFiscal(context.supabase, context.userId);
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const erroConfig = validarConfigFiscal(config);
+    const erroConfig = await validarConfigFiscal(context.supabase, config);
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
     const payload = montarPayloadNfeAvulsa(data, config);
     try {
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, config.ambiente),
+        await apiKeyParaAmbiente(context.supabase, config, config.ambiente),
         config.ambiente,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
@@ -90,7 +90,7 @@ export const consultarStatusNfe = createServerFn({ method: "POST" })
     await assertAdminFiscal(context.supabase, context.userId);
     
     const config = await carregarFiscalConfigServer(context.supabase);
-    const apiKey = apiKeyParaAmbiente(config, data.ambiente);
+    const apiKey = await apiKeyParaAmbiente(context.supabase, config, data.ambiente);
     
     try {
       const res = await spedyFetch(apiKey, data.ambiente, `/product-invoices/${data.spedyId}`);
