@@ -259,12 +259,40 @@ function CaixaPage() {
           description="Ajuste os filtros ou a busca para ver mais resultados."
         />
       ) : (
-        <MovimentacoesTable
-          movimentacoes={movimentacoesFiltradas}
-          onVisualizar={setVisualizando}
-          onEditar={abrirEdicao}
-          onExcluir={setExcluindo}
-        />
+        <div className="space-y-3">
+          {totalSelecionados > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-[var(--shadow-soft)]">
+              <span className="text-sm font-medium text-foreground">
+                {totalSelecionados === 1
+                  ? "1 movimentação selecionada"
+                  : `${totalSelecionados} movimentações selecionadas`}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={limparSelecao}>
+                  Limpar seleção
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setConfirmarMassa(true)}
+                >
+                  Excluir selecionadas
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <MovimentacoesTable
+            movimentacoes={movimentacoesFiltradas}
+            onVisualizar={setVisualizando}
+            onEditar={abrirEdicao}
+            onExcluir={setExcluindo}
+            selecionados={selecionados}
+            onAlternarSelecao={alternarSelecao}
+            onAlternarTodos={alternarTodos}
+          />
+        </div>
+
       )}
 
       <MovimentacaoFormDrawer
