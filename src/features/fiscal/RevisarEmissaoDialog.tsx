@@ -30,6 +30,7 @@ import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
 import { emitirNfePedido } from "@/lib/fiscal.functions";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { NotaFiscalSection } from "./NotaFiscalSection";
+import { SPEDY_BASE_URLS } from "./spedy";
 
 interface Props {
   pedido: any | null;
