@@ -35,7 +35,7 @@ export function apenasDigitos(s?: string | null): string {
 export async function assertAdminFiscal(supabase: Supabase, userId: string) {
   if (!userId) {
     console.error("[Fiscal Server] AUTH_STAGE_ADMIN_FAILED: No userId provided.");
-    throw new Error("AUTH_STAGE_ADMIN_FAILED (AUTH-DEBUG-V5-01a2d8f1)");
+    throw new Error("AUTH_STAGE_ADMIN_FAILED");
   }
   
   // Confirmação de igualdade entre projeto Supabase do client e do server
