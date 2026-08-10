@@ -125,7 +125,7 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
           spedyId: nota.spedyId,
           integrationId: nota.integrationId,
           status: nota.status,
-          tenant_id: context.tenantId // Assumindo que tenantId está no context se configurado, senão o erro será logado no persistirNfeNoBanco
+          userId: context.userId
         });
         // Não jogamos o erro para o usuário não achar que falhou a emissão (que deu certo na Spedy)
       }
