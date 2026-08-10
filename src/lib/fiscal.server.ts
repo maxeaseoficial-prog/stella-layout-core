@@ -37,6 +37,11 @@ export async function assertAdminFiscal(supabase: Supabase, userId: string) {
     console.error("[Fiscal Server] AUTH_STAGE_ADMIN_FAILED: No userId provided.");
     throw new Error("AUTH_STAGE_ADMIN_FAILED (AUTH-DEBUG-V5-01a2d8f1)");
   }
+  
+  // Confirmação de igualdade entre projeto Supabase do client e do server
+  const clientRef = "wjshquqnkzkbubgigxvh"; // Extraído do VITE_SUPABASE_URL
+  const serverRef = process.env.SUPABASE_URL?.split('//')[1]?.split('.')[0];
+  console.log(`[Fiscal Server] PROJECT_SYNC_CHECK: client=${clientRef}, server=${serverRef}, match=${clientRef === serverRef}`);
 
   const { data, error } = await supabase
     .from("empresa_usuarios")

@@ -20,6 +20,7 @@ import {
   notaFiscalDeResposta,
   persistirNfeNoBanco,
   spedyFetch,
+  SpedyError,
   validarConfigFiscal,
   validarPedidoParaNfe,
 } from "./fiscal.server";
@@ -32,9 +33,16 @@ function mensagemDe(e: unknown, fallback: string): string {
 export const testarConexaoFiscal = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
   .handler(async ({ context }) => {
+    console.log("[Fiscal Functions] TEST_CONNECTION_CLIENT_REACHED");
+    console.log("[Fiscal Functions] TEST_CONNECTION_MIDDLEWARE_RECEIVED");
+    console.log("[Fiscal Functions] TEST_CONNECTION_USER_ID=" + context.userId);
+    
     await assertAdminFiscal(context.supabase, context.userId);
+    console.log("[Fiscal Functions] TEST_CONNECTION_ADMIN_VALIDATED");
+
     const config = await carregarFiscalConfigServer(context.supabase);
     const apiKey = apiKeyParaAmbiente(config, config.ambiente);
+    
     if (!apiKey) {
       return {
         ok: false as const,
@@ -42,12 +50,18 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
           "A API Key da Spedy não está configurada no cofre de segredos do sistema.",
       };
     }
+    
     try {
+      console.log("[Fiscal Functions] TEST_CONNECTION_SPEDY_CALL_REACHED");
       // Listagem paginada mínima — valida a chave sem criar nada.
       await spedyFetch(apiKey, config.ambiente, "/product-invoices?page=1&pageSize=1");
       return { ok: true as const, mensagem: "Conexão estabelecida com sucesso com a API da Spedy." };
     } catch (e) {
-      return { ok: false as const, mensagem: mensagemDe(e, "Falha ao conectar com a Spedy.") };
+      console.error("[Fiscal Functions] Spedy Connection Error:", e);
+      const msg = e instanceof SpedyError 
+        ? `Erro Spedy (${e.status}): ${e.message}` 
+        : mensagemDe(e, "Falha ao conectar com a Spedy.");
+      return { ok: false as const, mensagem: msg };
     }
   });
 
