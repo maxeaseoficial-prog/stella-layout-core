@@ -27,7 +27,7 @@ import {
   LABEL_AMBIENTE_SPEDY,
   SPEDY_BASE_URLS,
   useFiscalConfig,
-  type AmbienteSpedy,
+  type AmbienteApiSpedy,
   type EmpresaFiscal,
   type FiscalConfig,
   type RegimeTributarioFiscal,
@@ -79,8 +79,8 @@ export function FiscalTab() {
     setDirty(true);
   }
 
-  function updateAmbiente(ambiente: AmbienteSpedy) {
-    setForm((f) => ({ ...f, ambiente }));
+  function updateAmbiente(ambienteApi: AmbienteApiSpedy) {
+    setForm((f) => ({ ...f, ambienteApi }));
     setDirty(true);
   }
 
@@ -301,8 +301,8 @@ export function FiscalTab() {
           <div className="space-y-1.5">
             <Label htmlFor="fis-ambiente">Ambiente de emissão</Label>
             <Select
-              value={form.ambiente}
-              onValueChange={(v) => updateAmbiente(v as AmbienteSpedy)}
+              value={form.ambienteApi}
+              onValueChange={(v) => updateAmbiente(v as AmbienteApiSpedy)}
             >
               <SelectTrigger id="fis-ambiente" className="h-9">
                 <SelectValue />
@@ -313,7 +313,7 @@ export function FiscalTab() {
               </SelectContent>
             </Select>
             <p className="break-all text-xs text-muted-foreground">
-              Endpoint: {SPEDY_BASE_URLS[form.ambiente]}
+              Endpoint: {SPEDY_BASE_URLS[form.ambienteApi]}
             </p>
           </div>
           <div className="space-y-1.5">

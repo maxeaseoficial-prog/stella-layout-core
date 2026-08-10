@@ -57,13 +57,13 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     const payload = montarPayloadNfeAvulsa(data, config);
     try {
       const res = await spedyFetch(
-        await apiKeyParaAmbiente(context.supabase, config, config.ambiente),
-        config.ambiente,
+        await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi),
+        config.ambienteApi,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
       );
       
-      const nota = notaFiscalDeResposta(res, config.ambiente, data.id.slice(0, 36));
+      const nota = notaFiscalDeResposta(res, config.ambienteApi, data.id.slice(0, 36));
       
       // Persistência imediata
       await persistirNfeNoBanco(
