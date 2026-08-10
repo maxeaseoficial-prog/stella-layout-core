@@ -230,3 +230,36 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: mensagemDe(e, "Falha ao reenviar o DANFE por e-mail.") };
     }
   });
+
+export const carregarSegredoFiscal = createServerFn({ method: "GET" })
+  .middleware([supabaseAuthMiddleware])
+  .handler(async ({ context }) => {
+    const { carregarSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    await assertAdminFiscal(context.supabase, context.userId);
+    const chave = await carregarSegredoFiscalServer(context.supabase);
+    if (!chave) return { configurada: false };
+    // Retorna apenas os últimos 4 caracteres para identificação parcial
+    return { 
+      configurada: true, 
+      parcial: `••••••••${chave.slice(-4)}` 
+    };
+  });
+
+export const salvarSegredoFiscal = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .inputValidator((data) => z.object({ chave: z.string().min(1) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { salvarSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    await assertAdminFiscal(context.supabase, context.userId);
+    await salvarSegredoFiscalServer(context.supabase, data.chave);
+    return { ok: true };
+  });
+
+export const removerSegredoFiscal = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .handler(async ({ context }) => {
+    const { removerSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    await assertAdminFiscal(context.supabase, context.userId);
+    await removerSegredoFiscalServer(context.supabase);
+    return { ok: true };
+  });
