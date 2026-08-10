@@ -155,6 +155,61 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     return null;
   };
 
+  /** Monta os dados enviados ao servidor (emissão e pré-visualização usam a mesma fonte). */
+  const montarDadosEnvio = () => ({
+    id: novoId(),
+    destinatario: {
+      nome: getClienteNome(destinatario),
+      documento: (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "",
+      email: destinatario.email || undefined,
+      cep: destinatario.cep || undefined,
+      logradouro: destinatario.logradouro || undefined,
+      numero: destinatario.numero || undefined,
+      bairro: destinatario.bairro || undefined,
+      complemento: destinatario.complemento || undefined,
+      cidade: destinatario.cidade || undefined,
+      estado: destinatario.estado || undefined,
+    },
+    itens: itens.map((it: any) => ({
+      id: it.id,
+      descricao: it.descricao,
+      quantidade: it.quantidade,
+      unidade: it.unidade || "UN",
+      valorUnitario: it.valorUnitario,
+      desconto: 0,
+      ncm: it.ncm,
+      classificacaoFiscal: it.categoriaFiscal,
+    })),
+    subtotal,
+    desconto: valores.desconto,
+    frete: valores.frete,
+    outrasDespesas: valores.outrasDespesas,
+    total,
+    movimentarEstoque: valores.movimentarEstoque,
+  });
+
+  const handlePreview = async () => {
+    const erro = validarDestinatario() || validarItens();
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
+    setPreviewCarregando(true);
+    try {
+      const res = await previewFn({ data: montarDadosEnvio() });
+      if (res.ok) {
+        setPreview(res);
+        setPreviewAberto(true);
+      } else {
+        toast.error(res.mensagem || "Não foi possível montar o payload.");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao pré-visualizar o payload.");
+    } finally {
+      setPreviewCarregando(false);
+    }
+  };
+
   const handleEmitir = async () => {
     const erroDest = validarDestinatario();
     if (erroDest) {
