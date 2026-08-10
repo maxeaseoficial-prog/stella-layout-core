@@ -87,7 +87,7 @@ export const supabaseAuthMiddleware = createMiddleware({ type: "function" })
 
     if (userError || !user) {
       console.error("[Supabase Auth Middleware] ERROR: AUTH_TOKEN_INVALID", userError?.message);
-      throw new Error(`AUTH_TOKEN_INVALID: ${userError?.message || 'No user'} (AUTH-DEBUG-V5-01a2d8f1)`);
+      throw new Error(`AUTH_TOKEN_INVALID: ${userError?.message || 'No user'}`);
     }
 
     return next({

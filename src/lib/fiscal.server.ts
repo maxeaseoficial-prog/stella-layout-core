@@ -318,13 +318,10 @@ export async function spedyFetch(
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
   const apiKeyFingerprint = apiKeyInfo.key ? `sha256:present...` : 'none';
   
-  console.log("[Fiscal Server] SPEDY_DIAGNOSTICS:", {
-    SPEDY_ENVIRONMENT: ambiente,
-    SPEDY_BASE_URL: SPEDY_BASE_URLS[ambiente],
-    SPEDY_KEY_SOURCE: apiKeyInfo.source,
-    SPEDY_API_KEY_PRESENT: !!apiKeyInfo.key,
-    SPEDY_API_KEY_LENGTH: apiKeyInfo.key?.length || 0,
-    SPEDY_API_KEY_FINGERPRINT: apiKeyFingerprint,
+  console.log("[Fiscal Server] API_FISCAL_DIAGNOSTICS:", {
+    API_FISCAL_ENVIRONMENT: ambiente,
+    API_FISCAL_BASE_URL: SPEDY_BASE_URLS[ambiente],
+    API_FISCAL_KEY_PRESENT: !!apiKeyInfo.key,
     path
   });
 
@@ -347,10 +344,10 @@ export async function spedyFetch(
 
   if (!response.ok) {
     const errorMsg = extrairMensagemErro(response.status, body);
-    console.error(`[Spedy Error] SPEDY_HTTP_STATUS: ${response.status}`, {
+    console.error(`[Fiscal API Error] API_FISCAL_HTTP_STATUS: ${response.status}`, {
       url,
       method: init?.method || "GET",
-      SPEDY_RESPONSE_BODY: body,
+      API_FISCAL_RESPONSE_BODY: body,
     });
     
     throw new SpedyError(response.status, errorMsg);
