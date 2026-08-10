@@ -263,7 +263,6 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
     onFechar();
     setModalEntrega(false);
   }
-  }
 
 
   return (
