@@ -62,8 +62,8 @@ export interface TesteConexaoFiscal {
 export interface FiscalConfig {
   empresa: EmpresaFiscal;
   ambiente: AmbienteSpedy;
-  apiKeySandbox: string;
-  apiKeyProducao: string;
+  apiKeySandbox: string; // Legado - mantido para compatibilidade de tipos
+  apiKeyProducao: string; // Legado - mantido para compatibilidade de tipos
   tributacao: TributacaoPadrao;
   ultimoTeste?: TesteConexaoFiscal;
   /** Momento em que o pedido fica disponível no módulo Fiscal para revisão/emissão. */
