@@ -562,26 +562,54 @@ export function montarPayloadNfeAvulsa(
 
   const items = avulsa.itens.map((i: any) => {
     const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
-    
+
     if (ncmItem.length !== 8) {
       throw new Error(`O produto "${i.descricao}" não possui um NCM válido de 8 dígitos.`);
     }
 
-    const valorItemTotal = round2(i.quantidade * i.valorUnitario);
-    
+    const unidade = i.unidade || "UN";
+    const quantidade = Number(i.quantidade);
+    let valorUnitario = Number(i.valorUnitario);
+    const valorItemTotal = round2(quantidade * valorUnitario);
+
+    // Coerência obrigatória: totalAmount ≈ quantity * unitAmount (e o mesmo
+    // para a base tributável). Se o arredondamento de 2 casas divergir,
+    // usa-se maior precisão no valor unitário.
+    if (quantidade > 0 && Math.abs(round2(quantidade * valorUnitario) - valorItemTotal) >= 0.01) {
+      valorUnitario = round6(valorItemTotal / quantidade);
+    }
+
     return {
       code: "AVULSO",
       description: i.descricao,
       ncm: ncmItem,
       cfop,
-      unit: i.unidade || "UN",
-      quantity: i.quantidade,
-      unitAmount: i.valorUnitario,
+      unit: unidade,
+      quantity: quantidade,
+      unitAmount: valorUnitario,
       totalAmount: valorItemTotal,
+      unitTax: unidade,
+      quantityTax: quantidade,
+      unitTaxAmount: valorUnitario,
       makeupTotal: true,
       taxes: taxes(valorItemTotal),
     };
   });
+
+  // Diagnóstico numérico (sem dados sensíveis)
+  console.log("NFE_ITEM_TOTAL_DIAGNOSTICS", JSON.stringify(items.map((i: any) => ({
+    description: i.description,
+    unit: i.unit,
+    quantity: i.quantity,
+    unitAmount: i.unitAmount,
+    totalAmount: i.totalAmount,
+    unitTax: i.unitTax,
+    quantityTax: i.quantityTax,
+    unitTaxAmount: i.unitTaxAmount,
+    totalComercialCalculado: round2(i.quantity * i.unitAmount),
+    totalTributavelCalculado: round2(i.quantityTax * i.unitTaxAmount),
+  }))));
+
 
   return {
     isFinalCustomer: true,
