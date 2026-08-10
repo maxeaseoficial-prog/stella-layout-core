@@ -239,7 +239,16 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  console.log(`[Fiscal Server] AUTH_STAGE_SPEDY_FETCH: ${path}`, { ambiente });
+  const SPEDY_API_KEY = process.env["SPEDY_API_KEY"];
+  
+  console.log("[Fiscal Server] SPEDY_DIAGNOSTICS:", {
+    SPEDY_BASE_URL: SPEDY_BASE_URLS[ambiente],
+    SPEDY_ENVIRONMENT: ambiente,
+    SPEDY_API_KEY_PRESENT: !!SPEDY_API_KEY,
+    SPEDY_AUTH_HEADER_PRESENT: !!apiKey,
+    path
+  });
+
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -259,10 +268,10 @@ export async function spedyFetch(
 
   if (!response.ok) {
     const errorMsg = extrairMensagemErro(response.status, body);
-    console.error(`[Spedy Error] Status: ${response.status}`, {
+    console.error(`[Spedy Error] SPEDY_HTTP_STATUS: ${response.status}`, {
       url,
       method: init?.method || "GET",
-      response: body,
+      SPEDY_RESPONSE_BODY: body,
     });
     
     throw new SpedyError(response.status, errorMsg);
