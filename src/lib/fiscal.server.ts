@@ -142,6 +142,12 @@ export async function persistirNfeNoBanco(
     updated_at: new Date().toISOString()
   };
 
+  // Se o spedy_id for nulo (falha na API), não tentamos upsert
+  if (!record.spedy_id) {
+    console.error("[Fiscal Server] FISCAL_PERSISTENCE_SKIPPED: spedy_id is null.");
+    return;
+  }
+
   const { error } = await supabase
     .from("notas_fiscais")
     .upsert(record, { onConflict: "tenant_id,spedy_id" });
