@@ -168,14 +168,21 @@ export async function persistirNfeNoBanco(
 export function apiKeyParaAmbiente(
   config: FiscalConfig,
   ambiente: AmbienteSpedy,
-): string {
-  const envKey = process.env["SPEDY_API_KEY"]?.trim();
-  if (envKey) return envKey;
-  return (ambiente === "sandbox" ? config.apiKeySandbox : config.apiKeyProducao).trim();
+): { key: string; source: string } {
+  const sandboxEnv = process.env["SPEDY_API_KEY_SANDBOX"]?.trim();
+  const producaoEnv = process.env["SPEDY_API_KEY_PRODUCAO"]?.trim();
+
+  if (ambiente === "sandbox") {
+    if (sandboxEnv) return { key: sandboxEnv, source: "ENV_SANDBOX" };
+    return { key: config.apiKeySandbox?.trim() || "", source: "CONFIG_SANDBOX" };
+  } else {
+    if (producaoEnv) return { key: producaoEnv, source: "ENV_PRODUCAO" };
+    return { key: config.apiKeyProducao?.trim() || "", source: "CONFIG_PRODUCAO" };
+  }
 }
 
 export function validarConfigFiscal(config: FiscalConfig): string | null {
-  if (!apiKeyParaAmbiente(config, config.ambiente)) {
+  if (!apiKeyParaAmbiente(config, config.ambiente).key) {
     return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
@@ -233,19 +240,21 @@ function extrairMensagemErro(status: number, body: unknown): string {
 }
 
 export async function spedyFetch(
-  apiKey: string,
+  apiKeyInfo: { key: string; source: string },
   ambiente: AmbienteSpedy,
   path: string,
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  const SPEDY_API_KEY = process.env["SPEDY_API_KEY"];
+  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:${require('crypto').createHash('sha256').update(apiKeyInfo.key).digest('hex').substring(0, 12)}...` : 'none';
   
   console.log("[Fiscal Server] SPEDY_DIAGNOSTICS:", {
-    SPEDY_BASE_URL: SPEDY_BASE_URLS[ambiente],
     SPEDY_ENVIRONMENT: ambiente,
-    SPEDY_API_KEY_PRESENT: !!SPEDY_API_KEY,
-    SPEDY_AUTH_HEADER_PRESENT: !!apiKey,
+    SPEDY_BASE_URL: SPEDY_BASE_URLS[ambiente],
+    SPEDY_KEY_SOURCE: apiKeyInfo.source,
+    SPEDY_API_KEY_PRESENT: !!apiKeyInfo.key,
+    SPEDY_API_KEY_LENGTH: apiKeyInfo.key?.length || 0,
+    SPEDY_API_KEY_FINGERPRINT: apiKeyFingerprint,
     path
   });
 
@@ -253,7 +262,7 @@ export async function spedyFetch(
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "X-Api-Key": apiKey,
+      "X-Api-Key": apiKeyInfo.key,
       ...(init?.headers ?? {}),
     },
   });

@@ -41,9 +41,9 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     console.log("[Fiscal Functions] TEST_CONNECTION_ADMIN_VALIDATED");
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const apiKey = apiKeyParaAmbiente(config, config.ambiente);
+    const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
     
-    if (!apiKey) {
+    if (!apiKeyInfo.key) {
       return {
         ok: false as const,
         mensagem:
@@ -54,7 +54,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     try {
       console.log("[Fiscal Functions] TEST_CONNECTION_SPEDY_CALL_REACHED");
       // Listagem paginada mínima — valida a chave sem criar nada.
-      await spedyFetch(apiKey, config.ambiente, "/product-invoices?page=1&pageSize=1");
+      await spedyFetch(apiKeyInfo, config.ambiente, "/product-invoices?page=1&pageSize=1");
       return { ok: true as const, mensagem: "Conexão estabelecida com sucesso com a API da Spedy." };
     } catch (e) {
       console.error("[Fiscal Functions] Spedy Connection Error:", e);
@@ -99,8 +99,9 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     try {
+      const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, config.ambiente),
+        apiKeyInfo,
         config.ambiente,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
@@ -140,8 +141,9 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
+      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, nota.ambiente),
+        apiKeyInfo,
         nota.ambiente,
         `/product-invoices/${nota.spedyId}`,
       );
@@ -174,9 +176,9 @@ export const cancelarNfePedido = createServerFn({ method: "POST" })
     if (!nota?.spedyId) {
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
-    const apiKey = apiKeyParaAmbiente(config, nota.ambiente);
+    const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
     try {
-      const res = await spedyFetch(apiKey, nota.ambiente, `/product-invoices/${nota.spedyId}`, {
+      const res = await spedyFetch(apiKeyInfo, nota.ambiente, `/product-invoices/${nota.spedyId}`, {
         method: "DELETE",
         body: JSON.stringify({ justification: data.justificativa.trim() }),
       });
@@ -188,7 +190,7 @@ export const cancelarNfePedido = createServerFn({ method: "POST" })
     }
     // Cancelamento também é processado — consulta o status atualizado.
     try {
-      const atual = await spedyFetch(apiKey, nota.ambiente, `/product-invoices/${nota.spedyId}`);
+      const atual = await spedyFetch(apiKeyInfo, nota.ambiente, `/product-invoices/${nota.spedyId}`);
       return {
         ok: true as const,
         nota: notaFiscalDeResposta(atual, nota.ambiente, nota.integrationId),
@@ -213,8 +215,9 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
+      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, nota.ambiente),
+        apiKeyInfo,
         nota.ambiente,
         `/product-invoices/${nota.spedyId}/resend-email`,
         { method: "POST" },
