@@ -125,10 +125,36 @@ function CaixaPage() {
 
   function handleConfirmarExclusao() {
     if (!excluindo) return;
-    excluir(excluindo.id);
-    toast.success("Movimentação excluída.");
+    const ok = excluir(excluindo.id);
+    if (ok) {
+      toast.success("Movimentação excluída.");
+      limparSelecao();
+    } else {
+      toast.error("Não foi possível excluir a movimentação.");
+    }
     setExcluindo(null);
   }
+
+  function handleConfirmarExclusaoMassa() {
+    const ids = Array.from(selecionados);
+    const ok = excluirVarios(ids);
+    if (ok) {
+      toast.success(
+        ids.length === 1
+          ? "Movimentação excluída."
+          : `${ids.length} movimentações excluídas.`,
+      );
+      limparSelecao();
+    } else {
+      toast.error(
+        ids.length === 1
+          ? "Não foi possível excluir a movimentação."
+          : "Não foi possível excluir as movimentações.",
+      );
+    }
+    setConfirmarMassa(false);
+  }
+
 
   function handleFecharCaixa(opts: { data: string; saldoInicial: number }) {
     const f = fecharDia(opts);
