@@ -165,10 +165,79 @@ export async function persistirNfeNoBanco(
 // Config / validações
 // ---------------------------------------------------------------------------
 
-export function apiKeyParaAmbiente(
+export async function carregarSegredoFiscalServer(supabase: Supabase): Promise<string | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) return null;
+
+  const { data } = await supabase
+    .from("segredos_fiscais")
+    .select("chave_api")
+    .eq("tenant_id", empUser.empresa_id)
+    .maybeSingle();
+  
+  return data?.chave_api ?? null;
+}
+
+export async function salvarSegredoFiscalServer(supabase: Supabase, chave: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado.");
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) throw new Error("Tenant não encontrado.");
+
+  const { error } = await supabase
+    .from("segredos_fiscais")
+    .upsert(
+      { tenant_id: empUser.empresa_id, chave_api: chave, updated_at: new Date().toISOString() },
+      { onConflict: "tenant_id" }
+    );
+
+  if (error) throw new Error("Falha ao salvar segredo fiscal.");
+}
+
+export async function removerSegredoFiscalServer(supabase: Supabase) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Usuário não autenticado.");
+
+  const { data: empUser } = await supabase
+    .from("empresa_usuarios")
+    .select("empresa_id")
+    .eq("user_id", user.id)
+    .single();
+  
+  if (!empUser) throw new Error("Tenant não encontrado.");
+
+  const { error } = await supabase
+    .from("segredos_fiscais")
+    .delete()
+    .eq("tenant_id", empUser.empresa_id);
+
+  if (error) throw new Error("Falha ao remover segredo fiscal.");
+}
+
+export async function apiKeyParaAmbiente(
+  supabase: Supabase,
   config: FiscalConfig,
   ambiente: AmbienteSpedy,
-): { key: string; source: string } {
+): Promise<{ key: string; source: string }> {
+  // A chave agora é única e vem da tabela de segredos
+  const chaveDb = await carregarSegredoFiscalServer(supabase);
+  if (chaveDb) return { key: chaveDb, source: "DATABASE" };
+
+  // Fallback para ENV (legado/suporte)
   const sandboxEnv = process.env["SPEDY_API_KEY_SANDBOX"]?.trim();
   const producaoEnv = process.env["SPEDY_API_KEY_PRODUCAO"]?.trim();
 
