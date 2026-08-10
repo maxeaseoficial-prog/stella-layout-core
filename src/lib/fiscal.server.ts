@@ -144,10 +144,19 @@ export async function persistirNfeNoBanco(
 
   const { error } = await supabase
     .from("notas_fiscais")
-    .upsert(record, { onConflict: "spedy_id" });
+    .upsert(record, { onConflict: "tenant_id,spedy_id" });
 
   if (error) {
-    console.error("[Fiscal Server] Erro ao persistir nota no banco:", error);
+    console.error("[Fiscal Server] FISCAL_PERSISTENCE_ERROR:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      table: "notas_fiscais",
+      operation: "upsert",
+      tenant_id: record.tenant_id,
+      spedy_id: record.spedy_id
+    });
     throw new Error("Falha ao salvar os dados da NF-e no banco.");
   }
 
