@@ -237,7 +237,11 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         setNotaSucesso(res.nota);
         toast.success("NF-e Avulsa autorizada com sucesso!");
       } else {
-        toast.error(res.mensagem || "Erro ao emitir NF-e");
+        const errorMsg = res.mensagem || "Erro ao emitir NF-e";
+        toast.error(errorMsg, {
+          duration: 10000,
+          description: "A nota pode ter sido enviada mas rejeitada pela SEFAZ. Verifique na aba 'Emitidas'."
+        });
       }
     } catch (err: any) {
       console.error("[NfeAvulsaDrawer] Error detail:", {
