@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Wallet } from "lucide-react";
 import { toast } from "@/lib/toast";
 
@@ -42,20 +42,31 @@ export const Route = createFileRoute("/caixa")({
 });
 
 function CaixaPage() {
-  const { movimentacoes, hidratado, totais, criar, atualizar, excluir, fecharDia } =
-    useCaixa();
+  const {
+    movimentacoes,
+    hidratado,
+    totais,
+    criar,
+    atualizar,
+    excluir,
+    excluirVarios,
+    fecharDia,
+  } = useCaixa();
 
   const [formAberto, setFormAberto] = useState(false);
   const [editando, setEditando] = useState<Movimentacao | null>(null);
   const [visualizando, setVisualizando] = useState<Movimentacao | null>(null);
   const [excluindo, setExcluindo] = useState<Movimentacao | null>(null);
   const [fecharAberto, setFecharAberto] = useState(false);
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+  const [confirmarMassa, setConfirmarMassa] = useState(false);
 
   const [termo, setTermo] = useState("");
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("todos");
   const [tipo, setTipo] = useState<TipoFiltro>("todos");
   const [dataInicio, setDataInicio] = useState(hojeISO());
   const [dataFim, setDataFim] = useState(hojeISO());
+
 
   const movimentacoesFiltradas = useMemo(() => {
     const hoje = hojeISO();
@@ -91,6 +102,41 @@ function CaixaPage() {
     });
   }, [movimentacoes, periodo, tipo, dataInicio, dataFim, termo]);
 
+  const limparSelecao = useCallback(() => setSelecionados(new Set()), []);
+
+  // Qualquer mudança de filtro limpa a seleção (evita agir em itens ocultos).
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [termo, periodo, tipo, dataInicio, dataFim]);
+
+  // Remove da seleção itens que deixaram de existir.
+  useEffect(() => {
+    setSelecionados((atual) => {
+      if (atual.size === 0) return atual;
+      const existentes = new Set(movimentacoes.map((m) => m.id));
+      const proximo = new Set(Array.from(atual).filter((id) => existentes.has(id)));
+      return proximo.size === atual.size ? atual : proximo;
+    });
+  }, [movimentacoes]);
+
+  function alternarSelecao(id: string, selecionado: boolean) {
+    setSelecionados((atual) => {
+      const proximo = new Set(atual);
+      if (selecionado) proximo.add(id);
+      else proximo.delete(id);
+      return proximo;
+    });
+  }
+
+  function alternarTodos(selecionado: boolean) {
+    setSelecionados(
+      selecionado ? new Set(movimentacoesFiltradas.map((m) => m.id)) : new Set(),
+    );
+  }
+
+  const totalSelecionados = selecionados.size;
+
+
   function abrirNova() {
     setEditando(null);
     setFormAberto(true);
@@ -104,20 +150,47 @@ function CaixaPage() {
 
   function handleSalvar(dados: MovimentacaoInput, id?: string) {
     if (id) {
-      atualizar(id, dados);
-      toast.success("Movimentação atualizada.");
+      if (atualizar(id, dados)) toast.success("Movimentação atualizada.");
+      else toast.error("Não foi possível salvar a movimentação.");
     } else {
-      criar(dados);
-      toast.success("Movimentação registrada.");
+      if (criar(dados)) toast.success("Movimentação registrada.");
+      else toast.error("Não foi possível salvar a movimentação.");
     }
   }
 
+
   function handleConfirmarExclusao() {
     if (!excluindo) return;
-    excluir(excluindo.id);
-    toast.success("Movimentação excluída.");
+    const ok = excluir(excluindo.id);
+    if (ok) {
+      toast.success("Movimentação excluída.");
+      limparSelecao();
+    } else {
+      toast.error("Não foi possível excluir a movimentação.");
+    }
     setExcluindo(null);
   }
+
+  function handleConfirmarExclusaoMassa() {
+    const ids = Array.from(selecionados);
+    const ok = excluirVarios(ids);
+    if (ok) {
+      toast.success(
+        ids.length === 1
+          ? "Movimentação excluída."
+          : `${ids.length} movimentações excluídas.`,
+      );
+      limparSelecao();
+    } else {
+      toast.error(
+        ids.length === 1
+          ? "Não foi possível excluir a movimentação."
+          : "Não foi possível excluir as movimentações.",
+      );
+    }
+    setConfirmarMassa(false);
+  }
+
 
   function handleFecharCaixa(opts: { data: string; saldoInicial: number }) {
     const f = fecharDia(opts);
@@ -187,12 +260,40 @@ function CaixaPage() {
           description="Ajuste os filtros ou a busca para ver mais resultados."
         />
       ) : (
-        <MovimentacoesTable
-          movimentacoes={movimentacoesFiltradas}
-          onVisualizar={setVisualizando}
-          onEditar={abrirEdicao}
-          onExcluir={setExcluindo}
-        />
+        <div className="space-y-3">
+          {totalSelecionados > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-[var(--shadow-soft)]">
+              <span className="text-sm font-medium text-foreground">
+                {totalSelecionados === 1
+                  ? "1 movimentação selecionada"
+                  : `${totalSelecionados} movimentações selecionadas`}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={limparSelecao}>
+                  Limpar seleção
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setConfirmarMassa(true)}
+                >
+                  Excluir selecionadas
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <MovimentacoesTable
+            movimentacoes={movimentacoesFiltradas}
+            onVisualizar={setVisualizando}
+            onEditar={abrirEdicao}
+            onExcluir={setExcluindo}
+            selecionados={selecionados}
+            onAlternarSelecao={alternarSelecao}
+            onAlternarTodos={alternarTodos}
+          />
+        </div>
+
       )}
 
       <MovimentacaoFormDrawer
@@ -214,6 +315,36 @@ function CaixaPage() {
         movimentacoes={movimentacoes}
         onConfirmar={handleFecharCaixa}
       />
+
+      <AlertDialog
+        open={confirmarMassa}
+        onOpenChange={(v) => (!v ? setConfirmarMassa(false) : null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {totalSelecionados === 1
+                ? "Excluir movimentação?"
+                : `Excluir ${totalSelecionados} movimentações?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {totalSelecionados === 1
+                ? "Esta ação não pode ser desfeita."
+                : "As movimentações selecionadas serão removidas do caixa. Esta ação não pode ser desfeita."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmarExclusaoMassa}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <AlertDialog
         open={!!excluindo}
