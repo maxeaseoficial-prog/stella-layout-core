@@ -27,7 +27,8 @@ import { useFiscalConfig } from "./useFiscalConfig";
 import { formatarMoeda, novoId } from "@/features/pedidos/utils";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { emitirNfeAvulsa } from "@/lib/fiscal-avulsa.functions";
+import { emitirNfeAvulsa, previewPayloadNfeAvulsa } from "@/lib/fiscal-avulsa.functions";
+import { PayloadPreviewDialog } from "./PayloadPreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { searchCategoriasFiscais, getCategoriaFiscalPorId } from "./ncm.functions";
 import { SPEDY_BASE_URLS } from "./spedy";
@@ -67,6 +68,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   });
   const [emitindo, setEmitindo] = useState(false);
   const [notaSucesso, setNotaSucesso] = useState<any>(null);
+  const previewFn = useServerFn(previewPayloadNfeAvulsa);
+  const [preview, setPreview] = useState<any>(null);
+  const [previewAberto, setPreviewAberto] = useState(false);
+  const [previewCarregando, setPreviewCarregando] = useState(false);
 
   // Clientes filtrados
   const clientesFiltrados = useMemo(() => {
@@ -155,6 +160,61 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     return null;
   };
 
+  /** Monta os dados enviados ao servidor (emissão e pré-visualização usam a mesma fonte). */
+  const montarDadosEnvio = () => ({
+    id: novoId(),
+    destinatario: {
+      nome: getClienteNome(destinatario),
+      documento: (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "",
+      email: destinatario.email || undefined,
+      cep: destinatario.cep || undefined,
+      logradouro: destinatario.logradouro || undefined,
+      numero: destinatario.numero || undefined,
+      bairro: destinatario.bairro || undefined,
+      complemento: destinatario.complemento || undefined,
+      cidade: destinatario.cidade || undefined,
+      estado: destinatario.estado || undefined,
+    },
+    itens: itens.map((it: any) => ({
+      id: it.id,
+      descricao: it.descricao,
+      quantidade: it.quantidade,
+      unidade: it.unidade || "UN",
+      valorUnitario: it.valorUnitario,
+      desconto: 0,
+      ncm: it.ncm,
+      classificacaoFiscal: it.categoriaFiscal,
+    })),
+    subtotal,
+    desconto: valores.desconto,
+    frete: valores.frete,
+    outrasDespesas: valores.outrasDespesas,
+    total,
+    movimentarEstoque: valores.movimentarEstoque,
+  });
+
+  const handlePreview = async () => {
+    const erro = validarDestinatario() || validarItens();
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
+    setPreviewCarregando(true);
+    try {
+      const res = await previewFn({ data: montarDadosEnvio() });
+      if (res.ok) {
+        setPreview(res);
+        setPreviewAberto(true);
+      } else {
+        toast.error(res.mensagem || "Não foi possível montar o payload.");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Erro ao pré-visualizar o payload.");
+    } finally {
+      setPreviewCarregando(false);
+    }
+  };
+
   const handleEmitir = async () => {
     const erroDest = validarDestinatario();
     if (erroDest) {
@@ -194,39 +254,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
 
     setEmitindo(true);
     try {
-      const payload = {
-        id: novoId(),
-        destinatario: {
-          nome: getClienteNome(destinatario),
-          documento: (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "",
-          email: destinatario.email || undefined,
-          cep: destinatario.cep || undefined,
-          logradouro: destinatario.logradouro || undefined,
-          numero: destinatario.numero || undefined,
-          bairro: destinatario.bairro || undefined,
-          complemento: destinatario.complemento || undefined,
-          cidade: destinatario.cidade || undefined,
-          estado: destinatario.estado || undefined,
-        },
-        itens: itens.map(it => ({
-          id: it.id,
-          descricao: it.descricao,
-          quantidade: it.quantidade,
-          unidade: it.unidade || "UN",
-          valorUnitario: it.valorUnitario,
-          desconto: 0,
-          ncm: it.ncm,
-          classificacaoFiscal: it.categoriaFiscal,
-        })),
-        subtotal,
-        desconto: valores.desconto,
-        frete: valores.frete,
-        outrasDespesas: valores.outrasDespesas,
-        total,
-        movimentarEstoque: valores.movimentarEstoque,
-      };
+      const payload = montarDadosEnvio();
 
       const res = await emitirFn({ data: payload });
+
       
       if (res.ok) {
         criar({
@@ -805,19 +836,36 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
               Próximo
             </Button>
           ) : (
-            <Button 
-              onClick={handleEmitir} 
-              disabled={emitindo}
-              className="bg-primary hover:bg-primary/90 min-w-[140px]"
-            >
-              {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={handlePreview}
+                disabled={emitindo || previewCarregando}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                {previewCarregando ? "Montando..." : "Pré-visualizar"}
+              </Button>
+              <Button 
+                onClick={handleEmitir} 
+                disabled={emitindo}
+                className="bg-primary hover:bg-primary/90 min-w-[140px]"
+              >
+                {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
+              </Button>
+            </>
           )}
         </DialogFooter>
           </>
         )}
       </DialogContent>
+      <PayloadPreviewDialog
+        aberto={previewAberto}
+        onFechar={() => setPreviewAberto(false)}
+        preview={preview}
+      />
     </Dialog>
+
   );
 }
 
