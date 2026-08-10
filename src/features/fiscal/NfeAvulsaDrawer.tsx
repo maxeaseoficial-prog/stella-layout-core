@@ -836,19 +836,36 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
               Próximo
             </Button>
           ) : (
-            <Button 
-              onClick={handleEmitir} 
-              disabled={emitindo}
-              className="bg-primary hover:bg-primary/90 min-w-[140px]"
-            >
-              {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={handlePreview}
+                disabled={emitindo || previewCarregando}
+                className="gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                {previewCarregando ? "Montando..." : "Pré-visualizar"}
+              </Button>
+              <Button 
+                onClick={handleEmitir} 
+                disabled={emitindo}
+                className="bg-primary hover:bg-primary/90 min-w-[140px]"
+              >
+                {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
+              </Button>
+            </>
           )}
         </DialogFooter>
           </>
         )}
       </DialogContent>
+      <PayloadPreviewDialog
+        aberto={previewAberto}
+        onFechar={() => setPreviewAberto(false)}
+        preview={preview}
+      />
     </Dialog>
+
   );
 }
 
