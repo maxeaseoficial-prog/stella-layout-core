@@ -67,6 +67,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   });
   const [emitindo, setEmitindo] = useState(false);
   const [notaSucesso, setNotaSucesso] = useState<any>(null);
+  const previewFn = useServerFn(previewPayloadNfeAvulsa);
+  const [preview, setPreview] = useState<any>(null);
+  const [previewAberto, setPreviewAberto] = useState(false);
+  const [previewCarregando, setPreviewCarregando] = useState(false);
 
   // Clientes filtrados
   const clientesFiltrados = useMemo(() => {
