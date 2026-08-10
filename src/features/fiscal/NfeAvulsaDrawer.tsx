@@ -235,13 +235,19 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
           notaFiscal: res.nota
         });
         setNotaSucesso(res.nota);
-        toast.success("NF-e Avulsa autorizada com sucesso!");
+        
+        if (res.nota.status === "authorized") {
+          toast.success("NF-e Avulsa autorizada com sucesso!");
+        } else if (res.nota.status === "rejected") {
+          toast.error("NF-e rejeitada pela SEFAZ", {
+            description: res.nota.processingDetail?.message || "Verifique os detalhes da rejeição."
+          });
+        } else {
+          toast.info(`NF-e em processamento: ${res.nota.status}`);
+        }
       } else {
         const errorMsg = res.mensagem || "Erro ao emitir NF-e";
-        toast.error(errorMsg, {
-          duration: 10000,
-          description: "A nota pode ter sido enviada mas rejeitada pela SEFAZ. Verifique na aba 'Emitidas'."
-        });
+        toast.error(errorMsg);
       }
     } catch (err: any) {
       console.error("[NfeAvulsaDrawer] Error detail:", {
@@ -265,12 +271,32 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         {notaSucesso ? (
           <div className="flex flex-col h-full animate-in fade-in zoom-in duration-300">
             <div className="p-8 text-center space-y-4">
-              <div className="mx-auto w-16 h-16 bg-emerald-100 dark:bg-emerald-950/30 rounded-full flex items-center justify-center">
-                <Check className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              <div className={cn(
+                "mx-auto w-16 h-16 rounded-full flex items-center justify-center",
+                notaSucesso.status === "authorized" ? "bg-emerald-100 dark:bg-emerald-950/30" : 
+                notaSucesso.status === "rejected" ? "bg-red-100 dark:bg-red-950/30" :
+                "bg-amber-100 dark:bg-amber-950/30"
+              )}>
+                {notaSucesso.status === "authorized" ? (
+                  <Check className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                ) : notaSucesso.status === "rejected" ? (
+                  <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                ) : (
+                  <Info className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+                )}
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-foreground">NF-e autorizada com sucesso</h2>
-                <p className="text-muted-foreground">A nota fiscal foi processada e autorizada pela SEFAZ.</p>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {notaSucesso.status === "authorized" ? "NF-e autorizada com sucesso" :
+                   notaSucesso.status === "rejected" ? "NF-e rejeitada" :
+                   notaSucesso.status === "canceled" ? "NF-e cancelada" :
+                   "NF-e em processamento"}
+                </h2>
+                <p className="text-muted-foreground">
+                  {notaSucesso.status === "authorized" ? "A nota fiscal foi processada e autorizada pela SEFAZ." :
+                   notaSucesso.status === "rejected" ? "A NF-e foi recebida pelo serviço fiscal, mas não foi autorizada." :
+                   "Aguardando o processamento final da nota fiscal pela SEFAZ."}
+                </p>
               </div>
             </div>
 
@@ -283,24 +309,41 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                   <div className="bg-surface border rounded-xl p-4 space-y-3 shadow-sm">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Número / Série</span>
-                      <span className="font-bold">{notaSucesso.numero} / {notaSucesso.serie}</span>
+                      <span className="font-bold">{notaSucesso.numero || "—"} / {notaSucesso.serie || "—"}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Status</span>
-                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200">Autorizada</Badge>
+                      <Badge className={cn(
+                        notaSucesso.status === "authorized" ? "bg-emerald-100 text-emerald-800 border-emerald-200" :
+                        notaSucesso.status === "rejected" ? "bg-red-100 text-red-800 border-red-200" :
+                        "bg-amber-100 text-amber-800 border-amber-200"
+                      )}>
+                        {notaSucesso.status === "authorized" ? "Autorizada" :
+                         notaSucesso.status === "rejected" ? "Rejeitada" :
+                         notaSucesso.status === "canceled" ? "Cancelada" :
+                         "Processando"}
+                      </Badge>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Protocolo</span>
-                      <span className="font-mono text-xs">{notaSucesso.protocolo}</span>
+                      <span className="font-mono text-xs">{notaSucesso.protocolo || "—"}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Data/Hora</span>
                       <span>{notaSucesso.autorizadaEm ? new Date(notaSucesso.autorizadaEm).toLocaleString('pt-BR') : '—'}</span>
                     </div>
+                    {notaSucesso.status === "rejected" && notaSucesso.processingDetail?.message && (
+                      <div className="pt-2 border-t space-y-1">
+                        <span className="text-[10px] font-bold uppercase text-red-600 dark:text-red-400">Motivo da Rejeição</span>
+                        <p className="text-xs text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/20 p-2 rounded border border-red-100 dark:border-red-900/30">
+                          {notaSucesso.processingDetail.message}
+                        </p>
+                      </div>
+                    )}
                     <div className="pt-2 border-t space-y-1">
                       <span className="text-[10px] font-bold uppercase text-muted-foreground">Chave de Acesso</span>
                       <p className="text-[10px] font-mono break-all bg-surface-muted p-2 rounded border border-border">
-                        {notaSucesso.chaveAcesso}
+                        {notaSucesso.chaveAcesso || "Aguardando..."}
                       </p>
                     </div>
                   </div>
@@ -326,20 +369,38 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                   <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 p-4 rounded-xl space-y-2">
                     <p className="text-xs text-blue-800 dark:text-blue-300 font-medium">Ações Disponíveis</p>
                     <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
-                        <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as AmbienteApiSpedy]}/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" /> Visualizar DANFE
-                        </a>
+                      <Button variant="outline" size="sm" className="bg-surface gap-2" disabled={notaSucesso.status !== "authorized" || !notaSucesso.spedyId} asChild={notaSucesso.status === "authorized" && !!notaSucesso.spedyId}>
+                        {notaSucesso.status === "authorized" && !!notaSucesso.spedyId ? (
+                          <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as AmbienteApiSpedy]}/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" /> Visualizar DANFE
+                          </a>
+                        ) : (
+                          <>
+                            <ExternalLink className="h-4 w-4" /> Visualizar DANFE
+                          </>
+                        )}
                       </Button>
-                      <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
-                        <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as AmbienteApiSpedy]}/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${notaSucesso.numero}.pdf`}>
-                          <Download className="h-4 w-4" /> Baixar PDF
-                        </a>
+                      <Button variant="outline" size="sm" className="bg-surface gap-2" disabled={notaSucesso.status !== "authorized" || !notaSucesso.spedyId} asChild={notaSucesso.status === "authorized" && !!notaSucesso.spedyId}>
+                        {notaSucesso.status === "authorized" && !!notaSucesso.spedyId ? (
+                          <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as AmbienteApiSpedy]}/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${notaSucesso.numero}.pdf`}>
+                            <Download className="h-4 w-4" /> Baixar PDF
+                          </a>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4" /> Baixar PDF
+                          </>
+                        )}
                       </Button>
-                      <Button variant="outline" size="sm" className="bg-surface gap-2 col-span-2" asChild>
-                        <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as AmbienteApiSpedy]}/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${notaSucesso.numero}.xml`}>
-                          <Download className="h-4 w-4" /> Baixar XML Autorizado
-                        </a>
+                      <Button variant="outline" size="sm" className="bg-surface gap-2 col-span-2" disabled={notaSucesso.status !== "authorized" || !notaSucesso.spedyId} asChild={notaSucesso.status === "authorized" && !!notaSucesso.spedyId}>
+                        {notaSucesso.status === "authorized" && !!notaSucesso.spedyId ? (
+                          <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as AmbienteApiSpedy]}/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${notaSucesso.numero}.xml`}>
+                            <Download className="h-4 w-4" /> Baixar XML Autorizado
+                          </a>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4" /> Baixar XML Autorizado
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
