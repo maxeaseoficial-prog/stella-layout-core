@@ -99,8 +99,9 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     try {
+      const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, config.ambiente),
+        apiKeyInfo,
         config.ambiente,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
@@ -140,8 +141,9 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
+      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, nota.ambiente),
+        apiKeyInfo,
         nota.ambiente,
         `/product-invoices/${nota.spedyId}`,
       );
@@ -213,8 +215,9 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
       return { ok: false as const, mensagem: "Este pedido ainda não possui NF-e emitida." };
     }
     try {
+      const apiKeyInfo = apiKeyParaAmbiente(config, nota.ambiente);
       const res = await spedyFetch(
-        apiKeyParaAmbiente(config, nota.ambiente),
+        apiKeyInfo,
         nota.ambiente,
         `/product-invoices/${nota.spedyId}/resend-email`,
         { method: "POST" },
