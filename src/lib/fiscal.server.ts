@@ -316,7 +316,7 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:${require('crypto').createHash('sha256').update(apiKeyInfo.key).digest('hex').substring(0, 12)}...` : 'none';
+  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:present...` : 'none';
   
   console.log("[Fiscal Server] SPEDY_DIAGNOSTICS:", {
     SPEDY_ENVIRONMENT: ambiente,
