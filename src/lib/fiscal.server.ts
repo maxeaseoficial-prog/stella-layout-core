@@ -614,11 +614,23 @@ export function notaFiscalDeResposta(
   ambiente: AmbienteApiSpedy,
   integrationId: string,
 ): NotaFiscalPedido {
+  const detail = res?.processingDetail || {};
+  const status = (res?.status ?? "enqueued") as StatusNfe;
+  
+  // Se estiver rejeitada, extrai as mensagens de erro detalhadas da API
+  let erroSefaz = detail.message;
+  if (status === "rejected" && Array.isArray(res?.errors) && res.errors.length > 0) {
+    const errorMsgs = res.errors
+      .map((e: any) => `${e.code ? `[${e.code}] ` : ""}${e.message}`)
+      .join(" | ");
+    erroSefaz = errorMsgs || erroSefaz;
+  }
+
   return {
     spedyId: String(res?.id ?? ""),
     ambiente,
     integrationId: String(res?.integrationId ?? integrationId),
-    status: (res?.status ?? "enqueued") as StatusNfe,
+    status,
     numero: res?.number ?? null,
     serie: res?.series ?? null,
     chaveAcesso: res?.accessKey ?? null,
@@ -626,7 +638,11 @@ export function notaFiscalDeResposta(
     emitidaEm: res?.issuedOn ?? null,
     autorizadaEm: res?.authorization?.date ?? null,
     valor: typeof res?.amount === "number" ? res.amount : null,
-    processingDetail: res?.processingDetail ?? null,
+    processingDetail: {
+      status: detail.status,
+      message: erroSefaz,
+      code: detail.code
+    },
     erro: null,
     atualizadoEm: new Date().toISOString(),
   };
