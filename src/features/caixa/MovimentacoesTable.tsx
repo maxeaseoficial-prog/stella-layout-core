@@ -1,6 +1,7 @@
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -31,6 +32,9 @@ interface Props {
   onVisualizar: (m: Movimentacao) => void;
   onEditar: (m: Movimentacao) => void;
   onExcluir: (m: Movimentacao) => void;
+  selecionados: Set<string>;
+  onAlternarSelecao: (id: string, selecionado: boolean) => void;
+  onAlternarTodos: (selecionado: boolean) => void;
 }
 
 export function MovimentacoesTable({
@@ -38,13 +42,33 @@ export function MovimentacoesTable({
   onVisualizar,
   onEditar,
   onExcluir,
+  selecionados,
+  onAlternarSelecao,
+  onAlternarTodos,
 }: Props) {
+  const visiveis = movimentacoes.length;
+  const marcados = movimentacoes.filter((m) => selecionados.has(m.id)).length;
+  const estadoCabecalho: boolean | "indeterminate" =
+    visiveis > 0 && marcados === visiveis
+      ? true
+      : marcados > 0
+        ? "indeterminate"
+        : false;
+
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-[var(--shadow-soft)]">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={estadoCabecalho}
+                  disabled={visiveis === 0}
+                  onCheckedChange={(v) => onAlternarTodos(v === true)}
+                  aria-label="Selecionar todas as movimentações visíveis"
+                />
+              </TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Categoria</TableHead>
               <TableHead>Descrição</TableHead>
@@ -58,8 +82,20 @@ export function MovimentacoesTable({
           </TableHeader>
           <TableBody>
             {movimentacoes.map((m) => (
-              <TableRow key={m.id} className="group">
+              <TableRow
+                key={m.id}
+                className="group"
+                data-state={selecionados.has(m.id) ? "selected" : undefined}
+              >
                 <TableCell>
+                  <Checkbox
+                    checked={selecionados.has(m.id)}
+                    onCheckedChange={(v) => onAlternarSelecao(m.id, v === true)}
+                    aria-label={`Selecionar movimentação ${m.descricao}`}
+                  />
+                </TableCell>
+                <TableCell>
+
                   <Badge
                     variant="outline"
                     className={cn(
