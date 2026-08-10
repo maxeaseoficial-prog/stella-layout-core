@@ -40,6 +40,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     await assertAdminFiscal(context.supabase, context.userId);
     console.log("[Fiscal Functions] TEST_CONNECTION_ADMIN_VALIDATED");
 
+    const config = await carregarFiscalConfigServer(context.supabase);
     const apiKeyInfo = apiKeyParaAmbiente(config, config.ambiente);
     
     if (!apiKeyInfo.key) {
