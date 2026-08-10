@@ -6,7 +6,14 @@ import {
   Globe, 
   Save, 
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Key,
+  Eye,
+  EyeOff,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -15,7 +22,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { toast } from "@/lib/toast";
-import { testarConexaoFiscal } from "@/lib/fiscal.functions";
+import { 
+  testarConexaoFiscal, 
+  carregarSegredoFiscal, 
+  salvarSegredoFiscal, 
+  removerSegredoFiscal 
+} from "@/lib/fiscal.functions";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function ConfiguracoesFiscaisForm() {
   const { config, salvar, carregando } = useFiscalConfig();
