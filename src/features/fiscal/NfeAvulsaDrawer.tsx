@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { 
   Search, 
   Building, 
@@ -12,7 +12,8 @@ import {
   FileText,
   Info,
   ExternalLink,
-  Download
+  Download,
+  RefreshCw
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -27,12 +28,13 @@ import { useFiscalConfig } from "./useFiscalConfig";
 import { formatarMoeda, novoId } from "@/features/pedidos/utils";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { emitirNfeAvulsa, previewPayloadNfeAvulsa } from "@/lib/fiscal-avulsa.functions";
+import { emitirNfeAvulsa, previewPayloadNfeAvulsa, consultarStatusNfe } from "@/lib/fiscal-avulsa.functions";
 import { PayloadPreviewDialog } from "./PayloadPreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { searchCategoriasFiscais, getCategoriaFiscalPorId } from "./ncm.functions";
 import { SPEDY_BASE_URLS } from "./spedy";
-import type { AmbienteApiSpedy } from "./types";
+import type { AmbienteApiSpedy, NotaFiscalPedido, StatusNfe } from "./types";
+import { STATUS_NFE_FINAIS } from "./types";
 import { 
   Command, 
   CommandEmpty, 
@@ -72,6 +74,99 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const [preview, setPreview] = useState<any>(null);
   const [previewAberto, setPreviewAberto] = useState(false);
   const [previewCarregando, setPreviewCarregando] = useState(false);
+
+  // ---- Sincronização assíncrona de status (polling GET, nunca reemite) ----
+  const consultarStatusFn = useServerFn(consultarStatusNfe);
+  const [avulsaId, setAvulsaId] = useState<string | null>(null);
+  const [consultando, setConsultando] = useState(false);
+  const [pollingExpirado, setPollingExpirado] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tentativasRef = useRef(0);
+  const pollingAtivoRef = useRef<string | null>(null);
+  const avulsaIdRef = useRef<string | null>(null);
+
+  useEffect(() => { avulsaIdRef.current = avulsaId; }, [avulsaId]);
+
+  const pararPolling = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    pollingAtivoRef.current = null;
+    tentativasRef.current = 0;
+  }, []);
+
+  const ehFinal = (status?: StatusNfe) => !!status && STATUS_NFE_FINAIS.includes(status);
+
+  const aplicarNota = useCallback((nota: NotaFiscalPedido, anterior?: StatusNfe) => {
+    setNotaSucesso(nota);
+    const id = avulsaIdRef.current;
+    if (id) atualizarNotaFiscal(id, nota);
+    if (nota.status !== anterior) {
+      if (nota.status === "authorized") toast.success("NF-e autorizada com sucesso.");
+      else if (nota.status === "rejected") {
+        toast.error("NF-e rejeitada pela SEFAZ", {
+          description: nota.processingDetail?.message || "Verifique os detalhes da rejeição.",
+        });
+      }
+    }
+  }, [atualizarNotaFiscal]);
+
+  /** Consulta única (usada pelo botão manual e pelo polling). */
+  const consultarAgora = useCallback(async (nota: NotaFiscalPedido) => {
+    if (!nota?.spedyId) return null;
+    setConsultando(true);
+    try {
+      const res: any = await consultarStatusFn({ data: { spedyId: nota.spedyId, ambiente: nota.ambiente } });
+      if (res?.ok && res.nota) {
+        aplicarNota(res.nota, nota.status);
+        return res.nota as NotaFiscalPedido;
+      }
+      if (res?.mensagem) toast.error(res.mensagem);
+      return null;
+    } catch (err: any) {
+      console.error("[NfeAvulsaDrawer] Falha ao consultar status:", err);
+      return null;
+    } finally {
+      setConsultando(false);
+    }
+  }, [aplicarNota, consultarStatusFn]);
+
+  const INTERVALO_POLLING = 2000;
+  const MAX_TENTATIVAS = 30;
+
+  const iniciarPolling = useCallback((nota: NotaFiscalPedido) => {
+    if (!nota?.spedyId || ehFinal(nota.status)) return;
+    if (pollingAtivoRef.current === nota.spedyId) return; // evita polling duplicado
+    pararPolling();
+    pollingAtivoRef.current = nota.spedyId;
+    tentativasRef.current = 0;
+    setPollingExpirado(false);
+
+    const tick = async () => {
+      if (pollingAtivoRef.current !== nota.spedyId) return;
+      tentativasRef.current += 1;
+      const atualizada = await consultarAgora(nota);
+      if (pollingAtivoRef.current !== nota.spedyId) return;
+      if (atualizada && ehFinal(atualizada.status)) {
+        pararPolling();
+        return;
+      }
+      if (tentativasRef.current >= MAX_TENTATIVAS) {
+        pararPolling();
+        setPollingExpirado(true);
+        toast.info("A NF-e continua em processamento. Você pode atualizar o status manualmente.");
+        return;
+      }
+      timerRef.current = setTimeout(tick, INTERVALO_POLLING);
+    };
+
+    timerRef.current = setTimeout(tick, INTERVALO_POLLING);
+  }, [consultarAgora, pararPolling]);
+
+  // Limpeza ao fechar o modal / desmontar
+  useEffect(() => {
+    if (!aberto) pararPolling();
+  }, [aberto, pararPolling]);
+  useEffect(() => () => pararPolling(), [pararPolling]);
 
   // Clientes filtrados
   const clientesFiltrados = useMemo(() => {
@@ -260,13 +355,19 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
 
       
       if (res.ok) {
-        criar({
+        const criada = criar({
           ...payload,
           clienteId: destinatario.id,
           notaFiscal: res.nota
         });
+        setAvulsaId(criada?.id ?? null);
+        avulsaIdRef.current = criada?.id ?? null;
         setNotaSucesso(res.nota);
-        
+
+        if (!STATUS_NFE_FINAIS.includes(res.nota.status)) {
+          iniciarPolling(res.nota as NotaFiscalPedido);
+        }
+
         if (res.nota.status === "authorized") {
           toast.success("NF-e Avulsa autorizada com sucesso!");
         } else if (res.nota.status === "rejected") {
@@ -439,10 +540,31 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
               </div>
             </div>
 
-            <DialogFooter className="p-6 border-t bg-surface-muted/30">
+            <DialogFooter className="p-6 border-t bg-surface-muted/30 flex-col md:flex-row gap-2">
+              {!STATUS_NFE_FINAIS.includes(notaSucesso.status) && (
+                <div className="flex-1 flex flex-col md:flex-row md:items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="gap-2 w-full md:w-auto"
+                    disabled={consultando}
+                    onClick={() => consultarAgora(notaSucesso as NotaFiscalPedido)}
+                  >
+                    <RefreshCw className={cn("h-4 w-4", consultando && "animate-spin")} />
+                    Atualizar status
+                  </Button>
+                  {pollingExpirado && (
+                    <span className="text-xs text-muted-foreground">
+                      A NF-e continua em processamento. Você pode atualizar o status manualmente.
+                    </span>
+                  )}
+                </div>
+              )}
               <Button 
                 className="w-full md:w-auto" 
                 onClick={() => {
+                  pararPolling();
+                  setPollingExpirado(false);
+                  setAvulsaId(null);
                   setNotaSucesso(null);
                   onFechar();
                   setEtapa(1);

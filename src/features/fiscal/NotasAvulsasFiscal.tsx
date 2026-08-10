@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, FileText, CheckCircle2, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { consultarStatusNfe } from "@/lib/fiscal-avulsa.functions";
+import { Plus, Search, FileText, CheckCircle2, Clock, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +10,35 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { formatarMoeda, formatarDataBR } from "@/features/pedidos/utils";
 import { useNfeAvulsas } from "./useNfeAvulsas";
-import { LABEL_STATUS_NFE } from "./types";
+import { LABEL_STATUS_NFE, STATUS_NFE_FINAIS } from "./types";
+import { cn } from "@/lib/utils";
 
 export function NotasAvulsasFiscal() {
-  const { notas } = useNfeAvulsas();
+  const { notas, atualizarNotaFiscal } = useNfeAvulsas();
   const [busca, setBusca] = useState("");
+  const consultarStatusFn = useServerFn(consultarStatusNfe);
+  const [sincronizando, setSincronizando] = useState<string | null>(null);
+
+  /** Consulta (GET) o status atual da NF-e já transmitida — nunca reemite. */
+  const sincronizarStatus = async (id: string, spedyId: string, ambiente: "sandbox" | "producao") => {
+    setSincronizando(id);
+    try {
+      const res: any = await consultarStatusFn({ data: { spedyId, ambiente } });
+      if (res?.ok && res.nota) {
+        atualizarNotaFiscal(id, res.nota);
+        if (res.nota.status === "authorized") toast.success("NF-e autorizada com sucesso.");
+        else if (res.nota.status === "rejected") {
+          toast.error("NF-e rejeitada pela SEFAZ", { description: res.nota.processingDetail?.message || undefined });
+        } else toast.info("A NF-e continua em processamento.");
+      } else {
+        toast.error(res?.mensagem || "Falha ao consultar status.");
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Falha ao consultar status.");
+    } finally {
+      setSincronizando(null);
+    }
+  };
 
   const filtradas = useMemo(() => {
     return notas.filter(n => {
@@ -72,6 +99,18 @@ export function NotasAvulsasFiscal() {
                   <TableCell className="text-sm">{formatarDataBR(n.criadaEm)}</TableCell>
                   <TableCell className="text-sm font-semibold">{formatarMoeda(n.total)}</TableCell>
                   <TableCell className="text-right">
+                    {n.notaFiscal?.spedyId && !STATUS_NFE_FINAIS.includes(n.notaFiscal.status) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2 mr-2"
+                        disabled={sincronizando === n.id}
+                        onClick={() => sincronizarStatus(n.id, n.notaFiscal!.spedyId, n.notaFiscal!.ambiente)}
+                      >
+                        <RefreshCw className={cn("h-3.5 w-3.5", sincronizando === n.id && "animate-spin")} />
+                        Atualizar status
+                      </Button>
+                    )}
                     <Button size="sm" variant="ghost">Detalhes</Button>
                   </TableCell>
                 </TableRow>
