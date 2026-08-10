@@ -158,12 +158,12 @@ function PedidosPage() {
     setFormAberto(true);
   }
 
-  function handleSalvar(dados: PedidoInput, id?: string) {
+  function handleSalvar(dados: PedidoInput, id?: string, entregaImediata?: any) {
     if (id) {
       atualizar(id, dados);
       toast.success("Pedido atualizado.");
     } else {
-      const novo = criar(dados);
+      const novo = criar(dados, entregaImediata);
       toast.success(`Pedido ${novo.numero} criado.`);
     }
   }

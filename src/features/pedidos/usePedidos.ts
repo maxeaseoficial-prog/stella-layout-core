@@ -9,6 +9,7 @@ import type {
   Pedido,
   PedidoInput,
   StatusProducao,
+  FormaPagamentoPedido,
 } from "./types";
 import { LABEL_STATUS_PRODUCAO } from "./types";
 import {
@@ -29,6 +30,7 @@ import {
   calcularTotal,
   gerarNumeroPedido,
   novoId,
+  hojeISO,
   pendenciasDoPedido,
   statusFinanceiroCalculado,
   statusPendenciaAgregado,
@@ -84,7 +86,7 @@ export function usePedidos() {
     return () => window.removeEventListener(PEDIDOS_EVENT, recarregar);
   }, []);
 
-  const criar = useCallback((entrada: PedidoInput): Pedido => {
+  const criar = useCallback((entrada: PedidoInput, entregaImediata?: { paga: boolean; forma?: FormaPagamentoPedido }): Pedido => {
     const agora = new Date().toISOString();
     
     // Anexa o NCM e descrição fiscal atual do produto aos itens do pedido (snapshot)
@@ -112,10 +114,12 @@ export function usePedidos() {
       desconto: entrada.desconto,
       frete: entrada.frete,
       total,
-      totalPago: 0,
-      statusProducao,
-      statusFinanceiro: entrada.statusFinanceiro ?? "aguardando_pagamento",
-      etapa: "em_elaboracao",
+      totalPago: entregaImediata?.paga ? total : 0,
+      statusProducao: entregaImediata ? "entregue" : (entrada.statusProducao ?? statusProducaoInicial(itensComNcm)),
+      statusFinanceiro: entregaImediata 
+        ? (entregaImediata.paga ? "pago" : "aguardando_pagamento")
+        : (entrada.statusFinanceiro ?? "aguardando_pagamento"),
+      etapa: entregaImediata ? "entregue" : "em_elaboracao",
       badges: entrada.badges,
       previsaoEntrega: entrada.previsaoEntrega,
       observacoes: entrada.observacoes,
@@ -123,7 +127,9 @@ export function usePedidos() {
       historico: [
         novaEntradaHistorico(
           "criacao",
-          `Pedido criado com ${entrada.itens.length} item(ns).`,
+          entregaImediata 
+            ? `Venda com entrega imediata. Pedido criado diretamente como Entregue.${entregaImediata.paga ? " Pagamento confirmado no momento da venda." : " Pagamento pendente."}`
+            : `Pedido criado com ${entrada.itens.length} item(ns).`,
         ),
       ],
       criadoEm: agora,
@@ -131,6 +137,33 @@ export function usePedidos() {
     };
     novo.etapa = calcularEtapa(novo);
     commit(setPedidos, (atual) => [novo, ...atual]);
+
+    // Se foi entrega imediata e paga, registra o pagamento e a entrada no caixa
+    if (entregaImediata?.paga && entregaImediata.forma) {
+      const pagamento: Pagamento = {
+        id: novoId(),
+        valor: total,
+        forma: entregaImediata.forma,
+        data: hojeISO(),
+        criadoEm: agora,
+        observacoes: "Pagamento recebido na entrega imediata."
+      };
+      
+      commit(setPedidos, (atual) => 
+        atual.map(p => p.id === novo.id ? { ...p, pagamentos: [pagamento] } : p)
+      );
+
+      registrarEntradaPedido({
+        pedidoId: novo.id,
+        pedidoNumero: novo.numero,
+        pagamentoId: pagamento.id,
+        valor: pagamento.valor,
+        forma: pagamento.forma,
+        data: pagamento.data,
+        observacoes: pagamento.observacoes,
+      });
+    }
+
     return novo;
   }, []);
 

@@ -18,19 +18,45 @@ import type { Arquivo } from "@/features/arquivos";
 import { arquivoParaObservacoes } from "@/features/arquivos";
 import { carregarProdutos } from "@/features/produtos/storage";
 
-import type { ItemAdicional, ItemPedido, Pedido, PedidoInput } from "./types";
+import type { ItemAdicional, ItemPedido, Pedido, PedidoInput, FormaPagamentoPedido } from "./types";
 
 import { ClienteSelector } from "./ClienteSelector";
 import { ItensPedidoTable } from "./ItensPedidoTable";
 import { PedidoArquivosUploader } from "./PedidoArquivosUploader";
 import { ResumoFinanceiro } from "./ResumoFinanceiro";
 import { calcularSubtotal, novoId, parseValorInput } from "./utils";
+import { FORMAS_PAGAMENTO_PEDIDO, LABEL_FORMA_PAGAMENTO_PEDIDO } from "./types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Zap, CheckCircle2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   aberto: boolean;
   onFechar: () => void;
   pedido?: Pedido | null;
-  onSalvar: (dados: PedidoInput, id?: string) => void;
+  onSalvar: (dados: PedidoInput, id?: string, entregaImediata?: { paga: boolean; forma?: FormaPagamentoPedido }) => void;
 }
 
 interface FormState {
@@ -96,6 +122,9 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
   const [form, setForm] = useState<FormState>(() => estadoInicial(pedido));
   const [etapa, setEtapa] = useState(1);
   const [erro, setErro] = useState<string>();
+  const [modalEntrega, setModalEntrega] = useState(false);
+  const [pagamentoImediato, setPagamentoImediato] = useState<"pago" | "pendente">("pago");
+  const [formaPagamento, setFormaPagamento] = useState<FormaPagamentoPedido>("pix");
 
   useEffect(() => {
     if (aberto) {
@@ -191,7 +220,23 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
   }
 
 
-  function handleSalvar() {
+  function handleSalvar(entregaImediata?: boolean) {
+    const msg = validarItens();
+    if (msg) {
+      setErro(msg);
+      return;
+    }
+    if (!podeAvancar()) return;
+
+    if (entregaImediata && !pedido) {
+      setModalEntrega(true);
+      return;
+    }
+
+    processarSalvar();
+  }
+
+  function processarSalvar(entrega?: { paga: boolean; forma?: FormaPagamentoPedido }) {
     const msg = validarItens();
     if (msg) {
       setErro(msg);
@@ -215,8 +260,9 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
       previsaoEntrega: form.previsaoEntrega || undefined,
       observacoes: form.observacoes.trim() || undefined,
     };
-    onSalvar(dados, pedido?.id);
+    onSalvar(dados, pedido?.id, entrega);
     onFechar();
+    setModalEntrega(false);
   }
 
 
@@ -419,12 +465,103 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
                 Avançar
               </Button>
             ) : (
-              <Button type="button" onClick={handleSalvar}>
+              <Button type="button" onClick={() => handleSalvar(false)}>
                 {pedido ? "Salvar alterações" : "Criar pedido"}
               </Button>
             )}
+            {!pedido && etapa === 3 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      type="button" 
+                      variant="secondary"
+                      className="bg-primary/10 text-primary hover:bg-primary/20"
+                      onClick={() => handleSalvar(true)}
+                    >
+                      <Zap className="mr-2 h-4 w-4" />
+                      Criar e entregar agora
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Para vendas em que o cliente leva os produtos no momento do pedido.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
+
+        <AlertDialog open={modalEntrega} onOpenChange={setModalEntrega}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-primary" />
+                Venda com entrega imediata
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                O pedido será criado diretamente como entregue. Informe a situação do pagamento.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="space-y-6 py-4">
+              <div className="space-y-3">
+                <Label>Situação do pagamento</Label>
+                <RadioGroup 
+                  value={pagamentoImediato} 
+                  onValueChange={(v: any) => setPagamentoImediato(v)}
+                  className="grid grid-cols-1 gap-4"
+                >
+                  <div className="flex items-start space-x-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
+                    <RadioGroupItem value="pago" id="pago" className="mt-1" />
+                    <Label htmlFor="pago" className="grid cursor-pointer gap-1.5 font-normal">
+                      <span className="font-semibold text-foreground">Pago agora</span>
+                      <span className="text-xs text-muted-foreground">O cliente já realizou o pagamento.</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-start space-x-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/50">
+                    <RadioGroupItem value="pendente" id="pendente" className="mt-1" />
+                    <Label htmlFor="pendente" className="grid cursor-pointer gap-1.5 font-normal">
+                      <span className="font-semibold text-foreground">Pagamento pendente</span>
+                      <span className="text-xs text-muted-foreground">O cliente está levando o pedido agora e realizará o pagamento posteriormente.</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {pagamentoImediato === "pago" && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                  <Label>Forma de pagamento</Label>
+                  <Select 
+                    value={formaPagamento} 
+                    onValueChange={(v: any) => setFormaPagamento(v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a forma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FORMAS_PAGAMENTO_PEDIDO.map((f: FormaPagamentoPedido) => (
+                        <SelectItem key={f} value={f}>
+                          {LABEL_FORMA_PAGAMENTO_PEDIDO[f]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => processarSalvar({
+                paga: pagamentoImediato === "pago",
+                forma: pagamentoImediato === "pago" ? formaPagamento : undefined
+              })}>
+                Confirmar e Criar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
