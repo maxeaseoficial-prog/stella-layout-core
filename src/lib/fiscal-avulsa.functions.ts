@@ -152,7 +152,7 @@ export const previewPayloadNfeAvulsa = createServerFn({ method: "POST" })
           totalNota: data.total,
           somaItens,
           totalConfere: Math.abs(somaItens - data.total) < 0.01,
-          itensComDivergencia: diagnosticos.filter((d) => !d.ok).length,
+          itensComDivergencia: diagnosticos.filter((d: DiagnosticoItemFiscal) => !d.ok).length,
         },
       };
     } catch (e) {
