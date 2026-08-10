@@ -31,6 +31,7 @@ import { emitirNfeAvulsa } from "@/lib/fiscal-avulsa.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { searchCategoriasFiscais, getCategoriaFiscalPorId } from "./ncm.functions";
 import { SPEDY_BASE_URLS } from "./spedy";
+import type { AmbienteApiSpedy } from "./types";
 import { 
   Command, 
   CommandEmpty, 

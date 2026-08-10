@@ -31,6 +31,7 @@ import { emitirNfePedido } from "@/lib/fiscal.functions";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { NotaFiscalSection } from "./NotaFiscalSection";
 import { SPEDY_BASE_URLS } from "./spedy";
+import type { AmbienteApiSpedy } from "./types";
 
 interface Props {
   pedido: any | null;
