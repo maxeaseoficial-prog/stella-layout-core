@@ -102,6 +102,41 @@ function CaixaPage() {
     });
   }, [movimentacoes, periodo, tipo, dataInicio, dataFim, termo]);
 
+  const limparSelecao = useCallback(() => setSelecionados(new Set()), []);
+
+  // Qualquer mudança de filtro limpa a seleção (evita agir em itens ocultos).
+  useEffect(() => {
+    setSelecionados(new Set());
+  }, [termo, periodo, tipo, dataInicio, dataFim]);
+
+  // Remove da seleção itens que deixaram de existir.
+  useEffect(() => {
+    setSelecionados((atual) => {
+      if (atual.size === 0) return atual;
+      const existentes = new Set(movimentacoes.map((m) => m.id));
+      const proximo = new Set(Array.from(atual).filter((id) => existentes.has(id)));
+      return proximo.size === atual.size ? atual : proximo;
+    });
+  }, [movimentacoes]);
+
+  function alternarSelecao(id: string, selecionado: boolean) {
+    setSelecionados((atual) => {
+      const proximo = new Set(atual);
+      if (selecionado) proximo.add(id);
+      else proximo.delete(id);
+      return proximo;
+    });
+  }
+
+  function alternarTodos(selecionado: boolean) {
+    setSelecionados(
+      selecionado ? new Set(movimentacoesFiltradas.map((m) => m.id)) : new Set(),
+    );
+  }
+
+  const totalSelecionados = selecionados.size;
+
+
   function abrirNova() {
     setEditando(null);
     setFormAberto(true);
