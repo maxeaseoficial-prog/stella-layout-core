@@ -92,6 +92,73 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     }
   });
 
+/**
+ * Pré-visualiza o payload da NF-e Avulsa sem transmitir nada à API fiscal.
+ * Retorna o payload montado e o diagnóstico numérico dos itens (comercial x tributável).
+ */
+export const previewPayloadNfeAvulsa = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .inputValidator((data) => z.object({
+    id: z.string(),
+    destinatario: z.object({
+      id: z.string().optional(),
+      nome: z.string(),
+      documento: z.string(),
+      email: z.string().optional(),
+      cep: z.string().optional(),
+      logradouro: z.string().optional(),
+      numero: z.string().optional(),
+      bairro: z.string().optional(),
+      complemento: z.string().optional(),
+      cidade: z.string().optional(),
+      estado: z.string().optional(),
+    }),
+    itens: z.array(z.object({
+      id: z.string(),
+      descricao: z.string(),
+      quantidade: z.number(),
+      unidade: z.string(),
+      valorUnitario: z.number(),
+      ncm: z.string(),
+    })),
+    total: z.number(),
+    desconto: z.number(),
+    frete: z.number(),
+    outrasDespesas: z.number(),
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
+    await assertAdminFiscal(context.supabase, context.userId);
+
+    const config = await carregarFiscalConfigServer(context.supabase);
+    const erroConfig = await validarConfigFiscal(context.supabase, config);
+    if (erroConfig) return { ok: false as const, mensagem: erroConfig };
+
+    try {
+      const payload = montarPayloadNfeAvulsa(data, config) as any;
+      const diagnosticos = diagnosticarItensFiscais(payload.items ?? []);
+      const somaItens =
+        Math.round(
+          (payload.items ?? []).reduce((s: number, i: any) => s + i.totalAmount, 0) * 100,
+        ) / 100;
+
+      return {
+        ok: true as const,
+        payload,
+        diagnosticos,
+        resumo: {
+          ambienteFiscal: config.ambienteFiscal,
+          totalNota: data.total,
+          somaItens,
+          totalConfere: Math.abs(somaItens - data.total) < 0.01,
+          itensComDivergencia: diagnosticos.filter((d) => !d.ok).length,
+        },
+      };
+    } catch (e) {
+      return { ok: false as const, mensagem: e instanceof Error ? e.message : "Falha ao montar o payload." };
+    }
+  });
+
 export const consultarStatusNfe = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ spedyId: z.string(), ambiente: z.enum(["sandbox", "producao"] as const) }).parse(data))
