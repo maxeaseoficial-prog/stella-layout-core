@@ -129,17 +129,17 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
                 <p className="text-xs text-blue-800 dark:text-blue-300 font-medium">Documentos Fiscais</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
-                    <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente]}/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
+                    <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as any]}/product-invoices/${notaSucesso.spedyId}/pdf`} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4" /> Visualizar DANFE
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" className="bg-surface gap-2" asChild>
-                    <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente]}/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${pedido.numero}.pdf`}>
+                    <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as any]}/product-invoices/${notaSucesso.spedyId}/pdf`} download={`DANFE-${pedido.numero}.pdf`}>
                       <Download className="h-4 w-4" /> Baixar PDF
                     </a>
                   </Button>
                   <Button variant="outline" size="sm" className="bg-surface gap-2 md:col-span-2" asChild>
-                    <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente]}/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${pedido.numero}.xml`}>
+                    <a href={`${SPEDY_BASE_URLS[notaSucesso.ambiente as any]}/product-invoices/${notaSucesso.spedyId}/xml`} download={`NFe-${pedido.numero}.xml`}>
                       <Download className="h-4 w-4" /> Baixar XML Autorizado
                     </a>
                   </Button>

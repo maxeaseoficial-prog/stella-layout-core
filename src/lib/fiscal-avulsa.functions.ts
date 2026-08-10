@@ -84,7 +84,7 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
 
 export const consultarStatusNfe = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
-  .inputValidator((data) => z.object({ spedyId: z.string(), ambiente: z.enum(["sandbox", "producao"]) }).parse(data))
+  .inputValidator((data) => z.object({ spedyId: z.string(), ambiente: z.enum(["sandbox", "producao"] as const) }).parse(data))
   .handler(async ({ data, context }) => {
     if (!context.supabase) throw new Error("AUTH_CONTEXT_MISSING_SUPABASE");
     await assertAdminFiscal(context.supabase, context.userId);
