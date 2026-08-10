@@ -19,6 +19,8 @@ import type {
   TributacaoPadrao,
 } from "@/features/fiscal/types";
 
+import { calcularValoresItemFiscal, diagnosticarItensFiscais } from "./fiscal-itens";
+
 type Supabase = SupabaseClient<Database>;
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
