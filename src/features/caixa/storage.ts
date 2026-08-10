@@ -19,12 +19,15 @@ function ler<T>(chave: string): T[] {
   }
 }
 
-function escrever<T>(chave: string, valor: T[]) {
-  if (!isBrowser()) return;
+/** Retorna true somente se a gravação foi efetivamente concluída. */
+function escrever<T>(chave: string, valor: T[]): boolean {
+  if (!isBrowser()) return false;
   try {
     window.localStorage.setItem(chave, JSON.stringify(valor));
+    return true;
   } catch (err) {
     console.error(`Falha ao persistir ${chave}:`, err);
+    return false;
   }
 }
 
