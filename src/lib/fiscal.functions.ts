@@ -41,7 +41,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     console.log("[Fiscal Functions] TEST_CONNECTION_ADMIN_VALIDATED");
 
     const config = await carregarFiscalConfigServer(context.supabase);
-    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambiente);
+    const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
     
     if (!apiKeyInfo.key) {
       return {
@@ -54,7 +54,7 @@ export const testarConexaoFiscal = createServerFn({ method: "POST" })
     try {
       console.log("[Fiscal Functions] TEST_CONNECTION_SPEDY_CALL_REACHED");
       // Listagem paginada mínima — valida a chave sem criar nada.
-      await spedyFetch(apiKeyInfo, config.ambiente, "/product-invoices?page=1&pageSize=1");
+      await spedyFetch(apiKeyInfo, config.ambienteApi, "/product-invoices?page=1&pageSize=1");
       return { ok: true as const, mensagem: "Conexão estabelecida com sucesso com a API da Spedy." };
     } catch (e) {
       console.error("[Fiscal Functions] Spedy Connection Error:", e);
@@ -99,14 +99,14 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     try {
-      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambiente);
+      const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
       const res = await spedyFetch(
         apiKeyInfo,
-        config.ambiente,
+        config.ambienteApi,
         "/product-invoices",
         { method: "POST", body: JSON.stringify(payload) },
       );
-      const nota = notaFiscalDeResposta(res, config.ambiente, pedido.id.slice(0, 36));
+      const nota = notaFiscalDeResposta(res, config.ambienteApi, pedido.id.slice(0, 36));
       
       // Persistência no banco
       await persistirNfeNoBanco(

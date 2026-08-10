@@ -11,7 +11,8 @@ import type { FormaPagamentoPedido, Pedido } from "@/features/pedidos/types";
 import { mergeFiscalConfig } from "@/features/fiscal/defaults";
 import { SPEDY_BASE_URLS } from "@/features/fiscal/spedy";
 import type {
-  AmbienteSpedy,
+  AmbienteApiSpedy,
+  AmbienteFiscalNfe,
   FiscalConfig,
   NotaFiscalPedido,
   StatusNfe,
@@ -231,7 +232,7 @@ export async function removerSegredoFiscalServer(supabase: Supabase) {
 export async function apiKeyParaAmbiente(
   supabase: Supabase,
   config: FiscalConfig,
-  ambiente: AmbienteSpedy,
+  ambiente: AmbienteApiSpedy,
 ): Promise<{ key: string; source: string }> {
   // A chave agora é única e vem da tabela de segredos
   const chaveDb = await carregarSegredoFiscalServer(supabase);
@@ -251,7 +252,7 @@ export async function apiKeyParaAmbiente(
 }
 
 export async function validarConfigFiscal(supabase: Supabase, config: FiscalConfig): Promise<string | null> {
-  const apiKeyInfo = await apiKeyParaAmbiente(supabase, config, config.ambiente);
+  const apiKeyInfo = await apiKeyParaAmbiente(supabase, config, config.ambienteApi);
   if (!apiKeyInfo.key) {
     return "A API Key da Spedy não está configurada. Peça ao administrador para salvar a chave no cofre de segredos do sistema.";
   }
@@ -311,7 +312,7 @@ function extrairMensagemErro(status: number, body: unknown): string {
 
 export async function spedyFetch(
   apiKeyInfo: { key: string; source: string },
-  ambiente: AmbienteSpedy,
+  ambiente: AmbienteApiSpedy,
   path: string,
   init?: RequestInit,
 ): Promise<any> {
@@ -410,6 +411,7 @@ export function montarPayloadNfe(
   config: FiscalConfig,
 ): Record<string, unknown> {
   const t = config.tributacao;
+  const isHomologacao = config.ambienteFiscal === "homologacao";
   const ufEmitente = config.empresa.estado.trim().toUpperCase();
   const ufDestino = (cliente?.estado ?? "").trim().toUpperCase();
   const interestadual = !!ufDestino && !!ufEmitente && ufDestino !== ufEmitente;
@@ -600,7 +602,7 @@ export function montarPayloadNfeAvulsa(
 
 export function notaFiscalDeResposta(
   res: any,
-  ambiente: AmbienteSpedy,
+  ambiente: AmbienteApiSpedy,
   integrationId: string,
 ): NotaFiscalPedido {
   return {

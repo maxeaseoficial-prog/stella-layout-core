@@ -174,14 +174,31 @@ export function ConfiguracoesFiscaisForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label>Ambiente</Label>
-            <Select value={form.ambiente} onValueChange={v => setForm({...form, ambiente: v as any})}>
+            <Label>Ambiente da API</Label>
+            <Select value={form.ambienteApi} onValueChange={v => setForm({...form, ambienteApi: v as any})}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sandbox">Homologação</SelectItem>
-                <SelectItem value="producao">Produção</SelectItem>
+                <SelectItem value="producao">Conta principal</SelectItem>
+                <SelectItem value="sandbox">Sandbox de desenvolvedor</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              Esta configuração define a conta utilizada para conexão com a API. 
+              O ambiente fiscal da NF-e (Homologação/Produção) é configurado separadamente.
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Ambiente Fiscal (NF-e)</Label>
+            <Select value={form.ambienteFiscal} onValueChange={v => setForm({...form, ambienteFiscal: v as any})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="homologacao">Homologação (Sem valor fiscal)</SelectItem>
+                <SelectItem value="producao">Produção (Com valor fiscal)</SelectItem>
               </SelectContent>
             </Select>
           </div>

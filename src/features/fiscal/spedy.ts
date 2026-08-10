@@ -1,14 +1,14 @@
-import type { AmbienteSpedy, NotaFiscalPedido } from "./types";
+import type { AmbienteApiSpedy, NotaFiscalPedido } from "./types";
 
 /** Base URLs oficiais da API Spedy (seguro para o client — sem segredos). */
-export const SPEDY_BASE_URLS: Record<AmbienteSpedy, string> = {
+export const SPEDY_BASE_URLS: Record<AmbienteApiSpedy, string> = {
   sandbox: "https://sandbox-api.spedy.com.br/v1",
   producao: "https://api.spedy.com.br/v1",
 };
 
-export const LABEL_AMBIENTE_SPEDY: Record<AmbienteSpedy, string> = {
-  sandbox: "Sandbox (homologação)",
-  producao: "Produção",
+export const LABEL_AMBIENTE_SPEDY: Record<AmbienteApiSpedy, string> = {
+  sandbox: "Sandbox de desenvolvedor",
+  producao: "Conta principal",
 };
 
 /**

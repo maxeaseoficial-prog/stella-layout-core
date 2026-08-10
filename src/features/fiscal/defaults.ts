@@ -21,7 +21,8 @@ export function fiscalConfigInicial(): FiscalConfig {
       cidade: "",
       estado: "",
     },
-    ambiente: "sandbox",
+    ambienteApi: "producao",
+    ambienteFiscal: "homologacao",
     apiKeySandbox: "",
     apiKeyProducao: "",
     tributacao: {
