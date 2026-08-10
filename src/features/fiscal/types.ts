@@ -4,7 +4,8 @@
  * os tipos do pedido referenciam `NotaFiscalPedido` daqui.
  */
 
-export type AmbienteSpedy = "sandbox" | "producao";
+export type AmbienteApiSpedy = "sandbox" | "producao";
+export type AmbienteFiscalNfe = "homologacao" | "producao";
 
 export type RegimeTributarioFiscal = "simplesNacional" | "regimeNormal";
 
@@ -61,9 +62,10 @@ export interface TesteConexaoFiscal {
 
 export interface FiscalConfig {
   empresa: EmpresaFiscal;
-  ambiente: AmbienteSpedy;
-  apiKeySandbox: string; // Legado - mantido para compatibilidade de tipos
-  apiKeyProducao: string; // Legado - mantido para compatibilidade de tipos
+  ambienteApi: AmbienteApiSpedy;
+  ambienteFiscal: AmbienteFiscalNfe;
+  apiKeySandbox: string; // Legado
+  apiKeyProducao: string; // Legado
   tributacao: TributacaoPadrao;
   ultimoTeste?: TesteConexaoFiscal;
   /** Momento em que o pedido fica disponível no módulo Fiscal para revisão/emissão. */
@@ -97,7 +99,7 @@ export interface NfeProcessingDetail {
 export interface NotaFiscalPedido {
   /** UUID da nota na Spedy — usado em GET/DELETE/pdf/xml. */
   spedyId: string;
-  ambiente: AmbienteSpedy;
+  ambiente: AmbienteApiSpedy;
   /** ID do pedido enviado como integrationId (idempotência). */
   integrationId: string;
   status: StatusNfe;
