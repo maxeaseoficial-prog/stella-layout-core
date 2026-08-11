@@ -597,7 +597,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </DialogFooter>
           </div>
         ) : (
-          <>
+          <div className="flex flex-col h-full overflow-hidden">
           <DialogHeader className="p-4 h-[60px] border-b flex flex-row items-center justify-between shrink-0">
             <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5 text-primary" />
