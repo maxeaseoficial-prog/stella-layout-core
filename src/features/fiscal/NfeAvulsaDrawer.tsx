@@ -943,8 +943,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 </div>
               </div>
             </div>
-          </>
-        )}
+          </div>
 
           <DialogFooter className="p-6 border-t bg-surface-muted/30">
             <Button 
