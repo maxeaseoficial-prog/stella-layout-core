@@ -999,11 +999,11 @@ const [buscaCliente, setBuscaCliente] = useState("");
               >
                 {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
               </Button>
-            </>
-          {/* )} */}
-        </DialogFooter>
           </>
-        )}
+        </DialogFooter>
+      </>
+    )}
+  </DialogContent>
       </DialogContent>
       <PayloadPreviewDialog
         aberto={previewAberto}
