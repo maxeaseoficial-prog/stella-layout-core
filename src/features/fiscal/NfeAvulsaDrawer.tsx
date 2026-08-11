@@ -1004,6 +1004,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </>
       )}
     </DialogContent>
+  </Dialog>
   <PayloadPreviewDialog
     aberto={previewAberto}
     onFechar={() => setPreviewAberto(false)}
