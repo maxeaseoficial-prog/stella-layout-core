@@ -1,35 +1,38 @@
-# Plano de Refatoração: Interface de NF-e Avulsa em Tela Única
+# Plano de Refatoração: NF-e Avulsa (Tela Única)
 
-Refatorar o componente `NfeAvulsaDrawer.tsx` para eliminar o fluxo de wizard (4 passos) e consolidar todas as informações em uma única interface de modal/drawer grande (90-95vw/vh), garantindo a persistência absoluta da Classificação Fiscal.
+Refatoração completa da interface de emissão de NF-e Avulsa para eliminar o sistema de "wizard" por etapas e consolidar tudo em uma única janela (Dialog/Drawer) de grande formato, garantindo a persistência absoluta da Classificação Fiscal.
 
 ## Alterações Propostas
 
-### 1. Reestruturação da Interface (UI)
-- **Remover o Wizard**: Eliminar o estado `etapa` e a navegação por passos.
-- **Janela Única**: Alterar o `DialogContent` para ocupar aproximadamente 90-95vw e 90-95vh com scroll interno.
-- **Layout Consolidado**:
-  - **Cabeçalho Fixo**: Título "Emitir NF-e Avulsa" com botão de fechar.
-  - **Conteúdo com Scroll**: Seções verticais para Destinatário, Itens, Valores e Resumo.
-  - **Rodapé Fixo**: Botões "Cancelar", "Pré-visualizar" e "Emitir NF-e".
+### 1. Interface (UI/UX)
+- **Eliminação do Wizard**: Remoção dos estados `step`, `nextStep`, `prevStep` e da navegação por etapas.
+- **Tela Única (Single View)**: Implementação de um `Drawer` ou `Dialog` ocupando 90-95% da tela.
+- **Estrutura de Seções**:
+    - **Destinatário**: Seleção de cliente e exibição de dados de endereço/documento.
+    - **Itens da Nota**: Tabela consolidada com Descrição, Classificação Fiscal, Qtd, Valor Unitário, Total e Ações.
+    - **Valores/Operação**: Natureza da operação, frete, descontos e observações.
+    - **Resumo**: Totais calculados e status de preenchimento.
+- **Rodapé Fixo**: Ações de Cancelar, Pré-visualizar e Emitir sempre visíveis.
 
-### 2. Gestão de Estado e Persistência
-- **Classificação Fiscal**:
-  - Garantir que `categoriaFiscalId` no objeto do item seja a única fonte de verdade.
-  - Picker controlado diretamente pelo estado do item.
-  - Hidratação automática do objeto de classificação.
-- **Validação**:
-  - Indicações visuais de erro diretamente nos campos obrigatórios.
-  - Impedir fechamento em caso de erro de emissão.
+### 2. Persistência de Dados e Estado
+- **Fonte de Verdade**: O array `itens` será a única fonte de verdade para a Classificação Fiscal (`categoriaFiscalId`).
+- **Hidratação de Componentes**: Refatoração do `ClassificacaoFiscalPicker` para carregar o nome da categoria via ID se o objeto visual não estiver disponível em cache, evitando o texto "Selecionar...".
+- **Merge Seguro**: Garantir que as atualizações de campos (quantidade, valor, etc.) utilizem spread operator `{...item, campo: valor}` para não perder o `categoriaFiscalId`.
+- **Validação Localizada**: Exibição de erros de classificação diretamente na linha do item.
 
-### 3. Funcionalidades de Segurança
-- **Confirmação de Descarte**: Dialog interno ao tentar cancelar com dados preenchidos.
-- **Preservação**: Garantir que pré-visualização ou erros de API não limpem o formulário.
-
-## Regras de Integridade
-- **NÃO** alterar banco de dados, migrations ou dados já cadastrados.
-- **NÃO** modificar lógica fiscal de backend ou cálculos de impostos (Rejeição 630).
-- **NÃO** quebrar o sistema de polling e consulta de status.
+### 3. Integridade do Sistema
+- **Sem Mudanças no Backend**: Nenhuma alteração em `fiscal.server.ts`, `fiscal.functions.ts` ou tabelas do banco de dados.
+- **Preservação de Dados**: Não haverá modificação em cadastros existentes (Produtos, Categorias, NCM, Clientes).
+- **Consistência Fiscal**: Manutenção das regras de cálculo de `unitTax`, `quantityTax` e lógica da Rejeição 630.
 
 ## Detalhes Técnicos
-- **Arquivo**: `src/features/fiscal/NfeAvulsaDrawer.tsx`.
-- **Componentes**: Dialog, ScrollArea, AlertDialog.
+- **Arquivo Principal**: `src/features/fiscal/NfeAvulsaDrawer.tsx`.
+- **Componentes Afetados**: `ClassificacaoFiscalPicker`, `ItensStep` (a ser fundido), `ValoresStep` (a ser fundido).
+- **Gestão de Estado**: Uso de `useState` robusto para o formulário completo, sem perdas em re-renderizações.
+- **Segurança**: Diálogo de confirmação personalizado ao tentar fechar a janela com dados preenchidos.
+
+## Critérios de Sucesso
+1. Classificação fiscal permanece visível após editar qualquer outro campo.
+2. Classificação fiscal permanece visível após abrir e fechar o Preview.
+3. Emissão validada apenas se `categoriaFiscalId` estiver presente em todos os itens.
+4. Interface unificada sem botões "Próximo" ou "Voltar".
