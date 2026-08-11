@@ -1,20 +1,35 @@
-# Plano de Correção: Persistência da Classificação Fiscal no Wizard de NF-e Avulsa
+# Plano de Refatoração: Interface de NF-e Avulsa em Tela Única
 
-O objetivo é garantir que o campo `categoriaFiscalId` de cada item na NF-e Avulsa seja a única fonte de verdade e que seu valor persista ao navegar entre as etapas (Voltar/Próximo) do assistente.
+Refatorar o componente `NfeAvulsaDrawer.tsx` para eliminar o fluxo de wizard (4 passos) e consolidar todas as informações em uma única interface de modal/drawer grande (90-95vw/vh), garantindo a persistência absoluta da Classificação Fiscal.
 
-## Alterações
+## Alterações Propostas
 
-### 1. Refatoração do Estado no Wizard (`src/features/fiscal/NfeAvulsaDrawer.tsx`)
-- Garantir que `adicionarItem` capture corretamente `categoriaFiscalId` de produtos existentes.
-- Garantir que `itens` no estado do `NfeAvulsaDrawer` mantenham a propriedade `categoriaFiscalId` sem reinicialização indesejada.
+### 1. Reestruturação da Interface (UI)
+- **Remover o Wizard**: Eliminar o estado `etapa` e a navegação por passos.
+- **Janela Única**: Alterar o `DialogContent` para ocupar aproximadamente 90-95vw e 90-95vh com scroll interno.
+- **Layout Consolidado**:
+  - **Cabeçalho Fixo**: Título "Emitir NF-e Avulsa" com botão de fechar.
+  - **Conteúdo com Scroll**: Seções verticais para Destinatário, Itens, Valores e Resumo.
+  - **Rodapé Fixo**: Botões "Cancelar", "Pré-visualizar" e "Emitir NF-e".
 
-### 2. Componente de Seleção (`ClassificacaoFiscalPicker`)
-- Consertar a lógica de sincronização: o componente deve priorizar o `value` (`categoriaFiscalId`) vindo do item.
-- Implementar hidratação robusta: ao montar, se o `value` existir mas o objeto visual (`selectedCategory`) não, buscar a categoria no backend pelo ID imediatamente.
-- Garantir que o `onChange` atualize o estado principal do wizard com o `id` da categoria selecionada.
+### 2. Gestão de Estado e Persistência
+- **Classificação Fiscal**:
+  - Garantir que `categoriaFiscalId` no objeto do item seja a única fonte de verdade.
+  - Picker controlado diretamente pelo estado do item.
+  - Hidratação automática do objeto de classificação.
+- **Validação**:
+  - Indicações visuais de erro diretamente nos campos obrigatórios.
+  - Impedir fechamento em caso de erro de emissão.
 
-### 3. Validação e Emissão
-- Ajustar a validação do Passo 2 e do botão Final para checar especificamente o `categoriaFiscalId` do item.
+### 3. Funcionalidades de Segurança
+- **Confirmação de Descarte**: Dialog interno ao tentar cancelar com dados preenchidos.
+- **Preservação**: Garantir que pré-visualização ou erros de API não limpem o formulário.
 
-## Confirmação de Segurança
-Nenhum dado cadastrado, banco, categoria fiscal, produto, pedido ou configuração do Stella será alterado.
+## Regras de Integridade
+- **NÃO** alterar banco de dados, migrations ou dados já cadastrados.
+- **NÃO** modificar lógica fiscal de backend ou cálculos de impostos (Rejeição 630).
+- **NÃO** quebrar o sistema de polling e consulta de status.
+
+## Detalhes Técnicos
+- **Arquivo**: `src/features/fiscal/NfeAvulsaDrawer.tsx`.
+- **Componentes**: Dialog, ScrollArea, AlertDialog.
