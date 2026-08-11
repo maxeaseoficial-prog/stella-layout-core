@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Search, Tag, Edit2, Power, PowerOff, FileText, Loader2, Upload, Trash2 } from "lucide-react";
+import { Plus, Search, Tag, Edit2, Power, PowerOff, FileText, Loader2, Upload, Trash2, DatabaseZap } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { toast } from "@/lib/toast";
 import { useServerFn } from "@tanstack/react-start";
-import { getCategoriasFiscais, salvarCategoriaFiscal, searchNCM, importarPlanilhaNCM, excluirCategoriaFiscal } from "./ncm.functions";
+import { getCategoriasFiscais, salvarCategoriaFiscal, searchNCM, importarPlanilhaNCM, excluirCategoriaFiscal, seedCategoriasFiscais } from "./ncm.functions";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
