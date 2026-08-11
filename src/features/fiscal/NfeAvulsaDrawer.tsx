@@ -724,7 +724,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                           <Input 
                             type="number"
                             value={it.quantidade} 
-                            onChange={(e) => atualizarItem(it.id, 'quantidade', Number(e.target.value))}
+                            onChange={(e) => atualizarItem(it.id, { quantidade: Number(e.target.value) })}
                             className="h-8 text-xs"
                           />
                         </td>
@@ -732,7 +732,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                           <Input 
                             type="number"
                             value={it.valorUnitario} 
-                            onChange={(e) => atualizarItem(it.id, 'valorUnitario', Number(e.target.value))}
+                            onChange={(e) => atualizarItem(it.id, { valorUnitario: Number(e.target.value) })}
                             className="h-8 text-xs"
                           />
                         </td>
