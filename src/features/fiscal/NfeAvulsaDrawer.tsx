@@ -626,10 +626,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </button>
                 ))}
               </div>
+              </div>
             </div>
-          )}
 
-          // {etapa === 2 && (
+            <div className="space-y-6">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
@@ -732,10 +732,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </tbody>
                 </table>
               </div>
+              </div>
             </div>
-          )}
 
-          // {etapa === 3 && (
+            <div className="grid gap-8 md:grid-cols-2">
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-6">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -812,10 +812,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </div>
                 </div>
               </div>
+              </div>
             </div>
-          )}
 
-          // {etapa === 4 && (
+            <div className="space-y-6">
             <div className="space-y-6">
               <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 text-amber-800">
                 <AlertCircle className="h-5 w-5 shrink-0" />
@@ -938,8 +938,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </table>
                 </div>
               </div>
+              </div>
             </div>
-          )}
         </div>
 
         <DialogFooter className="p-6 border-t bg-surface-muted/30">
@@ -979,7 +979,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
               </Button>
             </>
-          )}
+          {/* )} */}
         </DialogFooter>
             </>
         )}
