@@ -1000,13 +1000,15 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
               </Button>
           </>
-        )}
-      </DialogContent>
-        aberto={previewAberto}
-        onFechar={() => setPreviewAberto(false)}
-        preview={preview}
-      />
-    </Dialog>
+        </DialogFooter>
+      )}
+    </DialogContent>
+  </Dialog>
+  <PayloadPreviewDialog
+    aberto={previewAberto}
+    onFechar={() => setPreviewAberto(false)}
+    preview={preview}
+  />
 
     <AlertDialog open={dialogDescartarAberto} onOpenChange={setDialogDescartarAberto}>
       <AlertDialogContent>
