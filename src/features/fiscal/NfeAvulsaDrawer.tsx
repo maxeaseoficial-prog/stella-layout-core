@@ -17,6 +17,16 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,8 +68,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const { config } = useFiscalConfig();
   const emitirFn = useServerFn(emitirNfeAvulsa);
   
-  const [etapa, setEtapa] = useState(1);
-  const [buscaCliente, setBuscaCliente] = useState("");
+const [buscaCliente, setBuscaCliente] = useState("");
   const [destinatario, setDestinatario] = useState<any>(null);
   const [itens, setItens] = useState<any[]>([]);
   const [valores, setValores] = useState({
@@ -74,6 +83,8 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const [preview, setPreview] = useState<any>(null);
   const [previewAberto, setPreviewAberto] = useState(false);
   const [previewCarregando, setPreviewCarregando] = useState(false);
+
+  const [dialogDescartarAberto, setDialogDescartarAberto] = useState(false);
 
   // ---- Sincronização assíncrona de status (polling GET, nunca reemite) ----
   const consultarStatusFn = useServerFn(consultarStatusNfe);
@@ -316,20 +327,20 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     const erroDest = validarDestinatario();
     if (erroDest) {
       toast.error(erroDest);
-      setEtapa(1);
+      // setEtapa(1); // Não há mais etapas
       return;
     }
 
     const erroItens = validarItens();
     if (erroItens) {
       toast.error(erroItens);
-      setEtapa(2);
+      // setEtapa(2); // Não há mais etapas
       return;
     }
 
     if (total <= 0) {
       toast.error("O total da nota deve ser maior que zero.");
-      setEtapa(3);
+      // setEtapa(3); // Não há mais etapas
       return;
     }
     
@@ -400,8 +411,14 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   };
 
   return (
-    <Dialog open={aberto} onOpenChange={onFechar}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0">
+    <Dialog open={aberto} onOpenChange={() => {
+      if (itens.length > 0 || destinatario) {
+        setDialogDescartarAberto(true);
+      } else {
+        onFechar();
+      }
+    }}>
+      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[95vh] overflow-hidden flex flex-col p-0">
         {notaSucesso ? (
           <div className="flex flex-col h-full animate-in fade-in zoom-in duration-300">
             <div className="p-8 text-center space-y-4">
@@ -569,7 +586,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                   setAvulsaId(null);
                   setNotaSucesso(null);
                   onFechar();
-                  setEtapa(1);
+                  // setEtapa(1); // Removido
                   setDestinatario(null);
                   setItens([]);
                 }}
@@ -580,15 +597,14 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
           </div>
         ) : (
           <>
-            <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            Emitir NF-e Avulsa - Passo {etapa} de 4
-          </DialogTitle>
-        </DialogHeader>
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Emitir NF-e Avulsa
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {etapa === 1 && (
+          <div className="flex-1 overflow-y-auto p-6 space-y-8">
             <div className="space-y-4">
               <div className="flex flex-col gap-2">
                 <Label>Pesquisar Cliente</Label>
@@ -627,12 +643,11 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                 ))}
               </div>
             </div>
-          )}
+          </div>
 
-          {etapa === 2 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => adicionarItem()} className="gap-2">
                     <Plus className="h-4 w-4" /> Item Manual
@@ -733,9 +748,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                 </table>
               </div>
             </div>
-          )}
 
-          {etapa === 3 && (
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-6">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -813,9 +826,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                 </div>
               </div>
             </div>
-          )}
 
-          {etapa === 4 && (
             <div className="space-y-6">
               <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 text-amber-800">
                 <AlertCircle className="h-5 w-5 shrink-0" />
@@ -833,7 +844,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                       variant="ghost" 
                       size="sm" 
                       className="h-6 text-[10px] text-primary"
-                      onClick={() => setEtapa(1)}
+                      // onClick={() => setEtapa(1)}
                     >
                       Corrigir dados
                     </Button>
@@ -859,7 +870,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                       variant="ghost" 
                       size="sm" 
                       className="h-6 text-[10px] text-primary"
-                      onClick={() => setEtapa(2)}
+                      // onClick={() => setEtapa(2)}
                     >
                       Corrigir itens
                     </Button>
@@ -908,10 +919,10 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                     <div className="flex justify-between text-xs pt-2 border-t font-bold">
                       <span>Valor Final</span>
                       <span className="text-primary">{formatarMoeda(total)}</span>
-                    </div>
-                  </div>
                 </div>
               </div>
+            </div>
+          </div>
 
               <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da NF-e</h4>
@@ -939,27 +950,38 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         <DialogFooter className="p-6 border-t bg-surface-muted/30">
-          <Button variant="outline" onClick={onFechar} disabled={emitindo}>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              if (itens.length > 0 || destinatario) {
+                setDialogDescartarAberto(true);
+              } else {
+                onFechar();
+              }
+            }} 
+            disabled={emitindo}
+          >
             Cancelar
           </Button>
           <div className="flex-1" />
-          {etapa > 1 && (
+          {/* Removido o controle de etapas */}
+          {/* {etapa > 1 && (
             <Button variant="ghost" onClick={() => setEtapa(e => e - 1)} disabled={emitindo}>
               Voltar
             </Button>
-          )}
-          {etapa < 4 ? (
+          )} */}
+          {/* {etapa < 4 ? (
             <Button 
               onClick={() => setEtapa(e => e + 1)} 
               disabled={etapa === 1 ? !destinatario : itens.length === 0}
             >
               Próximo
             </Button>
-          ) : (
+          ) : ( */}
             <>
               <Button
                 variant="outline"
@@ -978,17 +1000,41 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
                 {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
               </Button>
             </>
-          )}
-        </DialogFooter>
-          </>
-        )}
-      </DialogContent>
-      <PayloadPreviewDialog
-        aberto={previewAberto}
-        onFechar={() => setPreviewAberto(false)}
-        preview={preview}
-      />
-    </Dialog>
+          </DialogFooter>
+        </>
+      )}
+    </DialogContent>
+  </Dialog>
+  <PayloadPreviewDialog
+    aberto={previewAberto}
+    onFechar={() => setPreviewAberto(false)}
+    preview={preview}
+  />
+
+    <AlertDialog open={dialogDescartarAberto} onOpenChange={setDialogDescartarAberto}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Descartar esta NF-e?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Os dados preenchidos nesta nota avulsa serão perdidos e não poderão ser recuperados.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => setDialogDescartarAberto(false)}>
+            Continuar editando
+          </AlertDialogAction>
+          <AlertDialogAction 
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => {
+              setDialogDescartarAberto(false);
+              onFechar();
+            }}
+          >
+            Descartar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
   );
 }
