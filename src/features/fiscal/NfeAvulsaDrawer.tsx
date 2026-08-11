@@ -839,149 +839,147 @@ const [buscaCliente, setBuscaCliente] = useState("");
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  {/* Destinatário */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
-                    </div>
-                    {destinatario ? (
-                      <div className="border rounded-xl p-4 bg-surface space-y-2">
-                        <p className="font-semibold text-sm">{getClienteNome(destinatario)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {destinatario.logradouro || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="border border-dashed rounded-xl p-8 text-center text-muted-foreground text-xs bg-surface-muted/20">
-                        Nenhum destinatário selecionado
-                      </div>
-                    )}
+                {/* Destinatário */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
                   </div>
-
-                  {/* Resumo Fiscal */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
-                    </div>
+                  {destinatario ? (
                     <div className="border rounded-xl p-4 bg-surface space-y-2">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Itens</span>
-                        <span>{itens.length} produtos</span>
-                      </div>
-                      <details className="group">
-                        <summary className="flex justify-between text-xs cursor-pointer hover:text-primary transition-colors py-1 list-none">
-                          <span className="text-muted-foreground">Dados fiscais detalhados</span>
-                          <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div className="pt-2 space-y-2 border-t mt-1">
-                          {itens.map((it, idx) => {
-                            const ncmItem = (it.ncm || config.tributacao.ncm || "").replace(/\D/g, "");
-                            const cfop = (destinatario?.estado === config.empresa.estado) 
-                              ? config.tributacao.cfopInterno 
-                              : config.tributacao.cfopInterestadual;
-                            const isSimples = config.tributacao.regime === "simplesNacional";
-
-                            return (
-                              <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
-                                <p className="font-medium truncate">{it.descricao}</p>
-                                <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
-                                  <span>NCM: {ncmItem || <span className="text-red-500">Pendente</span>}</span>
-                                  <span>CFOP: {cfop}</span>
-                                  <span>{isSimples ? "CSOSN" : "CST"}: {isSimples ? config.tributacao.csosn : config.tributacao.icmsCst}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </details>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Ambiente</span>
-                        <span className="font-semibold text-primary uppercase">{config.ambienteFiscal}</span>
-                      </div>
-                      <div className="flex justify-between text-xs">
-                        <span className="text-muted-foreground">Natureza</span>
-                        <span>Venda de Mercadoria</span>
-                      </div>
-                      <div className="flex justify-between text-xs pt-2 border-t font-bold">
-                        <span>Valor Final</span>
-                        <span className="text-primary">{formatarMoeda(total)}</span>
-                      </div>
+                      <p className="font-semibold text-sm">{getClienteNome(destinatario)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {destinatario.logradouro || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}
+                      </p>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="border border-dashed rounded-xl p-8 text-center text-muted-foreground text-xs bg-surface-muted/20">
+                      Nenhum destinatário selecionado
+                    </div>
+                  )}
                 </div>
 
-                {/* Itens da NF-e (Tabela Resumo) */}
+                {/* Resumo Fiscal */}
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da NF-e</h4>
-                  <div className="border rounded-xl overflow-hidden text-xs">
-                    <table className="w-full">
-                      <thead className="bg-surface-muted border-b">
-                        <tr>
-                          <th className="px-3 py-2 text-left">Descrição</th>
-                          <th className="px-3 py-2 text-center w-16">Qtd</th>
-                          <th className="px-3 py-2 text-right w-24">Valor</th>
-                          <th className="px-3 py-2 text-right w-24">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y bg-surface">
-                        {itens.map(it => (
-                          <tr key={it.id}>
-                            <td className="px-3 py-2 truncate">{it.descricao}</td>
-                            <td className="px-3 py-2 text-center">{it.quantidade}</td>
-                            <td className="px-3 py-2 text-right">{formatarMoeda(it.valorUnitario)}</td>
-                            <td className="px-3 py-2 text-right font-medium">{formatarMoeda(it.quantidade * it.valorUnitario)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
+                  </div>
+                  <div className="border rounded-xl p-4 bg-surface space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Itens</span>
+                      <span>{itens.length} produtos</span>
+                    </div>
+                    <details className="group">
+                      <summary className="flex justify-between text-xs cursor-pointer hover:text-primary transition-colors py-1 list-none">
+                        <span className="text-muted-foreground">Dados fiscais detalhados</span>
+                        <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
+                      </summary>
+                      <div className="pt-2 space-y-2 border-t mt-1">
+                        {itens.map((it, idx) => {
+                          const ncmItem = (it.ncm || config.tributacao.ncm || "").replace(/\D/g, "");
+                          const cfop = (destinatario?.estado === config.empresa.estado) 
+                            ? config.tributacao.cfopInterno 
+                            : config.tributacao.cfopInterestadual;
+                          const isSimples = config.tributacao.regime === "simplesNacional";
+
+                          return (
+                            <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
+                              <p className="font-medium truncate">{it.descricao}</p>
+                              <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
+                                <span>NCM: {ncmItem || <span className="text-red-500">Pendente</span>}</span>
+                                <span>CFOP: {cfop}</span>
+                                <span>{isSimples ? "CSOSN" : "CST"}: {isSimples ? config.tributacao.csosn : config.tributacao.icmsCst}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </details>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Ambiente</span>
+                      <span className="font-semibold text-primary uppercase">{config.ambienteFiscal}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Natureza</span>
+                      <span>Venda de Mercadoria</span>
+                    </div>
+                    <div className="flex justify-between text-xs pt-2 border-t font-bold">
+                      <span>Valor Final</span>
+                      <span className="text-primary">{formatarMoeda(total)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <DialogFooter className="p-6 border-t bg-surface-muted/30">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  if (itens.length > 0 || destinatario) {
-                    setDialogDescartarAberto(true);
-                  } else {
-                    onFechar();
-                  }
-                }} 
-                disabled={emitindo}
-              >
-                Cancelar
-              </Button>
-              <div className="flex-1" />
-              <Button
-                variant="outline"
-                onClick={handlePreview}
-                disabled={emitindo || previewCarregando}
-                className="gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                {previewCarregando ? "Montando..." : "Pré-visualizar"}
-              </Button>
-              <Button 
-                onClick={handleEmitir} 
-                disabled={emitindo}
-                className="bg-primary hover:bg-primary/90 min-w-[140px]"
-              >
-                {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-              </Button>
-            </DialogFooter>
-          </>
-        )}
-      </DialogContent>
+              {/* Itens da NF-e (Tabela Resumo) */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da NF-e</h4>
+                <div className="border rounded-xl overflow-hidden text-xs">
+                  <table className="w-full">
+                    <thead className="bg-surface-muted border-b">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Descrição</th>
+                        <th className="px-3 py-2 text-center w-16">Qtd</th>
+                        <th className="px-3 py-2 text-right w-24">Valor</th>
+                        <th className="px-3 py-2 text-right w-24">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y bg-surface">
+                      {itens.map(it => (
+                        <tr key={it.id}>
+                          <td className="px-3 py-2 truncate">{it.descricao}</td>
+                          <td className="px-3 py-2 text-center">{it.quantidade}</td>
+                          <td className="px-3 py-2 text-right">{formatarMoeda(it.valorUnitario)}</td>
+                          <td className="px-3 py-2 text-right font-medium">{formatarMoeda(it.quantidade * it.valorUnitario)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 border-t bg-surface-muted/30">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                if (itens.length > 0 || destinatario) {
+                  setDialogDescartarAberto(true);
+                } else {
+                  onFechar();
+                }
+              }} 
+              disabled={emitindo}
+            >
+              Cancelar
+            </Button>
+            <div className="flex-1" />
+            <Button
+              variant="outline"
+              onClick={handlePreview}
+              disabled={emitindo || previewCarregando}
+              className="gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              {previewCarregando ? "Montando..." : "Pré-visualizar"}
+            </Button>
+            <Button 
+              onClick={handleEmitir} 
+              disabled={emitindo}
+              className="bg-primary hover:bg-primary/90 min-w-[140px]"
+            >
+              {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
+            </Button>
+          </DialogFooter>
+        </>
+      )}
+    </DialogContent>
   </Dialog>
   <PayloadPreviewDialog
     aberto={previewAberto}
