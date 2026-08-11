@@ -703,7 +703,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                         <td className="px-4 py-3">
                           <Input 
                             value={it.descricao} 
-                            onChange={(e) => atualizarItem(it.id, 'descricao', e.target.value)}
+                            onChange={(e) => atualizarItem(it.id, { descricao: e.target.value })}
                             className="h-8 text-xs"
                           />
                         </td>
