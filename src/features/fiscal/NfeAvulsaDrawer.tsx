@@ -411,6 +411,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
   };
 
   return (
+    <>
     <Dialog open={aberto} onOpenChange={() => {
       if (itens.length > 0 || destinatario) {
         setDialogDescartarAberto(true);
