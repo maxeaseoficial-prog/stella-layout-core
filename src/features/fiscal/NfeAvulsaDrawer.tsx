@@ -889,12 +889,13 @@ const [buscaCliente, setBuscaCliente] = useState("");
               </p>
             </div>
           </div>
-          </>
         )}
 
-        <DialogFooter className="p-6 border-t bg-surface-muted/30">
-          <Button 
-            variant="outline" 
+        {!notaSucesso && (
+          <DialogFooter className="p-4 border-t bg-surface-muted/30 shrink-0 sticky bottom-0 z-20">
+            <Button 
+              variant="outline" 
+              size="sm"
             onClick={() => {
               if (itens.length > 0 || destinatario) {
                 setDialogDescartarAberto(true);
