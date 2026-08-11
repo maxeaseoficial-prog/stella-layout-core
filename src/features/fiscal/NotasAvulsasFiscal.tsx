@@ -2,20 +2,31 @@ import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { consultarStatusNfe } from "@/lib/fiscal-avulsa.functions";
-import { Plus, Search, FileText, CheckCircle2, Clock, RefreshCw } from "lucide-react";
+import { Plus, Search, FileText, CheckCircle2, Clock, RefreshCw, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatarMoeda, formatarDataBR } from "@/features/pedidos/utils";
 import { useNfeAvulsas } from "./useNfeAvulsas";
 import { LABEL_STATUS_NFE, STATUS_NFE_FINAIS } from "./types";
 import { cn } from "@/lib/utils";
 
 export function NotasAvulsasFiscal() {
-  const { notas, atualizarNotaFiscal } = useNfeAvulsas();
+  const { notas, atualizarNotaFiscal, excluir } = useNfeAvulsas();
   const [busca, setBusca] = useState("");
+  const [excluindoId, setExcluindoId] = useState<string | null>(null);
   const consultarStatusFn = useServerFn(consultarStatusNfe);
   const [sincronizando, setSincronizando] = useState<string | null>(null);
 
@@ -112,6 +123,14 @@ export function NotasAvulsasFiscal() {
                       </Button>
                     )}
                     <Button size="sm" variant="ghost">Detalhes</Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => setExcluindoId(n.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -119,6 +138,33 @@ export function NotasAvulsasFiscal() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!excluindoId} onOpenChange={(open) => !open && setExcluindoId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir NF-e Avulsa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação removerá o registro da nota avulsa do sistema local. 
+              Isso **não** cancela a nota fiscal na SEFAZ.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Voltar</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (excluindoId) {
+                  excluir(excluindoId);
+                  toast.success("Nota excluída com sucesso.");
+                  setExcluindoId(null);
+                }
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

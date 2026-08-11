@@ -1,18 +1,30 @@
 import { useMemo, useState } from "react";
-import { Search, Filter, RefreshCw } from "lucide-react";
+import { Search, Filter, RefreshCw, Trash2 } from "lucide-react";
 import { usePedidos } from "@/features/pedidos/usePedidos";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatarMoeda, formatarDataBR } from "@/features/pedidos/utils";
 import { LABEL_STATUS_NFE } from "./types";
 import { RevisarEmissaoDialog } from "./RevisarEmissaoDialog";
+import { toast } from "sonner";
 
 export function TodasNotasFiscal() {
-  const { pedidos } = usePedidos();
+  const { pedidos, salvarNotaFiscal } = usePedidos();
   const [busca, setBusca] = useState("");
   const [revisando, setRevisando] = useState<any>(null);
+  const [limpandoFiscalId, setLimpandoFiscalId] = useState<string | null>(null);
 
   const filtrados = useMemo(() => {
     return pedidos.filter(p => {
