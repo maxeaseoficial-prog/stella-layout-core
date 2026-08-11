@@ -43,10 +43,18 @@ export function useNfeAvulsas() {
     notificarNfeAvulsaAtualizado();
   }, []);
 
+  const excluir = useCallback((id: string) => {
+    const atual = carregarNfeAvulsas();
+    const atualizadas = atual.filter(n => n.id !== id);
+    salvarNfeAvulsas(atualizadas);
+    notificarNfeAvulsaAtualizado();
+  }, []);
+
   return {
     notas,
     hidratado,
     criar,
-    atualizarNotaFiscal
+    atualizarNotaFiscal,
+    excluir
   };
 }

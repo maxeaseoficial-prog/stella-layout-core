@@ -4,7 +4,8 @@ import {
   Filter, 
   ArrowRight, 
   AlertTriangle,
-  FileText
+  FileText,
+  Trash2
 } from "lucide-react";
 import { usePedidos } from "@/features/pedidos/usePedidos";
 import { useFiscalConfig } from "./useFiscalConfig";
@@ -19,15 +20,27 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatarMoeda, formatarDataBR, totalItensPedido, corStatusProducao } from "@/features/pedidos/utils";
 import { LABEL_STATUS_PRODUCAO, StatusProducaoValues, type StatusProducao } from "@/features/pedidos/types";
 import { RevisarEmissaoDialog } from "./RevisarEmissaoDialog";
+import { toast } from "sonner";
 
 export function PedidosPendentesFiscal() {
-  const { pedidos } = usePedidos();
+  const { pedidos, salvarNotaFiscal } = usePedidos();
   const { config } = useFiscalConfig();
   const [busca, setBusca] = useState("");
   const [revisando, setRevisando] = useState<any>(null);
+  const [limpandoFiscalId, setLimpandoFiscalId] = useState<string | null>(null);
 
   const pendentes = useMemo(() => {
     return pedidos.filter(p => {
