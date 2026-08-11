@@ -889,7 +889,6 @@ const [buscaCliente, setBuscaCliente] = useState("");
               </p>
             </div>
           </div>
-          </div>
         )}
 
         {!notaSucesso && (
