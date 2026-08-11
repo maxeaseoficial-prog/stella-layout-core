@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore, useEffect } from "react";
 
 import { novoId } from "@/features/clientes";
 
 import type { Produto, ProdutoInput } from "./types";
 import { carregarProdutos, salvarProdutos } from "./storage";
+import { PRODUTO_SEED_CAMISETA } from "./data/produto-seed";
 
 /**
  * Store singleton dos produtos — fonte única de verdade compartilhada por
@@ -56,6 +57,19 @@ function normalizar(s: string): string {
 export function useProdutos() {
   const produtos = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const hidratado = isBrowser();
+
+  // Seed automático para demonstração/teste se a lista estiver vazia
+  useEffect(() => {
+    if (hidratado && produtos.length === 0) {
+      const seed: Produto = {
+        ...PRODUTO_SEED_CAMISETA,
+        id: novoId(),
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString(),
+      };
+      setProdutos([seed]);
+    }
+  }, [hidratado, produtos.length]);
 
   const criar = useCallback((entrada: ProdutoInput): Produto => {
     const agora = new Date().toISOString();
