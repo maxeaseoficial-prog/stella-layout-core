@@ -229,6 +229,7 @@ export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
       .from('categorias_fiscais')
       .upsert({
         ...data,
+        ncm: data.ncm || '', // Garantir string para evitar erro TS/DB
         tenant_id: userData?.empresa_id,
         atualizado_em: new Date().toISOString()
       })
