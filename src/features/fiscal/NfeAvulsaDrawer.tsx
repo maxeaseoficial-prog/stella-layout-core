@@ -58,8 +58,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const { config } = useFiscalConfig();
   const emitirFn = useServerFn(emitirNfeAvulsa);
   
-  const [etapa, setEtapa] = useState(1);
-  const [buscaCliente, setBuscaCliente] = useState("");
+const [buscaCliente, setBuscaCliente] = useState("");
   const [destinatario, setDestinatario] = useState<any>(null);
   const [itens, setItens] = useState<any[]>([]);
   const [valores, setValores] = useState({
@@ -74,6 +73,8 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const [preview, setPreview] = useState<any>(null);
   const [previewAberto, setPreviewAberto] = useState(false);
   const [previewCarregando, setPreviewCarregando] = useState(false);
+
+  const [dialogDescartarAberto, setDialogDescartarAberto] = useState(false);
 
   // ---- Sincronização assíncrona de status (polling GET, nunca reemite) ----
   const consultarStatusFn = useServerFn(consultarStatusNfe);
@@ -316,20 +317,20 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
     const erroDest = validarDestinatario();
     if (erroDest) {
       toast.error(erroDest);
-      setEtapa(1);
+      // setEtapa(1); // Não há mais etapas
       return;
     }
 
     const erroItens = validarItens();
     if (erroItens) {
       toast.error(erroItens);
-      setEtapa(2);
+      // setEtapa(2); // Não há mais etapas
       return;
     }
 
     if (total <= 0) {
       toast.error("O total da nota deve ser maior que zero.");
-      setEtapa(3);
+      // setEtapa(3); // Não há mais etapas
       return;
     }
     
