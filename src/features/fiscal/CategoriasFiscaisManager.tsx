@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Search, Tag, Edit2, Power, PowerOff, FileText, Loader2, Upload } from "lucide-react";
+import { Plus, Search, Tag, Edit2, Power, PowerOff, FileText, Loader2, Upload, Trash2 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { toast } from "@/lib/toast";
 import { useServerFn } from "@tanstack/react-start";
-import { getCategoriasFiscais, salvarCategoriaFiscal, searchNCM, importarPlanilhaNCM } from "./ncm.functions";
+import { getCategoriasFiscais, salvarCategoriaFiscal, searchNCM, importarPlanilhaNCM, excluirCategoriaFiscal } from "./ncm.functions";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 
 export function CategoriasFiscaisManager() {
@@ -41,6 +42,7 @@ export function CategoriasFiscaisManager() {
   const saveAction = useServerFn(salvarCategoriaFiscal);
   const searchNcmAction = useServerFn(searchNCM);
   const importAction = useServerFn(importarPlanilhaNCM);
+  const deleteAction = useServerFn(excluirCategoriaFiscal);
 
   const carregar = async () => {
     try {
@@ -106,6 +108,16 @@ export function CategoriasFiscaisManager() {
       carregar();
     } catch (error) {
       toast.error("Erro ao alterar status.");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteAction({ data: { id } });
+      toast.success("Categoria excluída.");
+      carregar();
+    } catch (error) {
+      toast.error("Erro ao excluir categoria.");
     }
   };
 
@@ -338,12 +350,37 @@ export function CategoriasFiscaisManager() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(c)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(c)} title="Editar">
                             <Edit2 className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => handleToggleStatus(c)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleToggleStatus(c)} title={c.situacao === 'ativo' ? 'Desativar' : 'Ativar'}>
                             {c.situacao === 'ativo' ? <Power className="h-4 w-4 text-emerald-600" /> : <PowerOff className="h-4 w-4 text-muted-foreground" />}
                           </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" title="Excluir">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir Categoria Fiscal?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta ação não pode ser desfeita. A categoria <strong>{c.nome_amigavel}</strong> ({c.ncm}) será removida permanentemente.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDelete(c.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Excluir
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>

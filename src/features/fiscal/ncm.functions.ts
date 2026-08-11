@@ -151,3 +151,28 @@ export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return result;
   });
+
+export const excluirCategoriaFiscal = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .inputValidator((data) => z.object({ id: z.string() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await assertAdminFiscal(context.supabase, context.userId);
+    
+    // Buscar tenant do usuário
+    const { data: userData } = await context.supabase
+      .from('empresa_usuarios')
+      .select('empresa_id')
+      .eq('user_id', context.userId)
+      .single();
+
+    if (!userData?.empresa_id) throw new Error("Tenant não encontrado.");
+
+    const { error } = await context.supabase
+      .from('categorias_fiscais')
+      .delete()
+      .eq('id', data.id)
+      .eq('tenant_id', userData.empresa_id);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
