@@ -294,6 +294,32 @@ export function CategoriasFiscaisManager() {
            accept=".xlsx,.xls" 
            onChange={handleFileChange} 
          />
+         <AlertDialog>
+           <AlertDialogTrigger asChild>
+             <Button variant="outline" size="sm" className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100" disabled={seeding}>
+                {seeding ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <DatabaseZap className="h-4 w-4 mr-2" />
+                )}
+                Sincronizar Catálogo Mestre (227)
+             </Button>
+           </AlertDialogTrigger>
+           <AlertDialogContent>
+             <AlertDialogHeader>
+               <AlertDialogTitle>Sincronizar Catálogo Mestre?</AlertDialogTitle>
+               <AlertDialogDescription>
+                 Esta ação irá atualizar ou inserir os 227 registros oficiais do Stella ERP.
+                 Nenhum dado existente será apagado, mas os registros com códigos de 001 a 227 serão padronizados.
+               </AlertDialogDescription>
+             </AlertDialogHeader>
+             <AlertDialogFooter>
+               <AlertDialogCancel>Cancelar</AlertDialogCancel>
+               <AlertDialogAction onClick={handleSeed}>Sincronizar Agora</AlertDialogAction>
+             </AlertDialogFooter>
+           </AlertDialogContent>
+         </AlertDialog>
+
          <Button variant="outline" size="sm" onClick={triggerImport} disabled={importando}>
             {importando ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -333,12 +359,11 @@ export function CategoriasFiscaisManager() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Código</TableHead>
+                  <TableHead className="w-[80px]">Código</TableHead>
                   <TableHead>Descrição Stella</TableHead>
                   <TableHead>NCM</TableHead>
                   <TableHead>Vigência</TableHead>
-                  <TableHead>PIS/COFINS</TableHead>
-                  <TableHead>Nat. Rec.</TableHead>
+                  <TableHead>Observação</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -352,18 +377,23 @@ export function CategoriasFiscaisManager() {
                   filtered.map(c => (
                     <TableRow key={c.id} className={c.situacao === 'inativo' ? 'opacity-50' : ''}>
                       <TableCell className="font-mono text-xs">{c.codigo || "-"}</TableCell>
-                      <TableCell className="font-medium max-w-[200px] truncate" title={c.nome_amigavel}>
+                      <TableCell className="font-medium max-w-[250px] truncate" title={c.nome_amigavel}>
                         {c.nome_amigavel}
                       </TableCell>
-                      <TableCell><code className="bg-muted px-1.5 py-0.5 rounded text-xs">{c.ncm}</code></TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {c.vigencia ? new Date(c.vigencia).toLocaleDateString('pt-BR') : "-"}
+                      <TableCell>
+                        {c.ncm ? (
+                          <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{c.ncm}</code>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] uppercase font-normal text-muted-foreground border-dashed">Serviço</Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {c.rec_pis || "0"} / {c.rec_cofins || "0"}
+                        {c.vigencia ? (
+                          c.vigencia === "2026-08-11" ? "Vigente em 11/08/2026" : new Date(c.vigencia).toLocaleDateString('pt-BR')
+                        ) : "-"}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {c.natureza_receita || "0"}
+                      <TableCell className="text-[10px] text-muted-foreground max-w-[150px] truncate italic" title={c.observacao}>
+                        {c.observacao || "-"}
                       </TableCell>
                       <TableCell>
                         <Badge variant={c.situacao === 'ativo' ? 'outline' : 'secondary'} className={c.situacao === 'ativo' ? 'bg-emerald-50 text-emerald-700' : ''}>
