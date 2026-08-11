@@ -653,12 +653,12 @@ const [buscaCliente, setBuscaCliente] = useState("");
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da Nota Fiscal</h3>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="xs" onClick={() => adicionarItem()} className="gap-2 h-7 text-[10px]">
+                  <Button variant="outline" size="sm" onClick={() => adicionarItem()} className="gap-2 h-7 px-2 text-[10px]">
                     <Plus className="h-3 w-3" /> Item Manual
                   </Button>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="xs" className="gap-2 h-7 text-[10px]">
+                      <Button size="sm" className="gap-2 h-7 px-2 text-[10px]">
                         <Package className="h-3 w-3" /> Adicionar Produto
                       </Button>
                     </PopoverTrigger>
