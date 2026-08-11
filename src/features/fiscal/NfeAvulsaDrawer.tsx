@@ -946,48 +946,46 @@ const [buscaCliente, setBuscaCliente] = useState("");
           </>
         )}
 
-          <DialogFooter className="p-6 border-t bg-surface-muted/30">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                if (itens.length > 0 || destinatario) {
-                  setDialogDescartarAberto(true);
-                } else {
-                  onFechar();
-                }
-              }} 
-              disabled={emitindo}
-            >
-              Cancelar
-            </Button>
-            <div className="flex-1" />
-            <Button
-              variant="outline"
-              onClick={handlePreview}
-              disabled={emitindo || previewCarregando}
-              className="gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              {previewCarregando ? "Montando..." : "Pré-visualizar"}
-            </Button>
-            <Button 
-              onClick={handleEmitir} 
-              disabled={emitindo}
-              className="bg-primary hover:bg-primary/90 min-w-[140px]"
-            >
-              {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-            </Button>
-          </DialogFooter>
-        </>
-      )}
-    </DialogContent>
-  </Dialog>
+        <DialogFooter className="p-6 border-t bg-surface-muted/30">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              if (itens.length > 0 || destinatario) {
+                setDialogDescartarAberto(true);
+              } else {
+                onFechar();
+              }
+            }} 
+            disabled={emitindo}
+          >
+            Cancelar
+          </Button>
+          <div className="flex-1" />
+          <Button
+            variant="outline"
+            onClick={handlePreview}
+            disabled={emitindo || previewCarregando}
+            className="gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            {previewCarregando ? "Montando..." : "Pré-visualizar"}
+          </Button>
+          <Button 
+            onClick={handleEmitir} 
+            disabled={emitindo}
+            className="bg-primary hover:bg-primary/90 min-w-[140px]"
+          >
+            {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-  <PayloadPreviewDialog
-    aberto={previewAberto}
-    onFechar={() => setPreviewAberto(false)}
-    preview={preview}
-  />
+    <PayloadPreviewDialog
+      aberto={previewAberto}
+      onFechar={() => setPreviewAberto(false)}
+      preview={preview}
+    />
 
     <AlertDialog open={dialogDescartarAberto} onOpenChange={setDialogDescartarAberto}>
       <AlertDialogContent>
@@ -1013,7 +1011,6 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    </>
   );
 }
 
