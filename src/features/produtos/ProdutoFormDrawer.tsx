@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, Package } from "lucide-react";
+import { ImagePlus, Package, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,7 @@ import type {
   Produto,
   ProdutoInput,
   StatusProduto,
+  VariacaoTamanho,
 } from "./types";
 import {
   PERSONALIZACOES_VAZIAS,
@@ -69,6 +70,7 @@ interface FormState {
   categoria: CategoriaProduto;
   precoStr: string;
   personalizacoes: PersonalizacoesPermitidas;
+  variacoesTamanhos: VariacaoTamanho[];
   descricao: string;
   observacoesInternas: string;
   imagem?: string;
@@ -86,6 +88,7 @@ function estadoInicial(produto?: Produto | null): FormState {
       categoria: "",
       precoStr: "",
       personalizacoes: { ...PERSONALIZACOES_VAZIAS },
+      variacoesTamanhos: [],
       descricao: "",
       observacoesInternas: "",
       imagem: undefined,
@@ -101,6 +104,7 @@ function estadoInicial(produto?: Produto | null): FormState {
     categoria: produto.categoria,
     precoStr: produto.precoBase > 0 ? produto.precoBase.toFixed(2).replace(".", ",") : "",
     personalizacoes: { ...produto.personalizacoes },
+    variacoesTamanhos: produto.variacoesTamanhos ?? [],
     descricao: produto.descricao ?? "",
     observacoesInternas: produto.observacoesInternas ?? "",
     imagem: produto.imagem,
@@ -179,6 +183,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
       descricaoFiscal: form.descricaoFiscal || undefined,
       categoria: form.categoria,
       precoBase: parsePreco(form.precoStr),
+      variacoesTamanhos: form.variacoesTamanhos.length > 0 ? form.variacoesTamanhos : undefined,
       personalizacoes: form.personalizacoes,
       descricao: form.descricao.trim() || undefined,
       observacoesInternas: form.observacoesInternas.trim() || undefined,
@@ -386,8 +391,123 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                 placeholder="0,00"
               />
               <p className="text-xs text-muted-foreground">
-                Valor inicial. Personalizações e ajustes podem ser aplicados por pedido.
+                Valor inicial. Para preços por tamanho, use a seção abaixo.
               </p>
+            </div>
+
+            {/* Variações de Tamanho */}
+            <div className="space-y-4 rounded-xl border border-border bg-surface-muted/40 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-foreground">Tamanhos e Preços Específicos</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const novos = [
+                      ...form.variacoesTamanhos,
+                      { tamanho: "", precoAVista: 0, precoCreditoAVista: 0, precoCreditoParcelado: 0 },
+                    ];
+                    upd("variacoesTamanhos", novos);
+                  }}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  Adicionar
+                </Button>
+              </div>
+
+              {form.variacoesTamanhos.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-border text-muted-foreground">
+                        <th className="pb-2 font-medium">Tam.</th>
+                        <th className="pb-2 font-medium">À vista</th>
+                        <th className="pb-2 font-medium">Créd. à vista</th>
+                        <th className="pb-2 font-medium">Créd. parc.</th>
+                        <th className="pb-2 text-right"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {form.variacoesTamanhos.map((varT, idx) => (
+                        <tr key={idx}>
+                          <td className="py-2 pr-2">
+                            <Input
+                              className="h-8 w-16 text-xs"
+                              value={varT.tamanho}
+                              onChange={(e) => {
+                                const novos = [...form.variacoesTamanhos];
+                                novos[idx].tamanho = e.target.value;
+                                upd("variacoesTamanhos", novos);
+                              }}
+                              placeholder="ex: P"
+                            />
+                          </td>
+                          <td className="py-2 pr-2">
+                            <Input
+                              className="h-8 w-20 text-xs"
+                              value={varT.precoAVista || ""}
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                const novos = [...form.variacoesTamanhos];
+                                novos[idx].precoAVista = Number(e.target.value);
+                                upd("variacoesTamanhos", novos);
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 pr-2">
+                            <Input
+                              className="h-8 w-20 text-xs"
+                              value={varT.precoCreditoAVista || ""}
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                const novos = [...form.variacoesTamanhos];
+                                novos[idx].precoCreditoAVista = Number(e.target.value);
+                                upd("variacoesTamanhos", novos);
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 pr-2">
+                            <Input
+                              className="h-8 w-20 text-xs"
+                              value={varT.precoCreditoParcelado || ""}
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                const novos = [...form.variacoesTamanhos];
+                                novos[idx].precoCreditoParcelado = Number(e.target.value);
+                                upd("variacoesTamanhos", novos);
+                              }}
+                            />
+                          </td>
+                          <td className="py-2 text-right">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive"
+                              onClick={() => {
+                                upd(
+                                  "variacoesTamanhos",
+                                  form.variacoesTamanhos.filter((_, i) => i !== idx),
+                                );
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-center text-xs text-muted-foreground py-2">
+                  Nenhum tamanho específico cadastrado.
+                </p>
+              )}
             </div>
 
             {/* Personalizações */}
