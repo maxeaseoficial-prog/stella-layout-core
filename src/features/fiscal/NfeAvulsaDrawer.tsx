@@ -731,10 +731,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </tbody>
                 </table>
               </div>
-              </div>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2">
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-6">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -811,10 +809,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </div>
                 </div>
               </div>
-              </div>
             </div>
 
-            <div className="space-y-6">
             <div className="space-y-6">
               <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 text-amber-800">
                 <AlertCircle className="h-5 w-5 shrink-0" />
@@ -979,9 +975,9 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </>
           {/* )} */}
         </DialogFooter>
-          </>
-        )}
-      </DialogContent>
+      </>
+    )}
+  </DialogContent>
       <PayloadPreviewDialog
         aberto={previewAberto}
         onFechar={() => setPreviewAberto(false)}
