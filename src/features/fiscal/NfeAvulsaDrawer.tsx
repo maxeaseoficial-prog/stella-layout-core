@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useClientes, getClienteNome } from "@/features/clientes";
+import { useClientes, getClienteNome, ClienteFormDrawer } from "@/features/clientes";
 import { useProdutos } from "@/features/produtos";
 import { useNfeAvulsas } from "./useNfeAvulsas";
 import { useFiscalConfig } from "./useFiscalConfig";
@@ -65,6 +65,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const { clientes } = useClientes();
   const { ativos: produtos } = useProdutos();
   const { criar, atualizarNotaFiscal } = useNfeAvulsas();
+  const { criar: criarCliente } = useClientes();
   const { config } = useFiscalConfig();
   const emitirFn = useServerFn(emitirNfeAvulsa);
   
@@ -85,6 +86,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
   const [previewCarregando, setPreviewCarregando] = useState(false);
 
   const [dialogDescartarAberto, setDialogDescartarAberto] = useState(false);
+  const [cadastroClienteAberto, setCadastroClienteAberto] = useState(false);
 
   // ---- Sincronização assíncrona de status (polling GET, nunca reemite) ----
   const consultarStatusFn = useServerFn(consultarStatusNfe);
@@ -621,7 +623,18 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label>Buscar Destinatário</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Buscar Destinatário</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-primary hover:text-primary/80 gap-1 px-2"
+                      onClick={() => setCadastroClienteAberto(true)}
+                    >
+                      <Plus className="h-3 w-3" />
+                      Novo Cliente
+                    </Button>
+                  </div>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-full justify-start text-muted-foreground font-normal">
@@ -927,7 +940,24 @@ const [buscaCliente, setBuscaCliente] = useState("");
           </DialogFooter>
         )}
       </DialogContent>
-    </Dialog>
+      </Dialog>
+
+      <ClienteFormDrawer
+        aberto={cadastroClienteAberto}
+        onFechar={() => setCadastroClienteAberto(false)}
+        onSalvar={async (dados) => {
+          try {
+            const novo = await criarCliente(dados);
+            if (novo) {
+              setDestinatario(novo);
+              setCadastroClienteAberto(false);
+              toast.success("Cliente cadastrado e selecionado.");
+            }
+          } catch (err) {
+            console.error("Erro ao cadastrar cliente:", err);
+          }
+        }}
+      />
 
     <PayloadPreviewDialog
       aberto={previewAberto}
