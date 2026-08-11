@@ -17,6 +17,16 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -401,7 +411,13 @@ const [buscaCliente, setBuscaCliente] = useState("");
   };
 
   return (
-    <Dialog open={aberto} onOpenChange={onFechar}>
+    <Dialog open={aberto} onOpenChange={() => {
+      if (itens.length > 0 || destinatario) {
+        setDialogDescartarAberto(true);
+      } else {
+        onFechar();
+      }
+    }}>
       <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[95vh] overflow-hidden flex flex-col p-0">
         {notaSucesso ? (
           <div className="flex flex-col h-full animate-in fade-in zoom-in duration-300">
@@ -935,9 +951,18 @@ const [buscaCliente, setBuscaCliente] = useState("");
               </div>
             </div>
           </div>
-
-        <DialogFooter className="p-6 border-t bg-surface-muted/30">
-          <Button variant="outline" onClick={onFechar} disabled={emitindo}>
+        </div>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              if (itens.length > 0 || destinatario) {
+                setDialogDescartarAberto(true);
+              } else {
+                onFechar();
+              }
+            }} 
+            disabled={emitindo}
+          >
             Cancelar
           </Button>
           <div className="flex-1" />
@@ -984,6 +1009,31 @@ const [buscaCliente, setBuscaCliente] = useState("");
         preview={preview}
       />
     </Dialog>
+
+    <AlertDialog open={dialogDescartarAberto} onOpenChange={setDialogDescartarAberto}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Descartar esta NF-e?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Os dados preenchidos nesta nota avulsa serão perdidos e não poderão ser recuperados.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={() => setDialogDescartarAberto(false)}>
+            Continuar editando
+          </AlertDialogAction>
+          <AlertDialogAction 
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => {
+              setDialogDescartarAberto(false);
+              onFechar();
+            }}
+          >
+            Descartar
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
   );
 }
