@@ -32,6 +32,13 @@ export interface PersonalizacoesPermitidas {
   sublimacao: boolean;
 }
 
+export interface VariacaoTamanho {
+  tamanho: string;
+  precoAVista: number;
+  precoCreditoAVista: number;
+  precoCreditoParcelado: number;
+}
+
 export interface Produto {
   id: string;
   nome: string;
@@ -41,6 +48,7 @@ export interface Produto {
   descricaoFiscal?: string;
   categoria: CategoriaProduto;
   precoBase: number;
+  variacoesTamanhos?: VariacaoTamanho[];
   personalizacoes: PersonalizacoesPermitidas;
   descricao?: string;
   observacoesInternas?: string;
