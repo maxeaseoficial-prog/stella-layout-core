@@ -989,6 +989,22 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    <ClienteFormDrawer
+      aberto={cadastroClienteAberto}
+      onFechar={() => setCadastroClienteAberto(false)}
+      onSalvar={async (dados) => {
+        try {
+          const novo = await criarCliente(dados);
+          if (novo) {
+            setDestinatario(novo);
+            setCadastroClienteAberto(false);
+            toast.success("Cliente cadastrado e selecionado.");
+          }
+        } catch (err) {
+          console.error("Erro ao cadastrar cliente:", err);
+        }
+      }}
+    />
     </>
   );
 }
