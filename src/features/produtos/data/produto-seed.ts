@@ -6,6 +6,10 @@ export const PRODUTO_SEED_CAMISETA: ProdutoInput = {
   categoria: "camiseta",
   precoBase: 22.50,
   status: "ativo",
+  // Vinculando à classificação fiscal 023 (Camiseta diversa estampada de algodão)
+  categoriaFiscalId: "023", 
+  ncm: "6109.10.00",
+  descricaoFiscal: "Camiseta diversa estampada de algodão",
   personalizacoes: {
     bordado: false,
     estampa: true,
