@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { 
   CheckCircle2, 
   AlertCircle, 
@@ -7,18 +7,30 @@ import {
   Search,
   RefreshCw,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatarMoeda, formatarDataBR } from "@/features/pedidos/utils";
 import { urlDanfePdf, urlXmlNfe } from "./spedy";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getNotasEmitidas } from "@/lib/fiscal-queries.functions";
+import { excluirRegistroNotaFiscal } from "@/lib/fiscal-delete.functions";
+import { toast } from "sonner";
 
 export function NotasEmitidasFiscal() {
   const [busca, setBusca] = useState("");
