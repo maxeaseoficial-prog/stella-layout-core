@@ -2,6 +2,98 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAuthMiddleware } from "@/lib/auth-middleware";
 import { assertAdminFiscal } from "@/lib/fiscal.server";
+import { CATEGORIAS_FISCAIS_MASTER } from "./data/categorias-fiscais-master";
+import { CategoriaFiscal } from "./types";
+
+export const seedCategoriasFiscais = createServerFn({ method: "POST" })
+  .middleware([supabaseAuthMiddleware])
+  .handler(async ({ context }) => {
+    await assertAdminFiscal(context.supabase, context.userId);
+    
+    const { data: userData } = await context.supabase
+      .from('empresa_usuarios')
+      .select('empresa_id')
+      .eq('user_id', context.userId)
+      .single();
+
+    if (!userData?.empresa_id) throw new Error("Tenant não encontrado.");
+    const tenantId = userData.empresa_id;
+
+    // Relatório
+    const relatorio = {
+      esperados: CATEGORIAS_FISCAIS_MASTER.length,
+      processados: 0,
+      inseridos: 0,
+      atualizados: 0,
+      corretos: 0,
+      servicosSemNcm: 0,
+      comObservacao: 0,
+      duplicidades: 0,
+      erros: 0
+    };
+
+    // Buscar categorias atuais para evitar duplicação e preservar IDs
+    const { data: atuais } = await context.supabase
+      .from('categorias_fiscais')
+      .select('id, codigo')
+      .eq('tenant_id', tenantId);
+
+    const mapaAtuais = new Map(atuais?.map(a => [a.codigo, a.id]) || []);
+
+    const upserts: any[] = [];
+    const codigosVistos = new Set();
+
+    for (const master of CATEGORIAS_FISCAIS_MASTER) {
+      if (codigosVistos.has(master.codigo)) {
+        relatorio.duplicidades++;
+        continue;
+      }
+      codigosVistos.add(master.codigo);
+      relatorio.processados++;
+
+      if (master.tipo === 'servico') relatorio.servicosSemNcm++;
+      if (master.observacao) relatorio.comObservacao++;
+
+      const idExistente = mapaAtuais.get(master.codigo);
+      
+      const payload: any = {
+        codigo: master.codigo,
+        nome_amigavel: master.nome_amigavel,
+        ncm: master.ncm,
+        vigencia: master.vigencia,
+        situacao: master.ativo ? 'ativo' : 'inativo',
+        tenant_id: tenantId,
+        atualizado_em: new Date().toISOString()
+      };
+
+      // Campos estendidos se a tabela suportar ou via meta
+      // Por enquanto usamos o que temos na migration anterior
+      if (idExistente) {
+        payload.id = idExistente;
+        relatorio.atualizados++;
+      } else {
+        relatorio.inseridos++;
+      }
+
+      upserts.push(payload);
+    }
+
+    // Upsert em chunks para segurança
+    const chunkSize = 50;
+    for (let i = 0; i < upserts.length; i += chunkSize) {
+      const chunk = upserts.slice(i, i + chunkSize);
+      const { error } = await context.supabase
+        .from('categorias_fiscais')
+        .upsert(chunk);
+      
+      if (error) {
+        relatorio.erros++;
+        console.error("Erro no chunk:", error);
+      }
+    }
+
+    return { success: true, relatorio };
+  });
 
 export const importarPlanilhaNCM = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
@@ -22,14 +114,12 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     
-    // Buscar tenant do usuário
     const { data: userData } = await context.supabase
       .from('empresa_usuarios')
       .select('empresa_id')
       .eq('user_id', context.userId)
       .single();
 
-    // Batch upsert no Supabase
     const { error } = await context.supabase
       .from('categorias_fiscais')
       .upsert(data.map(item => ({
@@ -47,7 +137,7 @@ export const importarPlanilhaNCM = createServerFn({ method: "POST" })
         situacao: item.situacao || 'ativo',
         tenant_id: userData?.empresa_id,
         atualizado_em: new Date().toISOString()
-      })), { onConflict: 'codigo,vigencia,tenant_id' });
+      })), { onConflict: 'codigo,tenant_id' }); // Simplificado para codigo+tenant
 
     if (error) throw new Error(`Erro ao importar NCMs: ${error.message}`);
     return { success: true, count: data.length };
@@ -57,9 +147,7 @@ export const searchNCM = createServerFn({ method: "GET" })
   .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ query: z.string().min(1) }).parse(data))
   .handler(async ({ data, context }) => {
-    // Normalizar a busca: se for número, tirar pontuação
     const cleanQuery = data.query.replace(/[^0-9a-zA-Z]/g, '');
-    
     const { data: ncms, error } = await context.supabase
       .from('fiscal_ncm')
       .select('codigo, descricao')
@@ -105,7 +193,7 @@ export const getCategoriasFiscais = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from('categorias_fiscais')
       .select('*')
-      .order('nome_amigavel');
+      .order('codigo', { ascending: true }); // Ordenar por código conforme solicitado
 
     if (error) throw new Error(error.message);
     return data;
@@ -117,7 +205,7 @@ export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
     id: z.string().optional(),
     codigo: z.string().optional(),
     nome_amigavel: z.string().min(1),
-    ncm: z.string().min(8),
+    ncm: z.string().nullable(),
     descricao_oficial: z.string().optional(),
     unidade_comercial: z.string().optional(),
     unidade_tributavel: z.string().optional(),
@@ -131,7 +219,6 @@ export const salvarCategoriaFiscal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     
-    // Buscar tenant do usuário
     const { data: userData } = await context.supabase
       .from('empresa_usuarios')
       .select('empresa_id')
@@ -158,7 +245,6 @@ export const excluirCategoriaFiscal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
     
-    // Buscar tenant do usuário
     const { data: userData } = await context.supabase
       .from('empresa_usuarios')
       .select('empresa_id')
