@@ -67,6 +67,7 @@ export function useProdutos() {
         criadoEm: new Date().toISOString(),
         atualizadoEm: new Date().toISOString(),
       };
+      // Forçar o carregamento inicial com a classificação fiscal seed
       setProdutos([seed]);
     }
   }, [hidratado, produtos.length]);
