@@ -1,38 +1,19 @@
-# Plano de Refatoração: NF-e Avulsa (Tela Única)
+# Plano de Correção e Atualização do Catálogo de Produtos
 
-Refatoração completa da interface de emissão de NF-e Avulsa para eliminar o sistema de "wizard" por etapas e consolidar tudo em uma única janela (Dialog/Drawer) de grande formato, garantindo a persistência absoluta da Classificação Fiscal.
-
-## Alterações Propostas
-
-### 1. Interface (UI/UX)
-- **Eliminação do Wizard**: Remoção dos estados `step`, `nextStep`, `prevStep` e da navegação por etapas.
-- **Tela Única (Single View)**: Implementação de um `Drawer` ou `Dialog` ocupando 90-95% da tela.
-- **Estrutura de Seções**:
-    - **Destinatário**: Seleção de cliente e exibição de dados de endereço/documento.
-    - **Itens da Nota**: Tabela consolidada com Descrição, Classificação Fiscal, Qtd, Valor Unitário, Total e Ações.
-    - **Valores/Operação**: Natureza da operação, frete, descontos e observações.
-    - **Resumo**: Totais calculados e status de preenchimento.
-- **Rodapé Fixo**: Ações de Cancelar, Pré-visualizar e Emitir sempre visíveis.
-
-### 2. Persistência de Dados e Estado
-- **Fonte de Verdade**: O array `itens` será a única fonte de verdade para a Classificação Fiscal (`categoriaFiscalId`).
-- **Hidratação de Componentes**: Refatoração do `ClassificacaoFiscalPicker` para carregar o nome da categoria via ID se o objeto visual não estiver disponível em cache, evitando o texto "Selecionar...".
-- **Merge Seguro**: Garantir que as atualizações de campos (quantidade, valor, etc.) utilizem spread operator `{...item, campo: valor}` para não perder o `categoriaFiscalId`.
-- **Validação Localizada**: Exibição de erros de classificação diretamente na linha do item.
-
-### 3. Integridade do Sistema
-- **Sem Mudanças no Backend**: Nenhuma alteração em `fiscal.server.ts`, `fiscal.functions.ts` ou tabelas do banco de dados.
-- **Preservação de Dados**: Não haverá modificação em cadastros existentes (Produtos, Categorias, NCM, Clientes).
-- **Consistência Fiscal**: Manutenção das regras de cálculo de `unitTax`, `quantityTax` e lógica da Rejeição 630.
+O objetivo é remover produtos duplicados no catálogo mestre e adicionar os produtos "Infantis" e as tabelas especiais que foram solicitadas anteriormente, mas não foram persistidas corretamente no arquivo de sementes (seed).
 
 ## Detalhes Técnicos
-- **Arquivo Principal**: `src/features/fiscal/NfeAvulsaDrawer.tsx`.
-- **Componentes Afetados**: `ClassificacaoFiscalPicker`, `ItensStep` (a ser fundido), `ValoresStep` (a ser fundido).
-- **Gestão de Estado**: Uso de `useState` robusto para o formulário completo, sem perdas em re-renderizações.
-- **Segurança**: Diálogo de confirmação personalizado ao tentar fechar a janela com dados preenchidos.
 
-## Critérios de Sucesso
-1. Classificação fiscal permanece visível após editar qualquer outro campo.
-2. Classificação fiscal permanece visível após abrir e fechar o Preview.
-3. Emissão validada apenas se `categoriaFiscalId` estiver presente em todos os itens.
-4. Interface unificada sem botões "Próximo" ou "Voltar".
+1.  **Limpeza do Catálogo Mestre:** Revisar `src/features/produtos/data/produto-seed-new.ts` para remover entradas duplicadas e SKUs conflitantes.
+2.  **Inclusão de Produtos Faltantes:** Adicionar os produtos "Infantis" e as variantes de Tabela B que foram descritas em mensagens anteriores (#395 e #399).
+3.  **Normalização de SKUs:** Garantir que cada produto no catálogo mestre tenha um SKU único e padronizado.
+4.  **Sincronização de Estado:** Após a atualização do arquivo, o usuário poderá clicar em "Sincronizar" no painel de produtos para aplicar as mudanças ao armazenamento local sem perder dados de pedidos existentes.
+
+## Etapas de Implementação
+
+1.  **Atualizar `src/features/produtos/data/produto-seed-new.ts`:**
+    *   Remover duplicatas da linha "Cosmos" e "Estampada".
+    *   Adicionar: Camiseta Curta Infantil, Camiseta Longa Infantil, Bermuda Masculina Infantil, Bermuda Leg Infantil, Calça Masculina Infantil, Calça Leg Infantil, Blusa de Moletom Infantil, Jaqueta Infantil.
+    *   Adicionar: Calça Masculina — Tabela B, Bermuda Masculina — Tabela B, Short Saia, Bermuda Leg — Tabela B.
+2.  **Verificar Vínculos Fiscais:** Garantir que os novos produtos infantis apontem para o NCM correto (6109.10.00 ou similar conforme o catálogo fiscal mestre).
+3.  **Teste de Sincronismo:** Validar se o botão de sincronizar no frontend detecta os novos itens e ignora as duplicatas já existentes no localStorage.
