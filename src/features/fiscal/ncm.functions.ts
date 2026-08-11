@@ -165,11 +165,13 @@ export const excluirCategoriaFiscal = createServerFn({ method: "POST" })
       .eq('user_id', context.userId)
       .single();
 
+    if (!userData?.empresa_id) throw new Error("Tenant não encontrado.");
+
     const { error } = await context.supabase
       .from('categorias_fiscais')
       .delete()
       .eq('id', data.id)
-      .eq('tenant_id', userData?.empresa_id);
+      .eq('tenant_id', userData.empresa_id);
 
     if (error) throw new Error(error.message);
     return { success: true };
