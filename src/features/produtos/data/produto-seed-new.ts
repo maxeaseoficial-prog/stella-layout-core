@@ -536,5 +536,56 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
       { tamanho: "GG", precoAVista: 81.50, precoCreditoAVista: 83.50, precoCreditoParcelado: 85.50 },
       { tamanho: "XGG", precoAVista: 86.50, precoCreditoAVista: 88.50, precoCreditoParcelado: 90.50 }
     ]
+  },
+  {
+    nome: "Leg Adulto — Tabela B",
+    sku: "LEG-AD-B-001",
+    categoria: "leg",
+    precoBase: 38.50,
+    status: "ativo",
+    categoriaFiscalId: "023",
+    ncm: "6109.10.00",
+    descricaoFiscal: "Leg Adulto Tabela B",
+    personalizacoes: { bordado: false, estampa: false, sublimacao: false },
+    variacoesTamanhos: [
+      { tamanho: "P", precoAVista: 38.50, precoCreditoAVista: 40.50, precoCreditoParcelado: 42.50 },
+      { tamanho: "M", precoAVista: 40.50, precoCreditoAVista: 42.50, precoCreditoParcelado: 44.50 },
+      { tamanho: "G", precoAVista: 42.50, precoCreditoAVista: 44.50, precoCreditoParcelado: 46.50 },
+      { tamanho: "GG", precoAVista: 44.50, precoCreditoAVista: 46.50, precoCreditoParcelado: 48.50 }
+    ]
+  },
+  {
+    nome: "Short Masculino — Tabela B",
+    sku: "SHO-MAS-B-001",
+    categoria: "bermuda",
+    precoBase: 28.50,
+    status: "ativo",
+    categoriaFiscalId: "023",
+    ncm: "6109.10.00",
+    descricaoFiscal: "Short Masculino Tabela B",
+    personalizacoes: { bordado: false, estampa: false, sublimacao: false },
+    variacoesTamanhos: [
+      { tamanho: "P", precoAVista: 28.50, precoCreditoAVista: 30.50, precoCreditoParcelado: 32.50 },
+      { tamanho: "M", precoAVista: 30.50, precoCreditoAVista: 32.50, precoCreditoParcelado: 34.50 },
+      { tamanho: "G", precoAVista: 32.50, precoCreditoAVista: 34.50, precoCreditoParcelado: 36.50 },
+      { tamanho: "GG", precoAVista: 34.50, precoCreditoAVista: 36.50, precoCreditoParcelado: 38.50 }
+    ]
+  },
+  {
+    nome: "Jaqueta Adulto — Tabela B",
+    sku: "JAQ-AD-B-001",
+    categoria: "jaqueta",
+    precoBase: 85.50,
+    status: "ativo",
+    categoriaFiscalId: "023",
+    ncm: "6109.10.00",
+    descricaoFiscal: "Jaqueta Adulto Tabela B",
+    personalizacoes: { bordado: false, estampa: false, sublimacao: false },
+    variacoesTamanhos: [
+      { tamanho: "P", precoAVista: 85.50, precoCreditoAVista: 89.50, precoCreditoParcelado: 93.50 },
+      { tamanho: "M", precoAVista: 89.50, precoCreditoAVista: 93.50, precoCreditoParcelado: 97.50 },
+      { tamanho: "G", precoAVista: 93.50, precoCreditoAVista: 97.50, precoCreditoParcelado: 101.50 },
+      { tamanho: "GG", precoAVista: 97.50, precoCreditoAVista: 101.50, precoCreditoParcelado: 105.50 }
+    ]
   }
 ];
