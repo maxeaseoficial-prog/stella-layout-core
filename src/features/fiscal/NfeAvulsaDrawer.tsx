@@ -952,9 +952,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
           </div>
         </div>
-          <Button 
-            variant="outline" 
-            onClick={() => {
+
+        <DialogFooter className="p-6 border-t bg-surface-muted/30">
               if (itens.length > 0 || destinatario) {
                 setDialogDescartarAberto(true);
               } else {
