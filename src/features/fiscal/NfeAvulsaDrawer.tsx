@@ -605,7 +605,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="space-y-4">
               {destinatario ? (
                 <div className="border rounded-xl p-4 bg-surface flex items-center justify-between shadow-sm">
@@ -649,17 +649,17 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da Nota Fiscal</h3>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => adicionarItem()} className="gap-2">
-                    <Plus className="h-4 w-4" /> Item Manual
+                  <Button variant="outline" size="xs" onClick={() => adicionarItem()} className="gap-2 h-7 text-[10px]">
+                    <Plus className="h-3 w-3" /> Item Manual
                   </Button>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button size="sm" className="gap-2">
-                        <Package className="h-4 w-4" /> Adicionar Produto
+                      <Button size="xs" className="gap-2 h-7 text-[10px]">
+                        <Package className="h-3 w-3" /> Adicionar Produto
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0 w-[300px]" align="end">
@@ -682,76 +682,78 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 </div>
               </div>
 
-              <div className="border rounded-xl overflow-hidden bg-surface">
-                <table className="w-full text-sm">
-                  <thead className="bg-surface-muted border-b">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-medium">Descrição</th>
-                      <th className="px-4 py-3 text-left font-medium w-64">Classificação Fiscal</th>
-                      <th className="px-4 py-3 text-left font-medium w-24">Qtd</th>
-                      <th className="px-4 py-3 text-left font-medium w-32">Valor Unit.</th>
-                      <th className="px-4 py-3 text-left font-medium w-32">Total</th>
-                      <th className="px-4 py-3 text-right font-medium w-10"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {itens.length === 0 && (
+              <div className="border rounded-lg overflow-hidden bg-surface">
+                <div className="max-h-[260px] min-h-[110px] overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-surface-muted border-b sticky top-0 z-10">
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground italic">
-                          Nenhum item adicionado
-                        </td>
+                        <th className="px-3 py-2 text-left font-medium">Descrição</th>
+                        <th className="px-3 py-2 text-left font-medium w-72">Classificação Fiscal</th>
+                        <th className="px-3 py-2 text-left font-medium w-20 text-center">Qtd</th>
+                        <th className="px-3 py-2 text-left font-medium w-28">Unit.</th>
+                        <th className="px-3 py-2 text-left font-medium w-28">Total</th>
+                        <th className="px-3 py-2 text-right font-medium w-10"></th>
                       </tr>
-                    )}
-                    {itens.map(it => (
-                      <tr key={it.id}>
-                        <td className="px-4 py-3">
-                          <Input 
-                            value={it.descricao} 
-                            onChange={(e) => atualizarItem(it.id, { descricao: e.target.value })}
-                            className="h-8 text-xs"
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <ClassificacaoFiscalPicker 
-                            value={it.categoriaFiscalId}
-                            selectedObject={it.categoriaFiscal}
-                            onChange={(cat) => {
-                              atualizarItem(it.id, {
-                                categoriaFiscalId: cat?.id || "",
-                                ncm: cat?.ncm || "",
-                                categoriaFiscal: cat
-                              });
-                            }}
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <Input 
-                            type="number"
-                            value={it.quantidade} 
-                            onChange={(e) => atualizarItem(it.id, { quantidade: Number(e.target.value) })}
-                            className="h-8 text-xs"
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <Input 
-                            type="number"
-                            value={it.valorUnitario} 
-                            onChange={(e) => atualizarItem(it.id, { valorUnitario: Number(e.target.value) })}
-                            className="h-8 text-xs"
-                          />
-                        </td>
-                        <td className="px-4 py-3 font-medium">
-                          {formatarMoeda(it.quantidade * it.valorUnitario)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removerItem(it.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {itens.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="px-3 py-8 text-center text-muted-foreground italic">
+                            Nenhum item adicionado
+                          </td>
+                        </tr>
+                      )}
+                      {itens.map(it => (
+                        <tr key={it.id}>
+                          <td className="px-3 py-2">
+                            <Input 
+                              value={it.descricao} 
+                              onChange={(e) => atualizarItem(it.id, { descricao: e.target.value })}
+                              className="h-7 text-[11px]"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <ClassificacaoFiscalPicker 
+                              value={it.categoriaFiscalId}
+                              selectedObject={it.categoriaFiscal}
+                              onChange={(cat) => {
+                                atualizarItem(it.id, {
+                                  categoriaFiscalId: cat?.id || "",
+                                  ncm: cat?.ncm || "",
+                                  categoriaFiscal: cat
+                                });
+                              }}
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input 
+                              type="number"
+                              value={it.quantidade} 
+                              onChange={(e) => atualizarItem(it.id, { quantidade: Number(e.target.value) })}
+                              className="h-7 text-[11px] text-center"
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input 
+                              type="number"
+                              value={it.valorUnitario} 
+                              onChange={(e) => atualizarItem(it.id, { valorUnitario: Number(e.target.value) })}
+                              className="h-7 text-[11px]"
+                            />
+                          </td>
+                          <td className="px-3 py-2 font-medium">
+                            {formatarMoeda(it.quantidade * it.valorUnitario)}
+                          </td>
+                          <td className="px-3 py-2 text-right">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => removerItem(it.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
