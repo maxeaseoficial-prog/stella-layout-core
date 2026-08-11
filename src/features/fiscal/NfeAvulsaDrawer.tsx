@@ -419,7 +419,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
         onFechar();
       }
     }}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[95vh] overflow-hidden flex flex-col p-0">
+      <DialogContent className="max-w-[88vw] w-[88vw] max-h-[88vh] h-[88vh] md:max-w-[1400px] overflow-hidden flex flex-col p-0">
         {notaSucesso ? (
           <div className="flex flex-col h-full animate-in fade-in zoom-in duration-300">
             <div className="p-8 text-center space-y-4">
