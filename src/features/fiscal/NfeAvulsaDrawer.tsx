@@ -626,13 +626,12 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   </button>
                 ))}
               </div>
-              </div>
             </div>
+          </div>
 
-            <div className="space-y-6">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={() => adicionarItem()} className="gap-2">
                     <Plus className="h-4 w-4" /> Item Manual
@@ -937,9 +936,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
                     </tbody>
                   </table>
                 </div>
-              </div>
-              </div>
             </div>
+          </div>
         </div>
 
         <DialogFooter className="p-6 border-t bg-surface-muted/30">
