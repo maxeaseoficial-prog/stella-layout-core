@@ -712,9 +712,11 @@ const [buscaCliente, setBuscaCliente] = useState("");
                             value={it.categoriaFiscalId}
                             selectedObject={it.categoriaFiscal}
                             onChange={(cat) => {
-                              atualizarItem(it.id, 'categoriaFiscalId', cat?.id || "");
-                              atualizarItem(it.id, 'ncm', cat?.ncm || "");
-                              atualizarItem(it.id, 'categoriaFiscal', cat);
+                              atualizarItem(it.id, {
+                                categoriaFiscalId: cat?.id || "",
+                                ncm: cat?.ncm || "",
+                                categoriaFiscal: cat
+                              });
                             }}
                           />
                         </td>
