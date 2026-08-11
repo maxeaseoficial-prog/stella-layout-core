@@ -230,8 +230,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
 
   const removerItem = (id: string) => setItens(itens.filter(it => it.id !== id));
 
-  const atualizarItem = (id: string, campo: string, valor: any) => {
-    setItens(itens.map(it => it.id === id ? { ...it, [campo]: valor } : it));
+  const atualizarItem = (id: string, patch: any) => {
+    setItens(prev => prev.map(it => it.id === id ? { ...it, ...patch } : it));
   };
 
   const validarDestinatario = () => {
