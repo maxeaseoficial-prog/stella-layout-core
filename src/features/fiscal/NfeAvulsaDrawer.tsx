@@ -919,10 +919,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
                     <div className="flex justify-between text-xs pt-2 border-t font-bold">
                       <span>Valor Final</span>
                       <span className="text-primary">{formatarMoeda(total)}</span>
-                    </div>
-                  </div>
                 </div>
               </div>
+            </div>
+          </div>
 
               <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da NF-e</h4>
@@ -1001,10 +1001,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
               </Button>
           </>
         </DialogFooter>
-      </>
-    )}
-  </DialogContent>
       </DialogContent>
+    )}
       <PayloadPreviewDialog
         aberto={previewAberto}
         onFechar={() => setPreviewAberto(false)}
