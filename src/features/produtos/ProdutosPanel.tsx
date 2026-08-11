@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Package, PackagePlus, Search } from "lucide-react";
+import { Package, PackagePlus, RefreshCw, Search } from "lucide-react";
 import { toast } from "@/lib/toast";
 
 import { EmptyState } from "@/components/common/EmptyState";
@@ -35,7 +35,7 @@ import type {
 import { useConfiguracoes } from "@/features/configuracoes";
 
 export function ProdutosPanel() {
-  const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar } = useProdutos();
+  const { produtos, hidratado, criar, atualizar, excluir, remover, filtrar, sincronizar } = useProdutos();
   const { categoriasPorEscopo } = useConfiguracoes();
   const categoriasProduto = categoriasPorEscopo("produto");
 
@@ -89,6 +89,15 @@ export function ProdutosPanel() {
     setRemovendo(null);
   }
 
+  function handleSincronizar() {
+    const novos = sincronizar();
+    if (typeof novos === "number" && novos > 0) {
+      toast.success(`${novos} novos produtos sincronizados do catálogo mestre.`);
+    } else {
+      toast.info("O catálogo já está atualizado.");
+    }
+  }
+
   const total = produtos.length;
   const listaVazia = hidratado && total === 0;
   const semResultado = hidratado && total > 0 && lista.length === 0;
@@ -135,6 +144,10 @@ export function ProdutosPanel() {
               <SelectItem value="inativo">Inativos</SelectItem>
             </SelectContent>
           </Select>
+          <Button size="sm" variant="outline" onClick={handleSincronizar} title="Sincronizar com Catálogo Mestre">
+            <RefreshCw className="h-4 w-4" />
+            Sincronizar
+          </Button>
           <Button size="sm" onClick={abrirNovo}>
             <PackagePlus className="h-4 w-4" />
             Novo produto
