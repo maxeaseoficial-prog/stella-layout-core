@@ -1000,7 +1000,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
               </Button>
             </>
-          </div>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>
