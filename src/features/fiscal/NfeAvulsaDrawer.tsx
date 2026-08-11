@@ -688,9 +688,9 @@ const [buscaCliente, setBuscaCliente] = useState("");
                     <thead className="bg-surface-muted border-b sticky top-0 z-10">
                       <tr>
                         <th className="px-3 py-2 text-left font-medium">Descrição</th>
-                        <th className="px-3 py-2 text-left font-medium w-72">Classificação Fiscal</th>
+                        <th className="px-3 py-2 text-left font-medium w-64">Classificação Fiscal</th>
                         <th className="px-3 py-2 text-left font-medium w-20 text-center">Qtd</th>
-                        <th className="px-3 py-2 text-left font-medium w-28">Unit.</th>
+                        <th className="px-3 py-2 text-left font-medium w-28">Preço (R$)</th>
                         <th className="px-3 py-2 text-left font-medium w-28">Total</th>
                         <th className="px-3 py-2 text-right font-medium w-10"></th>
                       </tr>
