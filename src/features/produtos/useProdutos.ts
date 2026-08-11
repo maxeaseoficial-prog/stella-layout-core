@@ -4,7 +4,7 @@ import { novoId } from "@/features/clientes";
 
 import type { Produto, ProdutoInput } from "./types";
 import { carregarProdutos, salvarProdutos } from "./storage";
-import { PRODUTO_SEED_CAMISETA } from "./data/produto-seed";
+import { PRODUTOS_SEED } from "./data/produto-seed-new";
 
 /**
  * Store singleton dos produtos — fonte única de verdade compartilhada por
@@ -61,14 +61,13 @@ export function useProdutos() {
   // Seed automático para demonstração/teste se a lista estiver vazia
   useEffect(() => {
     if (hidratado && produtos.length === 0) {
-      const seed: Produto = {
-        ...PRODUTO_SEED_CAMISETA,
+      const novasSementes = PRODUTOS_SEED.map(seed => ({
+        ...seed,
         id: novoId(),
         criadoEm: new Date().toISOString(),
         atualizadoEm: new Date().toISOString(),
-      };
-      // Forçar o carregamento inicial com a classificação fiscal seed
-      setProdutos([seed]);
+      }));
+      setProdutos(novasSementes);
     }
   }, [hidratado, produtos.length]);
 
