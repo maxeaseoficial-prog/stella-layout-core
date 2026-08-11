@@ -20,7 +20,7 @@ import { formatarDataBR } from "@/features/clientes";
 import { formatarMoeda } from "@/features/pedidos";
 
 import type { Produto } from "./types";
-import { LABEL_CATEGORIA_PRODUTO } from "./types";
+import { LABEL_CATEGORIA_PRODUTO, labelCategoriaProduto } from "./types";
 
 interface Props {
   produtos: Produto[];
@@ -61,13 +61,27 @@ export function ProdutosTable({ produtos, onEditar, onExcluir, onRemover }: Prop
                       {p.sku && (
                         <p className="truncate text-xs text-muted-foreground">SKU: {p.sku}</p>
                       )}
+                      {p.variacoesTamanhos && p.variacoesTamanhos.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {p.variacoesTamanhos.map((v, i) => (
+                            <span key={i} className="rounded bg-primary/10 px-1 text-[9px] font-medium text-primary">
+                              {v.tamanho}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="outline" className="border-border bg-surface-muted/60">
-                    {LABEL_CATEGORIA_PRODUTO[p.categoria]}
-                  </Badge>
+                  <div className="flex flex-col gap-0.5">
+                    <Badge variant="outline" className="border-border bg-surface-muted/60 w-fit">
+                      {labelCategoriaProduto(p.categoria)}
+                    </Badge>
+                    {p.ncm && (
+                      <span className="text-[9px] text-muted-foreground px-1">NCM: {p.ncm}</span>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="tabular-nums">{formatarMoeda(p.precoBase)}</TableCell>
                 <TableCell>
