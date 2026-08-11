@@ -982,9 +982,6 @@ const [buscaCliente, setBuscaCliente] = useState("");
       )}
     </DialogContent>
   </Dialog>
-</>
-  );
-}
 
   <PayloadPreviewDialog
     aberto={previewAberto}
@@ -1016,6 +1013,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </>
   );
 }
 
