@@ -1000,10 +1000,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
               </Button>
           </>
-        </DialogFooter>
+        )}
       </DialogContent>
-    )}
-      <PayloadPreviewDialog
         aberto={previewAberto}
         onFechar={() => setPreviewAberto(false)}
         preview={preview}
