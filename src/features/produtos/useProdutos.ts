@@ -130,8 +130,30 @@ export function useProdutos() {
 
   const ativos = useMemo(() => produtos.filter((p) => p.status === "ativo"), [produtos]);
 
+  const sincronizar = useCallback(() => {
+    if (!hidratado) return;
+    const novasSementes = PRODUTOS_SEED.map((seed) => ({
+      ...seed,
+      id: novoId(),
+      criadoEm: new Date().toISOString(),
+      atualizadoEm: new Date().toISOString(),
+    }));
+    
+    const existentes = getSnapshot();
+    const skusExistentes = new Set(existentes.map(p => p.sku));
+    
+    // Filtra para adicionar apenas o que não existe por SKU
+    const apenasNovos = novasSementes.filter(p => !skusExistentes.has(p.sku));
+    
+    if (apenasNovos.length > 0) {
+      setProdutos([...existentes, ...apenasNovos]);
+      return apenasNovos.length;
+    }
+    return 0;
+  }, [hidratado]);
+
   return useMemo(
-    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar }),
-    [produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar],
+    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar, sincronizar }),
+    [produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar, sincronizar],
   );
 }
