@@ -896,15 +896,15 @@ const [buscaCliente, setBuscaCliente] = useState("");
             <Button 
               variant="outline" 
               size="sm"
-            onClick={() => {
-              if (itens.length > 0 || destinatario) {
-                setDialogDescartarAberto(true);
-              } else {
-                onFechar();
-              }
-            }} 
-            disabled={emitindo}
-          >
+              onClick={() => {
+                if (itens.length > 0 || destinatario) {
+                  setDialogDescartarAberto(true);
+                } else {
+                  onFechar();
+                }
+              }} 
+              disabled={emitindo}
+            >
             Cancelar
           </Button>
           <div className="flex-1" />
