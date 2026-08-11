@@ -570,7 +570,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                   setAvulsaId(null);
                   setNotaSucesso(null);
                   onFechar();
-                  setEtapa(1);
+                  // setEtapa(1); // Removido
                   setDestinatario(null);
                   setItens([]);
                 }}
@@ -581,15 +581,14 @@ const [buscaCliente, setBuscaCliente] = useState("");
           </div>
         ) : (
           <>
-            <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            Emitir NF-e Avulsa - Passo {etapa} de 4
-          </DialogTitle>
-        </DialogHeader>
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Emitir NF-e Avulsa
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {etapa === 1 && (
+          <div className="flex-1 overflow-y-auto p-6 space-y-8">
             <div className="space-y-4">
               <div className="flex flex-col gap-2">
                 <Label>Pesquisar Cliente</Label>
@@ -630,7 +629,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
           )}
 
-          {etapa === 2 && (
+          // {etapa === 2 && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold">Itens da Nota Fiscal</h3>
@@ -736,7 +735,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
           )}
 
-          {etapa === 3 && (
+          // {etapa === 3 && (
             <div className="grid gap-8 md:grid-cols-2">
               <div className="space-y-6">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -816,7 +815,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
           )}
 
-          {etapa === 4 && (
+          // {etapa === 4 && (
             <div className="space-y-6">
               <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex gap-3 text-amber-800">
                 <AlertCircle className="h-5 w-5 shrink-0" />
@@ -834,7 +833,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                       variant="ghost" 
                       size="sm" 
                       className="h-6 text-[10px] text-primary"
-                      onClick={() => setEtapa(1)}
+                      // onClick={() => setEtapa(1)}
                     >
                       Corrigir dados
                     </Button>
@@ -860,7 +859,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                       variant="ghost" 
                       size="sm" 
                       className="h-6 text-[10px] text-primary"
-                      onClick={() => setEtapa(2)}
+                      // onClick={() => setEtapa(2)}
                     >
                       Corrigir itens
                     </Button>
@@ -948,19 +947,20 @@ const [buscaCliente, setBuscaCliente] = useState("");
             Cancelar
           </Button>
           <div className="flex-1" />
-          {etapa > 1 && (
+          {/* Removido o controle de etapas */}
+          {/* {etapa > 1 && (
             <Button variant="ghost" onClick={() => setEtapa(e => e - 1)} disabled={emitindo}>
               Voltar
             </Button>
-          )}
-          {etapa < 4 ? (
+          )} */}
+          {/* {etapa < 4 ? (
             <Button 
               onClick={() => setEtapa(e => e + 1)} 
               disabled={etapa === 1 ? !destinatario : itens.length === 0}
             >
               Próximo
             </Button>
-          ) : (
+          ) : ( */}
             <>
               <Button
                 variant="outline"
@@ -981,7 +981,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </>
           )}
         </DialogFooter>
-          </>
+            </>
         )}
       </DialogContent>
       <PayloadPreviewDialog
