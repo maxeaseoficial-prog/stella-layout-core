@@ -230,8 +230,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
 
   const removerItem = (id: string) => setItens(itens.filter(it => it.id !== id));
 
-  const atualizarItem = (id: string, campo: string, valor: any) => {
-    setItens(itens.map(it => it.id === id ? { ...it, [campo]: valor } : it));
+  const atualizarItem = (id: string, patch: any) => {
+    setItens(prev => prev.map(it => it.id === id ? { ...it, ...patch } : it));
   };
 
   const validarDestinatario = () => {
@@ -411,6 +411,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
   };
 
   return (
+    <>
     <Dialog open={aberto} onOpenChange={() => {
       if (itens.length > 0 || destinatario) {
         setDialogDescartarAberto(true);
@@ -703,7 +704,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                         <td className="px-4 py-3">
                           <Input 
                             value={it.descricao} 
-                            onChange={(e) => atualizarItem(it.id, 'descricao', e.target.value)}
+                            onChange={(e) => atualizarItem(it.id, { descricao: e.target.value })}
                             className="h-8 text-xs"
                           />
                         </td>
@@ -712,9 +713,11 @@ const [buscaCliente, setBuscaCliente] = useState("");
                             value={it.categoriaFiscalId}
                             selectedObject={it.categoriaFiscal}
                             onChange={(cat) => {
-                              atualizarItem(it.id, 'categoriaFiscalId', cat?.id || "");
-                              atualizarItem(it.id, 'ncm', cat?.ncm || "");
-                              atualizarItem(it.id, 'categoriaFiscal', cat);
+                              atualizarItem(it.id, {
+                                categoriaFiscalId: cat?.id || "",
+                                ncm: cat?.ncm || "",
+                                categoriaFiscal: cat
+                              });
                             }}
                           />
                         </td>
@@ -722,7 +725,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                           <Input 
                             type="number"
                             value={it.quantidade} 
-                            onChange={(e) => atualizarItem(it.id, 'quantidade', Number(e.target.value))}
+                            onChange={(e) => atualizarItem(it.id, { quantidade: Number(e.target.value) })}
                             className="h-8 text-xs"
                           />
                         </td>
@@ -730,7 +733,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                           <Input 
                             type="number"
                             value={it.valorUnitario} 
-                            onChange={(e) => atualizarItem(it.id, 'valorUnitario', Number(e.target.value))}
+                            onChange={(e) => atualizarItem(it.id, { valorUnitario: Number(e.target.value) })}
                             className="h-8 text-xs"
                           />
                         </td>
@@ -837,43 +840,35 @@ const [buscaCliente, setBuscaCliente] = useState("");
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
+                {/* Destinatário */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Destinatário</h4>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 text-[10px] text-primary"
-                      // onClick={() => setEtapa(1)}
-                    >
-                      Corrigir dados
-                    </Button>
                   </div>
-                  <div className="border rounded-xl p-4 bg-surface space-y-2">
-                    <p className="font-semibold text-sm">{getClienteNome(destinatario)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {destinatario.logradouro || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}
-                    </p>
-                  </div>
+                  {destinatario ? (
+                    <div className="border rounded-xl p-4 bg-surface space-y-2">
+                      <p className="font-semibold text-sm">{getClienteNome(destinatario)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Documento: {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "") || "Não informado"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {destinatario.logradouro || "Sem logradouro"}, {destinatario.numero || "S/N"} - {destinatario.bairro || "Sem bairro"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {destinatario.cidade || "Sem cidade"}/{destinatario.estado || "—"} - {destinatario.cep || "Sem CEP"}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="border border-dashed rounded-xl p-8 text-center text-muted-foreground text-xs bg-surface-muted/20">
+                      Nenhum destinatário selecionado
+                    </div>
+                  )}
                 </div>
 
+                {/* Resumo Fiscal */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resumo Fiscal</h4>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-6 text-[10px] text-primary"
-                      // onClick={() => setEtapa(2)}
-                    >
-                      Corrigir itens
-                    </Button>
                   </div>
                   <div className="border rounded-xl p-4 bg-surface space-y-2">
                     <div className="flex justify-between text-xs">
@@ -888,7 +883,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
                       <div className="pt-2 space-y-2 border-t mt-1">
                         {itens.map((it, idx) => {
                           const ncmItem = (it.ncm || config.tributacao.ncm || "").replace(/\D/g, "");
-                          const cfop = (destinatario.estado === config.empresa.estado) 
+                          const cfop = (destinatario?.estado === config.empresa.estado) 
                             ? config.tributacao.cfopInterno 
                             : config.tributacao.cfopInterestadual;
                           const isSimples = config.tributacao.regime === "simplesNacional";
@@ -900,12 +895,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
                                 <span>NCM: {ncmItem || <span className="text-red-500">Pendente</span>}</span>
                                 <span>CFOP: {cfop}</span>
                                 <span>{isSimples ? "CSOSN" : "CST"}: {isSimples ? config.tributacao.csosn : config.tributacao.icmsCst}</span>
-                                {it.descricaoFiscal && <span className="col-span-2 italic truncate">{it.descricaoFiscal}</span>}
                               </div>
                             </div>
                           );
                         })}
-
                       </div>
                     </details>
                     <div className="flex justify-between text-xs">
@@ -919,11 +912,12 @@ const [buscaCliente, setBuscaCliente] = useState("");
                     <div className="flex justify-between text-xs pt-2 border-t font-bold">
                       <span>Valor Final</span>
                       <span className="text-primary">{formatarMoeda(total)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
+              {/* Itens da NF-e (Tabela Resumo) */}
               <div className="space-y-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Itens da NF-e</h4>
                 <div className="border rounded-xl overflow-hidden text-xs">
@@ -950,8 +944,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
 
         <DialogFooter className="p-6 border-t bg-surface-muted/30">
           <Button 
@@ -968,48 +962,31 @@ const [buscaCliente, setBuscaCliente] = useState("");
             Cancelar
           </Button>
           <div className="flex-1" />
-          {/* Removido o controle de etapas */}
-          {/* {etapa > 1 && (
-            <Button variant="ghost" onClick={() => setEtapa(e => e - 1)} disabled={emitindo}>
-              Voltar
-            </Button>
-          )} */}
-          {/* {etapa < 4 ? (
-            <Button 
-              onClick={() => setEtapa(e => e + 1)} 
-              disabled={etapa === 1 ? !destinatario : itens.length === 0}
-            >
-              Próximo
-            </Button>
-          ) : ( */}
-            <>
-              <Button
-                variant="outline"
-                onClick={handlePreview}
-                disabled={emitindo || previewCarregando}
-                className="gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                {previewCarregando ? "Montando..." : "Pré-visualizar"}
-              </Button>
-              <Button 
-                onClick={handleEmitir} 
-                disabled={emitindo}
-                className="bg-primary hover:bg-primary/90 min-w-[140px]"
-              >
-                {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-              </Button>
-            </>
-          </DialogFooter>
-        </>
-      )}
-    </DialogContent>
-  </Dialog>
-  <PayloadPreviewDialog
-    aberto={previewAberto}
-    onFechar={() => setPreviewAberto(false)}
-    preview={preview}
-  />
+          <Button
+            variant="outline"
+            onClick={handlePreview}
+            disabled={emitindo || previewCarregando}
+            className="gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            {previewCarregando ? "Montando..." : "Pré-visualizar"}
+          </Button>
+          <Button 
+            onClick={handleEmitir} 
+            disabled={emitindo}
+            className="bg-primary hover:bg-primary/90 min-w-[140px]"
+          >
+            {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <PayloadPreviewDialog
+      aberto={previewAberto}
+      onFechar={() => setPreviewAberto(false)}
+      preview={preview}
+    />
 
     <AlertDialog open={dialogDescartarAberto} onOpenChange={setDialogDescartarAberto}>
       <AlertDialogContent>
@@ -1035,7 +1012,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-
+    </>
   );
 }
 
