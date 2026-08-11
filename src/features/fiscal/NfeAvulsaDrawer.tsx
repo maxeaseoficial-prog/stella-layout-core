@@ -932,9 +932,9 @@ const [buscaCliente, setBuscaCliente] = useState("");
                     </tbody>
                   </table>
                 </div>
+              </div>
             </div>
           </div>
-        </div>
 
         <DialogFooter className="p-6 border-t bg-surface-muted/30">
           <Button variant="outline" onClick={onFechar} disabled={emitindo}>
@@ -975,9 +975,9 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </>
           {/* )} */}
         </DialogFooter>
-      </>
-    )}
-  </DialogContent>
+          </>
+        )}
+      </DialogContent>
       <PayloadPreviewDialog
         aberto={previewAberto}
         onFechar={() => setPreviewAberto(false)}
