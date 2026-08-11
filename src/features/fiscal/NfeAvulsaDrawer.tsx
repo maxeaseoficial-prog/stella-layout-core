@@ -598,8 +598,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
           </div>
         ) : (
           <>
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="flex items-center gap-2">
+          <DialogHeader className="p-4 h-[60px] border-b flex flex-row items-center justify-between shrink-0">
+            <DialogTitle className="flex items-center gap-2 text-base">
               <FileText className="h-5 w-5 text-primary" />
               Emitir NF-e Avulsa
             </DialogTitle>
@@ -607,42 +607,45 @@ const [buscaCliente, setBuscaCliente] = useState("");
 
           <div className="flex-1 overflow-y-auto p-6 space-y-8">
             <div className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <Label>Pesquisar Cliente</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    placeholder="Nome, CPF ou CNPJ..." 
-                    className="pl-9"
-                    value={buscaCliente}
-                    onChange={(e) => setBuscaCliente(e.target.value)}
-                  />
+              {destinatario ? (
+                <div className="border rounded-xl p-4 bg-surface flex items-center justify-between shadow-sm">
+                  <div className="space-y-1">
+                    <p className="font-bold text-sm">{getClienteNome(destinatario)}</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {((destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "").replace(/\D/g, "")}
+                      {" • "}
+                      {destinatario.cidade}/{destinatario.estado}
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setDestinatario(null)}>Trocar cliente</Button>
                 </div>
-              </div>
-
-              <div className="grid gap-2 max-h-[400px] overflow-y-auto pr-2 scrollbar-thin">
-                {clientesFiltrados.map(c => (
-                  <button 
-                    key={c.id} 
-                    className={cn(
-                      "flex items-center gap-3 p-4 border rounded-xl hover:bg-surface-muted transition-all text-left group",
-                      destinatario?.id === c.id ? "border-primary bg-primary-soft/30" : "border-border"
-                    )}
-                    onClick={() => setDestinatario(c)}
-                  >
-                    <div className="h-10 w-10 rounded-full bg-surface flex items-center justify-center border border-border group-hover:border-primary/30">
-                      <Building className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold truncate">{getClienteNome(c)}</div>
-                      <div className="text-xs text-muted-foreground truncate">
-                        {c.tipo === 'empresa' ? `CNPJ: ${c.cnpj}` : `CPF: ${c.cpf}`} • {c.cidade}/{c.estado}
-                      </div>
-                    </div>
-                    {destinatario?.id === c.id && <Check className="h-5 w-5 text-primary shrink-0" />}
-                  </button>
-                ))}
-              </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Buscar Destinatário</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-muted-foreground font-normal">
+                        <Search className="mr-2 h-4 w-4" /> Buscar cliente por nome, CPF ou CNPJ...
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0 w-[400px]" align="start">
+                      <Command>
+                        <CommandInput placeholder="Digite para buscar..." value={buscaCliente} onValueChange={setBuscaCliente} />
+                        <CommandList>
+                          <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                          <CommandGroup>
+                            {clientesFiltrados.map(c => (
+                              <CommandItem key={c.id} onSelect={() => { setDestinatario(c); setBuscaCliente(""); }}>
+                                {getClienteNome(c)} ({c.tipo === 'empresa' ? c.cnpj : c.cpf})
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
           </div>
 
