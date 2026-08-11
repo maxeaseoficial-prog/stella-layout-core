@@ -19,6 +19,7 @@ export function CategoriasFiscaisManager() {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [importando, setImportando] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [modalAberto, setModalAberto] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,6 +44,7 @@ export function CategoriasFiscaisManager() {
   const searchNcmAction = useServerFn(searchNCM);
   const importAction = useServerFn(importarPlanilhaNCM);
   const deleteAction = useServerFn(excluirCategoriaFiscal);
+  const seedAction = useServerFn(seedCategoriasFiscais);
 
   const carregar = async () => {
     try {
@@ -52,6 +54,26 @@ export function CategoriasFiscaisManager() {
       toast.error("Erro ao carregar categorias.");
     } finally {
       setCarregando(false);
+    }
+  };
+
+  const handleSeed = async () => {
+    setSeeding(true);
+    const toastId = toast.loading("Sincronizando catálogo mestre...");
+    try {
+      const res = await seedAction();
+      if (res.success) {
+        const r = res.relatorio;
+        toast.success(
+          `Catálogo Sincronizado: ${r.processados}/${r.esperados} records. Inseridos: ${r.inseridos}, Atualizados: ${r.atualizados}.`,
+          { id: toastId, duration: 6000 }
+        );
+        carregar();
+      }
+    } catch (error: any) {
+      toast.error("Erro ao sincronizar catálogo: " + error.message, { id: toastId });
+    } finally {
+      setSeeding(false);
     }
   };
 
