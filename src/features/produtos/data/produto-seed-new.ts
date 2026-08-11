@@ -10,6 +10,7 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoriaFiscalId: "023",
     ncm: "6109.10.00",
     descricaoFiscal: "Camiseta diversa estampada de algodão",
+    personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 25.50, precoCreditoAVista: 26.90, precoCreditoParcelado: 29.50 },
       { tamanho: "04", precoAVista: 28.50, precoCreditoAVista: 29.90, precoCreditoParcelado: 31.50 },
@@ -35,6 +36,7 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoriaFiscalId: "023",
     ncm: "6109.10.00",
     descricaoFiscal: "Camiseta diversa estampada de algodão",
+    personalizacoes: { bordado: true, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 28.00, precoCreditoAVista: 29.50, precoCreditoParcelado: 30.50 },
       { tamanho: "04", precoAVista: 30.00, precoCreditoAVista: 31.50, precoCreditoParcelado: 33.50 },
@@ -60,6 +62,7 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoriaFiscalId: "023",
     ncm: "6109.10.00",
     descricaoFiscal: "Camiseta diversa estampada de algodão",
+    personalizacoes: { bordado: true, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 31.50, precoCreditoAVista: 32.90, precoCreditoParcelado: 34.50 },
       { tamanho: "04", precoAVista: 33.50, precoCreditoAVista: 34.90, precoCreditoParcelado: 37.50 },
@@ -85,6 +88,7 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoriaFiscalId: "023",
     ncm: "6109.10.00",
     descricaoFiscal: "Camiseta diversa estampada de algodão",
+    personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 64.50, precoCreditoAVista: 67.30, precoCreditoParcelado: 71.50 },
       { tamanho: "04", precoAVista: 68.50, precoCreditoAVista: 71.50, precoCreditoParcelado: 75.50 },
@@ -110,6 +114,7 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoriaFiscalId: "023",
     ncm: "6109.10.00",
     descricaoFiscal: "Camiseta diversa estampada de algodão",
+    personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 28.50, precoCreditoAVista: 29.50, precoCreditoParcelado: 31.50 },
       { tamanho: "04", precoAVista: 32.50, precoCreditoAVista: 34.50, precoCreditoParcelado: 35.50 },
@@ -127,3 +132,4 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     ]
   }
 ];
+
