@@ -186,6 +186,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
   const adicionarItem = async (p?: any) => {
     let catFiscal = (p as any)?.categoriaFiscal || null;
     let ncm = p?.ncm || "";
+    let categoriaFiscalId = p?.categoriaFiscalId || "";
     
     // Se for um produto cadastrado com ID mas sem o objeto completo, tentar buscar
     if (p?.categoriaFiscalId && !catFiscal) {
@@ -194,6 +195,7 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
         if (cat) {
           catFiscal = cat;
           ncm = cat.ncm;
+          categoriaFiscalId = cat.id;
         }
       } catch (err) {
         console.error("[NfeAvulsaDrawer] Erro ao buscar categoria fiscal do produto:", err);
@@ -208,11 +210,11 @@ export function NfeAvulsaDrawer({ aberto, onFechar }: Props) {
       unidade: p?.unidade || "UN",
       valorUnitario: p?.precoBase || 0,
       ncm: ncm,
-      categoriaFiscalId: p?.categoriaFiscalId || "",
+      categoriaFiscalId: categoriaFiscalId,
       descricaoFiscal: (p as any)?.descricaoFiscal || "",
       categoriaFiscal: catFiscal,
     };
-    setItens([...itens, novo]);
+    setItens(prev => [...prev, novo]);
   };
 
   const removerItem = (id: string) => setItens(itens.filter(it => it.id !== id));
