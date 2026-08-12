@@ -90,11 +90,16 @@ export function UsuariosManager() {
     setAtivoSenha(u);
     setSenhaOpen(true);
   }
-  function alternar(u: Usuario) {
+  async function alternar(u: Usuario) {
     const novo = u.status === "ativo" ? "inativo" : "ativo";
-    alternarStatus(u.id, novo, responsavel);
-    toast.success(`Usuário ${novo === "ativo" ? "ativado" : "desativado"}.`);
+    const res = await alternarStatus(u.id, novo, responsavel);
+    if (res.ok) {
+      toast.success(`Usuário ${novo === "ativo" ? "ativado" : "desativado"}.`);
+    } else {
+      toast.error(res.erro || "Erro ao atualizar status.");
+    }
   }
+
   function confirmarExclusao() {
     if (!excluir) return;
     const res = excluirUsuario(excluir.id, responsavel);

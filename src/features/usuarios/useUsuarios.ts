@@ -236,7 +236,15 @@ export async function atualizarUsuario(
   return { ok: true };
 }
 
-export function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string) {
+export async function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string): Promise<{ ok: boolean; erro?: string }> {
+  const isRealUser = id.length > 20 || id.includes("-");
+  
+  if (isRealUser) {
+    const { alternarStatusSistema } = await import("@/lib/usuarios.functions");
+    const result = await alternarStatusSistema({ data: { userId: id, status } });
+    if (!result.ok) return { ok: false, erro: result.erro };
+  }
+
   const lista = garantirSeed();
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
@@ -247,7 +255,9 @@ export function alternarStatus(id: string, status: "ativo" | "inativo", responsa
     });
   });
   commit(nova);
+  return { ok: true };
 }
+
 
 /** Redefinição administrativa da senha (local e Supabase). */
 export async function redefinirSenha(
