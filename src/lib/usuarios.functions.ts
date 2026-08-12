@@ -155,6 +155,8 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
       permissoes: z.array(z.string()),
       status: z.enum(["ativo", "inativo"]),
       novaSenha: z.string().min(6).optional(),
+      emailOriginal: z.string().optional(),
+      usuarioOriginal: z.string().optional(),
     }).parse(d)
   )
   .handler(async ({ data }) => {
@@ -167,23 +169,27 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
       usuario: data.usuario,
       papel: data.papel,
       status: data.status,
-      novaSenha: data.novaSenha
+      novaSenha: data.novaSenha,
+      emailOriginal: data.emailOriginal,
+      usuarioOriginal: data.usuarioOriginal
     });
     
     if (!auth.ok) return auth;
     
+    const realUserId = (auth as any).userId;
+
     // Atualizar vínculo
     const vinculo = await vincularUsuarioEmpresa({
-      userId: data.userId,
+      userId: realUserId,
       papel: data.papel,
       permissoes: data.permissoes
     });
     
     if (!vinculo.ok) return vinculo;
-
     
-    return { ok: true };
+    return { ok: true, userId: realUserId };
   });
+
 
 export const alternarStatusSistema = createServerFn({ method: "POST" })
   .inputValidator((d) => 
@@ -194,14 +200,17 @@ export const alternarStatusSistema = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { atualizarAuthEMetadata } = await import("./usuarios.server");
-    const { data: user } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    const { atualizarAuthEMetadata, resolverAuthUser } = await import("./usuarios.server");
+    
+    const realId = await resolverAuthUser(data.userId);
+    if (!realId) return { ok: false, erro: "Usuário não localizado no Auth." };
 
-
+    const { data: user } = await supabaseAdmin.auth.admin.getUserById(realId);
     if (!user.user) return { ok: false, erro: "Usuário não encontrado." };
 
-    return await atualizarAuthEMetadata(data.userId, {
+    return await atualizarAuthEMetadata(realId, {
       ...user.user.user_metadata,
       status: data.status
     });
   });
+

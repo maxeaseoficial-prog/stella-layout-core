@@ -195,7 +195,7 @@ export async function atualizarUsuario(
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
   
-  let syncResult;
+  let syncResult: { ok: boolean; erro?: string; userId?: string };
   try {
     const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
     syncResult = await atualizarUsuarioSistema({
@@ -208,9 +208,12 @@ export async function atualizarUsuario(
         permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? (ROTAS_PERMITIDAS[patch.papel ?? alvo.papel] || []),
         status: patch.status ?? alvo.status,
         novaSenha: (patch as any).novaSenha,
+        emailOriginal: alvo.email,
+        usuarioOriginal: alvo.usuario,
       }
     });
   } catch (err: any) {
+
     console.error("Erro ao chamar atualizarUsuarioSistema:", err);
     return { ok: false, erro: "Falha na comunicação com o servidor: " + err.message };
   }
@@ -236,32 +239,41 @@ export async function atualizarUsuario(
     patch.email = patch.email.trim();
   }
 
+  const realUserId = syncResult.userId || id;
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
     const { novaSenha: _ns, ...patchSemSenha } = patch as any;
-    const atualizado: Usuario = { ...u, ...patchSemSenha, atualizadoEm: nowIso() };
+    const atualizado: Usuario = { ...u, ...patchSemSenha, id: realUserId, atualizadoEm: nowIso() };
     return addHistorico(atualizado, { acao: "editado", responsavel });
   });
+
 
   commit(nova);
   return { ok: true };
 }
 
 export async function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string): Promise<{ ok: boolean; erro?: string }> {
-  // Tentar sempre no servidor primeiro se for UUID
-  const isUUID = id.includes("-") || id.length > 20;
-  
-  if (isUUID) {
+  // Sempre tentar resolver e alternar no servidor
+  let syncResult: { ok: boolean; erro?: string; userId?: string };
+  try {
     const { alternarStatusSistema } = await import("@/lib/usuarios.functions");
-    const result = await alternarStatusSistema({ data: { userId: id, status } });
-    if (!result.ok) return { ok: false, erro: result.erro };
+    syncResult = await alternarStatusSistema({ data: { userId: id, status } });
+    if (!syncResult.ok) return { ok: false, erro: syncResult.erro };
+
+  } catch (err: any) {
+    console.error("Erro ao alternar status no servidor:", err);
+    return { ok: false, erro: "Erro ao sincronizar status: " + err.message };
   }
+
+  const realUserId = (syncResult as any).userId || id;
+
 
 
   const lista = garantirSeed();
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
-    const atualizado: Usuario = { ...u, status, atualizadoEm: nowIso() };
+    const atualizado: Usuario = { ...u, id: realUserId, status, atualizadoEm: nowIso() };
+
     return addHistorico(atualizado, {
       acao: status === "ativo" ? "ativado" : "desativado",
       responsavel,
