@@ -826,50 +826,54 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border rounded-xl p-4 bg-surface space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-3.5 w-3.5" /> Resumo Fiscal
+              <div className="border rounded-xl p-4 bg-surface space-y-3 shadow-sm border-primary/20">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                  <Building className="h-3.5 w-3.5" /> Dados Fiscais do Destinatário
                 </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Ambiente:</span>
-                    <span className="font-semibold text-primary uppercase">{config.ambienteFiscal}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Itens fiscalmente válidos:</span>
-                    <span>{itens.filter(it => it.categoriaFiscalId && it.ncm.length === 8).length} de {itens.length}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Natureza:</span>
-                    <span>Venda</span>
-                  </div>
-                  <details className="group">
-                    <summary className="flex justify-between text-[11px] cursor-pointer hover:text-primary transition-colors py-1 list-none">
-                      <span className="text-primary font-medium">Ver detalhes fiscais</span>
-                      <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
-                    </summary>
-                    <div className="pt-2 space-y-2 border-t mt-1 max-h-[120px] overflow-y-auto">
-                      {itens.map((it, idx) => {
-                        const ncmItem = (it.ncm || "").replace(/\D/g, "");
-                        const cfop = (destinatario?.estado === config.empresa.estado) 
-                          ? config.tributacao.cfopInterno 
-                          : config.tributacao.cfopInterestadual;
-                        const isSimples = config.tributacao.regime === "simplesNacional";
 
-                        return (
-                          <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
-                            <p className="font-medium truncate">{it.descricao}</p>
-                            <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
-                              <span>NCM: {ncmItem || <span className="text-red-500">Pendente</span>}</span>
-                              <span>CFOP: {cfop}</span>
-                              <span>{isSimples ? "CSOSN" : "CST"}: {isSimples ? config.tributacao.csosn : config.tributacao.icmsCst}</span>
-                            </div>
+                <div className="space-y-2">
+                  {destinatario ? (
+                    <>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Razão Social/Nome:</span>
+                        <span className="font-semibold truncate max-w-[200px]">{getClienteNome(destinatario)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">CNPJ/CPF:</span>
+                        <span className="font-mono">{(destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf)?.replace(/\D/g, "")}</span>
+                      </div>
+                      {destinatario.tipo === 'empresa' && (
+                        <>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Indicador IE:</span>
+                            <Badge variant="outline" className="text-[10px] h-4 py-0 uppercase">
+                              {(destinatario.indicadorIe || (destinatario.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")).replace("_", " ")}
+                            </Badge>
                           </div>
-                        );
-                      })}
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Inscrição Estadual:</span>
+                            <span className={cn("font-mono", !destinatario.inscricaoEstadual && destinatario.indicadorIe === "contribuinte" && "text-destructive font-bold")}>
+                              {destinatario.inscricaoEstadual || (destinatario.indicadorIe === "contribuinte" ? "AUSENTE" : "NÃO INF.")}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">UF:</span>
+                        <span>{destinatario.estado || "Não informada"}</span>
+                      </div>
+                      <div className="pt-2 border-t mt-1 flex justify-between text-xs">
+                        <span className="text-muted-foreground">Ambiente:</span>
+                        <span className="font-bold text-primary uppercase">{config.ambienteFiscal}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-xs text-muted-foreground italic">
+                      Selecione um destinatário para ver os dados fiscais.
                     </div>
-                  </details>
+                  )}
                 </div>
+
               </div>
 
               <div className="border rounded-xl p-4 bg-surface-muted/30 space-y-2">
