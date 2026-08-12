@@ -357,7 +357,25 @@ export function ClienteFormDrawer({
                     <Campo label="CNPJ" obrigatorio erro={erros.cnpj}>
                       <Input
                         value={form.cnpj}
-                        onChange={(e) => up("cnpj", formatarCNPJ(e.target.value))}
+                        onChange={async (e) => {
+                          const v = formatarCNPJ(e.target.value);
+                          up("cnpj", v);
+                          if (v.replace(/\D/g, "").length === 14) {
+                            try {
+                              const res = await fetch(`https://publica.cnpj.ws/cnpj/${v.replace(/\D/g, "")}`);
+                              const data = await res.json();
+                              if (data && data.estabelecimento && data.estabelecimento.inscricoes_estaduais) {
+                                const ie = data.estabelecimento.inscricoes_estaduais[0]?.inscricao_estadual;
+                                if (ie) {
+                                  up("inscricaoEstadual", ie);
+                                  toast.success("Inscrição Estadual localizada automaticamente.");
+                                }
+                              }
+                            } catch (err) {
+                              console.error("Erro ao buscar IE via CNPJ:", err);
+                            }
+                          }
+                        }}
                         placeholder="00.000.000/0000-00"
                         inputMode="numeric"
                       />
@@ -365,7 +383,7 @@ export function ClienteFormDrawer({
                     <Campo label="Inscrição estadual">
                       <Input
                         value={form.inscricaoEstadual}
-                        onChange={(e) => up("inscricaoEstadual", e.target.value)}
+                        onChange={(e) => up("inscricaoEstadual", e.target.value.replace(/\D/g, ""))}
                         placeholder="Opcional"
                       />
                     </Campo>

@@ -285,6 +285,7 @@ const [buscaCliente, setBuscaCliente] = useState("");
       complemento: destinatario.complemento || undefined,
       cidade: destinatario.cidade || undefined,
       estado: destinatario.estado || undefined,
+      inscricaoEstadual: (destinatario.tipo === 'empresa' ? destinatario.inscricaoEstadual : undefined) || "ISENTO",
     },
     itens: itens.map((it: any) => ({
       id: it.id,

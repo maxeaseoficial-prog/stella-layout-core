@@ -522,7 +522,13 @@ export function montarPayloadNfe(
     name: cliente ? getClienteNome(cliente) : "Consumidor Final",
   };
   const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : cliente?.cpf);
-  if (doc) receiver.federalTaxNumber = doc;
+  if (doc) {
+    receiver.federalTaxNumber = doc;
+    // Adiciona Inscrição Estadual (SEFAZ exige para PJ, "ISENTO" se não tiver)
+    if (cliente?.tipo === "empresa") {
+      receiver.stateTaxNumber = apenasDigitos(cliente.inscricaoEstadual) || "ISENTO";
+    }
+  }
   if (cliente?.cidade && cliente?.estado) {
     receiver.address = {
       street: cliente.logradouro || "",
@@ -605,6 +611,9 @@ export function montarPayloadNfeAvulsa(
     receiver: {
       name: avulsa.destinatario.nome,
       federalTaxNumber: apenasDigitos(avulsa.destinatario.documento),
+      stateTaxNumber: (avulsa.destinatario.documento.replace(/\D/g, "").length === 14) 
+        ? (apenasDigitos(avulsa.destinatario.inscricaoEstadual) || "ISENTO")
+        : undefined,
       email: avulsa.destinatario.email,
       address: {
         street: avulsa.destinatario.logradouro || "",
