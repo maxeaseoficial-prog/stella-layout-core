@@ -93,7 +93,19 @@ export interface Capacidades {
   };
 }
 
-export function capacidadesDe(papel: Papel): Capacidades {
+export function capacidadesDe(papel: Papel | null): Capacidades {
+  if (!papel) {
+    return {
+      visualizarDashboard: false,
+      gerenciarEstoque: false,
+      gerenciarFinanceiro: false,
+      gerenciarPedidos: false,
+      gerenciarClientes: false,
+      emitirNotasFiscais: false,
+      gerenciarConfiguracoes: false,
+    };
+  }
+
   if (papel === "administrador") {
     return {
       pedidos: {
