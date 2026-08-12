@@ -27,7 +27,9 @@ import type {
   ClienteInput,
   StatusCliente,
   TipoCliente,
+  IndicadorIe,
 } from "./types";
+
 import { ClienteAvatar } from "./ClienteAvatar";
 import { ClienteFilesUploader } from "./ClienteFilesUploader";
 import {
@@ -54,7 +56,9 @@ interface FormState {
   nomeEmpresa: string;
   responsavel: string;
   cnpj: string;
+  indicadorIe: IndicadorIe;
   inscricaoEstadual: string;
+
   // Comuns opcionais
   telefone: string;
   email: string;
@@ -81,7 +85,9 @@ function estadoInicial(cliente?: Cliente | null): FormState {
       nomeEmpresa: "",
       responsavel: "",
       cnpj: "",
+      indicadorIe: "contribuinte",
       inscricaoEstadual: "",
+
       telefone: "",
       email: "",
       cep: "",
@@ -105,8 +111,10 @@ function estadoInicial(cliente?: Cliente | null): FormState {
     nomeEmpresa: cliente.tipo === "empresa" ? cliente.nomeEmpresa : "",
     responsavel: cliente.tipo === "empresa" ? cliente.responsavel : "",
     cnpj: cliente.tipo === "empresa" ? cliente.cnpj ?? "" : "",
+    indicadorIe: cliente.tipo === "empresa" ? (cliente.indicadorIe ?? (cliente.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")) : "contribuinte",
     inscricaoEstadual:
       cliente.tipo === "empresa" ? cliente.inscricaoEstadual ?? "" : "",
+
     telefone: cliente.telefone,
     email: cliente.email ?? "",
     cep: cliente.cep ?? "",
@@ -159,6 +167,10 @@ export function ClienteFormDrawer({
       if (!form.nomeEmpresa.trim()) e.nomeEmpresa = "Informe o nome da empresa.";
       if (!form.responsavel.trim()) e.responsavel = "Informe o nome do responsável.";
       if (!form.cnpj.trim()) e.cnpj = "Informe o CNPJ.";
+      if (form.indicadorIe === "contribuinte" && !form.inscricaoEstadual.trim()) {
+        e.inscricaoEstadual = "Inscrição Estadual é obrigatória para contribuintes.";
+      }
+
     }
     if (!form.telefone.trim()) e.telefone = "Informe o telefone / WhatsApp.";
     if (!form.dataCadastro) e.dataCadastro = "Informe a data de cadastro.";
@@ -211,7 +223,9 @@ export function ClienteFormDrawer({
             nomeEmpresa: form.nomeEmpresa.trim(),
             responsavel: form.responsavel.trim(),
             cnpj: form.cnpj.trim() || undefined,
+            indicadorIe: form.indicadorIe,
             inscricaoEstadual: form.inscricaoEstadual.trim() || undefined,
+
             ...base,
           } as ClienteInput);
     onSalvar(dados, cliente?.id);
@@ -364,13 +378,27 @@ export function ClienteFormDrawer({
                             try {
                               const res = await fetch(`https://publica.cnpj.ws/cnpj/${v.replace(/\D/g, "")}`);
                               const data = await res.json();
-                              if (data && data.estabelecimento && data.estabelecimento.inscricoes_estaduais) {
-                                const ie = data.estabelecimento.inscricoes_estaduais[0]?.inscricao_estadual;
-                                if (ie) {
-                                  up("inscricaoEstadual", ie);
-                                  toast.success("Inscrição Estadual localizada automaticamente.");
+                              
+                              // IE lookup
+                              if (data?.estabelecimento?.inscricoes_estaduais) {
+                                const ies = data.estabelecimento.inscricoes_estaduais.filter((i: any) => i.ativo === true || i.situacao_cadastral === "HABILITADO");
+                                
+                                // Se houver IE para a UF já preenchida
+                                const ieUf = ies.find((i: any) => i.estado === form.estado);
+                                if (ieUf) {
+                                  up("inscricaoEstadual", ieUf.inscricao_estadual);
+                                  up("indicadorIe", "contribuinte");
+                                  toast.success(`Inscrição Estadual (${ieUf.estado}) localizada.`);
+                                } else if (ies.length === 1) {
+                                  up("inscricaoEstadual", ies[0].inscricao_estadual);
+                                  up("indicadorIe", "contribuinte");
+                                  if (!form.estado) up("estado", ies[0].estado);
+                                  toast.success(`Inscrição Estadual (${ies[0].estado}) localizada.`);
+                                } else if (ies.length > 1) {
+                                  toast.info(`${ies.length} inscrições estaduais encontradas. Por favor, valide a correta para a UF.`);
                                 }
                               }
+
                             } catch (err) {
                               console.error("Erro ao buscar IE via CNPJ:", err);
                             }

@@ -1,5 +1,7 @@
 export type TipoCliente = "pessoa_fisica" | "empresa";
 export type StatusCliente = "ativo" | "inativo";
+export type IndicadorIe = "contribuinte" | "isento" | "nao_contribuinte";
+
 
 export interface ClienteArquivo {
   id: string;
@@ -46,8 +48,10 @@ export interface ClienteEmpresa extends ClienteBase {
   nomeEmpresa: string;
   responsavel: string;
   cnpj?: string;
+  indicadorIe?: IndicadorIe;
   inscricaoEstadual?: string;
 }
+
 
 export type Cliente = ClientePessoaFisica | ClienteEmpresa;
 
@@ -79,8 +83,10 @@ export type ClienteEmpresaInput = BaseInput & {
   nomeEmpresa: string;
   responsavel: string;
   cnpj?: string;
+  indicadorIe?: IndicadorIe;
   inscricaoEstadual?: string;
 };
+
 
 export type ClienteInput = ClientePessoaFisicaInput | ClienteEmpresaInput;
 
