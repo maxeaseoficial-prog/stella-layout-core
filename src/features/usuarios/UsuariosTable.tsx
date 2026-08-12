@@ -1,4 +1,4 @@
-import { Eye, KeyRound, MoreHorizontal, Pencil, Power, Trash2 } from "lucide-react";
+import { Eye, KeyRound, MoreHorizontal, Pencil, Power, RefreshCw, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ interface Props {
   onResetSenha: (u: Usuario) => void;
   onToggleStatus: (u: Usuario) => void;
   onDelete: (u: Usuario) => void;
+  onSincronizar?: (u: Usuario) => void;
+  loadingId?: string | null;
 }
 
 function formatDate(iso?: string) {
@@ -48,6 +50,8 @@ export function UsuariosTable({
   onResetSenha,
   onToggleStatus,
   onDelete,
+  onSincronizar,
+  loadingId,
 }: Props) {
   if (usuarios.length === 0) {
     return (
@@ -120,6 +124,16 @@ export function UsuariosTable({
                     <DropdownMenuItem onClick={() => onResetSenha(u)}>
                       <KeyRound className="mr-2 h-4 w-4" /> Redefinir senha
                     </DropdownMenuItem>
+                    {onSincronizar && (
+                      <DropdownMenuItem 
+                        onClick={() => onSincronizar(u)}
+                        disabled={loadingId === u.id || (u.id.length > 20 || u.id.includes("-"))}
+                        className={u.id.length > 20 || u.id.includes("-") ? "text-emerald-600 font-medium" : "text-amber-600"}
+                      >
+                        <RefreshCw className={`mr-2 h-4 w-4 ${loadingId === u.id ? "animate-spin" : ""}`} /> 
+                        {u.id.length > 20 || u.id.includes("-") ? "Sincronizado" : "Sincronizar Acesso"}
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={() => onToggleStatus(u)}>
                       <Power className="mr-2 h-4 w-4" />
                       {u.status === "ativo" ? "Desativar" : "Ativar"}
