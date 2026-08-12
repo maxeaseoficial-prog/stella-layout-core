@@ -26,18 +26,20 @@ interface Props {
 
 export function RepararAcessoDialog({ open, onOpenChange, usuario, diagnostico, onSuccess }: Props) {
   const [loading, setLoading] = useState(false);
+  const [redefinirSenha, setRedefinirSenha] = useState(false);
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
   const { usuarios } = useUsuarios();
 
   if (!usuario) return null;
 
-  const precisaSenha = !diagnostico?.authEncontrado;
+  const authFaltando = !diagnostico?.authEncontrado;
+  const mostrarSenha = authFaltando || redefinirSenha;
 
   async function handleReparar() {
     if (!usuario) return;
-    if (precisaSenha) {
-
+    
+    if (mostrarSenha) {
       if (!senha) return toast.error("Informe a senha temporária.");
       if (senha !== confirmar) return toast.error("As senhas não coincidem.");
       if (senha.length < 6) return toast.error("A senha deve ter ao menos 6 caracteres.");
@@ -90,9 +92,9 @@ export function RepararAcessoDialog({ open, onOpenChange, usuario, diagnostico, 
             REPARAR ACESSO
           </DialogTitle>
           <DialogDescription>
-            {precisaSenha 
+            {authFaltando 
               ? "Para criar a conta no servidor, defina uma senha temporária."
-              : "O sistema irá sincronizar o vínculo e metadados no servidor."}
+              : "Sincronize o vínculo e metadados no servidor."}
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +104,7 @@ export function RepararAcessoDialog({ open, onOpenChange, usuario, diagnostico, 
             <div className="text-xs space-y-1">
                 <p className="font-semibold text-primary">Ação solicitada:</p>
                 <p className="text-muted-foreground">
-                    {!diagnostico?.authEncontrado 
+                    {authFaltando 
                         ? "Criar conta Auth + Vincular Empresa Stella" 
                         : !diagnostico?.vinculoEncontrado 
                             ? "Vincular conta existente à Empresa Stella" 
@@ -111,7 +113,22 @@ export function RepararAcessoDialog({ open, onOpenChange, usuario, diagnostico, 
             </div>
           </div>
 
-          {precisaSenha && (
+          {!authFaltando && (
+            <div className="flex items-center space-x-2 pt-1 pb-2">
+              <input 
+                type="checkbox" 
+                id="redefinir" 
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                checked={redefinirSenha}
+                onChange={e => setRedefinirSenha(e.target.checked)}
+              />
+              <Label htmlFor="redefinir" className="text-sm cursor-pointer font-normal">
+                Redefinir senha durante o reparo
+              </Label>
+            </div>
+          )}
+
+          {mostrarSenha && (
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label htmlFor="temp-pass">Nova senha temporária</Label>

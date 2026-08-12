@@ -1,14 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const STELLA_TENANT_ID = "11111111-1111-1111-1111-111111111111";
 
 export const diagnosticarUsuario = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ email: z.string().email(), localId: z.string(), usuario: z.string() }).parse(d))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // 1. Buscar no Auth
-    const { data: { users } } = await supabaseAdmin.auth.admin.listUsers();
     const authUser = users.find(u => u.email?.toLowerCase() === data.email.toLowerCase());
 
     // 2. Buscar vínculo
