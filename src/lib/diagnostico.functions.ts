@@ -8,7 +8,9 @@ export const diagnosticarUsuario = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // 1. Buscar no Auth
-    const authUser = users.find(u => u.email?.toLowerCase() === data.email.toLowerCase());
+    const listResult = await supabaseAdmin.auth.admin.listUsers();
+    const users = listResult.data.users || [];
+    const authUser = users.find((u: any) => u.email?.toLowerCase() === data.email.toLowerCase());
 
     // 2. Buscar vínculo
     let vinculo = null;
