@@ -54,6 +54,37 @@ function normalizar(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+const normalizarSku = (sku?: string) => (sku ?? "").trim().toUpperCase();
+
+export function deduplicarProdutosPorSku(produtos: Produto[]): Produto[] {
+  const grouped: Record<string, Produto[]> = {};
+  
+  produtos.forEach(p => {
+    const sku = p.sku ? normalizarSku(p.sku) : `NO-SKU-${p.id}`;
+    if (!grouped[sku]) grouped[sku] = [];
+    grouped[sku].push(p);
+  });
+
+  return Object.values(grouped).map(items => {
+    if (items.length <= 1) return items[0];
+    
+    // Regra de preservação determinística
+    return [...items].sort((a, b) => {
+      // 1. Preferir o que tem categoria fiscal
+      if (a.categoriaFiscalId && !b.categoriaFiscalId) return -1;
+      if (!a.categoriaFiscalId && b.categoriaFiscalId) return 1;
+      
+      // 2. Preferir o mais antigo (criadoEm)
+      const dateA = new Date(a.criadoEm || 0).getTime();
+      const dateB = new Date(b.criadoEm || 0).getTime();
+      if (dateA !== dateB) return dateA - dateB;
+      
+      // 3. Fallback para ID
+      return a.id.localeCompare(b.id);
+    })[0];
+  });
+}
+
 export function useProdutos() {
   const produtos = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const hidratado = isBrowser();
