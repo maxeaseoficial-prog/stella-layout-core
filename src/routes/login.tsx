@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { login, useAuth } from "@/features/auth/useAuth";
 import { bootstrapUsuariosStella } from "@/lib/bootstrap-usuarios.functions";
+import { diagnosticarUsuarios } from "@/lib/diagnostico-usuarios.functions";
 import fachada from "@/assets/stella-fachada.png.asset.json";
 
 export const Route = createFileRoute("/login")({
@@ -38,6 +39,8 @@ function LoginPage() {
   useEffect(() => {
     // Garante que as contas semente da Stella existem no Cloud (idempotente).
     void bootstrapUsuariosStella().catch(() => { /* silencioso */ });
+    // @ts-ignore - Apenas para debug manual no console se necessário
+    window._diagnosticar = () => diagnosticarUsuarios().then(console.log);
   }, []);
 
   useEffect(() => {
