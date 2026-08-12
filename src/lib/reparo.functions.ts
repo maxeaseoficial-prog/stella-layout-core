@@ -15,14 +15,9 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
     }).parse(d)
   )
   .handler(async ({ data }): Promise<{ ok: boolean; erro?: string; userId?: string }> => {
-    const { 
-        buscarUserPorEmail, 
-        criarUsuarioNoAuth, 
-        vincularUsuarioEmpresa,
-        atualizarAuthEMetadata,
-        redefinirSenhaAuth
-    } = await import("./usuarios.server");
+    const { buscarUserPorEmail, criarUsuarioNoAuth, vincularUsuarioEmpresa, atualizarAuthEMetadata, redefinirSenhaAuth } = await import("./usuarios.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
 
     // 1. Verificar se existe no Auth
     let authUser = await buscarUserPorEmail(data.email);

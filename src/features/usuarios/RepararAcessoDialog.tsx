@@ -35,7 +35,9 @@ export function RepararAcessoDialog({ open, onOpenChange, usuario, diagnostico, 
   const precisaSenha = !diagnostico?.authEncontrado;
 
   async function handleReparar() {
+    if (!usuario) return;
     if (precisaSenha) {
+
       if (!senha) return toast.error("Informe a senha temporária.");
       if (senha !== confirmar) return toast.error("As senhas não coincidem.");
       if (senha.length < 6) return toast.error("A senha deve ter ao menos 6 caracteres.");

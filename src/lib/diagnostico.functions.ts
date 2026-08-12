@@ -23,13 +23,32 @@ export const diagnosticarUsuario = createServerFn({ method: "POST" })
         vinculo = v;
     }
 
+    // Regra 2: Retornar diagnóstico completo sem expor segredos
     return {
       localId: data.localId,
+      localEmail: data.email,
+      localUsuario: data.usuario,
+      
       authEncontrado: !!authUser,
       authUserId: authUser?.id,
+      authEmail: authUser?.email,
+      emailConfirmado: authUser?.email_confirmed_at ? true : false,
+      authUsername: authUser?.user_metadata?.usuario,
+      authNome: authUser?.user_metadata?.nome,
+      authPapelMetadata: authUser?.user_metadata?.papel,
+      authStatusMetadata: authUser?.user_metadata?.status,
+
       vinculoEncontrado: !!vinculo,
+      vinculoId: vinculo?.id,
+      vinculoEmpresaId: vinculo?.empresa_id,
+      vinculoUserId: vinculo?.user_id,
+      vinculoPapel: vinculo?.papel,
+      vinculoPermissoes: vinculo?.permissoes,
+
       idsCoincidem: authUser?.id === data.localId,
       usernameCoincide: authUser?.user_metadata?.usuario === data.usuario,
-      authStatus: authUser?.user_metadata?.status
+      emailCoincide: authUser?.email?.toLowerCase() === data.email.toLowerCase(),
+
+      podeAutenticar: !!authUser && !!vinculo && authUser?.id === data.localId && authUser?.user_metadata?.status !== "inativo"
     };
   });
