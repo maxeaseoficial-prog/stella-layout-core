@@ -242,12 +242,20 @@ const [buscaCliente, setBuscaCliente] = useState("");
     const doc = (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "";
     if (doc.replace(/\D/g, "").length < 11) return "O destinatário não possui CPF/CNPJ válido cadastrado.";
     
+    if (destinatario.tipo === 'empresa') {
+      const indicador = destinatario.indicadorIe || (destinatario.inscricaoEstadual ? "contribuinte" : "nao_contribuinte");
+      if (indicador === 'contribuinte' && (!destinatario.inscricaoEstadual || destinatario.inscricaoEstadual === "ISENTO")) {
+        return "A Inscrição Estadual é obrigatória para destinatários contribuintes.";
+      }
+    }
+
     const nome = getClienteNome(destinatario);
     if (!nome || nome.trim().length < 2) return "O nome do destinatário é obrigatório.";
     if (!destinatario.cidade) return "O município do destinatário é obrigatório.";
     if (!destinatario.estado) return "A UF do destinatário é obrigatória.";
     if (!destinatario.cep) return "O CEP do destinatário é obrigatório.";
     if (!destinatario.logradouro) return "O logradouro (endereço) do destinatário é obrigatório.";
+
     
     return null;
   };
@@ -285,7 +293,9 @@ const [buscaCliente, setBuscaCliente] = useState("");
       complemento: destinatario.complemento || undefined,
       cidade: destinatario.cidade || undefined,
       estado: destinatario.estado || undefined,
-      inscricaoEstadual: (destinatario.tipo === 'empresa' ? destinatario.inscricaoEstadual : undefined) || "ISENTO",
+      inscricaoEstadual: destinatario.tipo === 'empresa' ? (destinatario.inscricaoEstadual || "") : "",
+      indicadorIe: destinatario.tipo === 'empresa' ? (destinatario.indicadorIe || (destinatario.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")) : undefined,
+
     },
     itens: itens.map((it: any) => ({
       id: it.id,

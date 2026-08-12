@@ -408,13 +408,37 @@ export function ClienteFormDrawer({
                         inputMode="numeric"
                       />
                     </Campo>
-                    <Campo label="Inscrição estadual">
+                    <Campo label="Contribuinte ICMS" obrigatorio>
+                      <Select
+                        value={form.indicadorIe}
+                        onValueChange={(v) => {
+                          up("indicadorIe", v as IndicadorIe);
+                          if (v === "isento") up("inscricaoEstadual", "ISENTO");
+                          else if (v === "nao_contribuinte") up("inscricaoEstadual", "");
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="contribuinte">Contribuinte (Possui IE)</SelectItem>
+                          <SelectItem value="isento">Isento</SelectItem>
+                          <SelectItem value="nao_contribuinte">Não Contribuinte</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Campo>
+                    <Campo 
+                      label={cn("Inscrição estadual", form.indicadorIe === "contribuinte" && "*")} 
+                      erro={erros.inscricaoEstadual}
+                    >
                       <Input
                         value={form.inscricaoEstadual}
-                        onChange={(e) => up("inscricaoEstadual", e.target.value.replace(/\D/g, ""))}
-                        placeholder="Opcional"
+                        onChange={(e) => up("inscricaoEstadual", e.target.value.toUpperCase())}
+                        disabled={form.indicadorIe !== "contribuinte"}
+                        placeholder={form.indicadorIe === "contribuinte" ? "Obrigatório para contribuinte" : "Apenas para contribuintes"}
                       />
                     </Campo>
+
                   </>
                 )}
 
