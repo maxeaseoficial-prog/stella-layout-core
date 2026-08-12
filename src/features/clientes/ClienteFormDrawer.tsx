@@ -324,7 +324,7 @@ export function ClienteFormDrawer({
                         placeholder="Ex.: João Pedro da Silva"
                       />
                     </Campo>
-                    <Campo label="CPF">
+                    <Campo label="CPF" obrigatorio erro={erros.cpf}>
                       <Input
                         value={form.cpf}
                         onChange={(e) => up("cpf", formatarCPF(e.target.value))}
