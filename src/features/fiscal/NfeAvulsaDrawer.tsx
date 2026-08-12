@@ -959,33 +959,25 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
           </DialogFooter>
         )}
-
-            disabled={emitindo}
-            className="bg-primary hover:bg-primary/90 min-w-[140px]"
-          >
-            {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-          </Button>
-          </DialogFooter>
-        )}
       </DialogContent>
-      </Dialog>
+    </Dialog>
 
-      <ClienteFormDrawer
-        aberto={cadastroClienteAberto}
-        onFechar={() => setCadastroClienteAberto(false)}
-        onSalvar={async (dados) => {
-          try {
-            const novo = await criarCliente(dados);
-            if (novo) {
-              setDestinatario(novo);
-              setCadastroClienteAberto(false);
-              toast.success("Cliente cadastrado e selecionado.");
-            }
-          } catch (err) {
-            console.error("Erro ao cadastrar cliente:", err);
+    <ClienteFormDrawer
+      aberto={cadastroClienteAberto}
+      onFechar={() => setCadastroClienteAberto(false)}
+      onSalvar={async (dados) => {
+        try {
+          const novo = await criarCliente(dados);
+          if (novo) {
+            setDestinatario(novo);
+            setCadastroClienteAberto(false);
+            toast.success("Cliente cadastrado e selecionado.");
           }
-        }}
-      />
+        } catch (err) {
+          console.error("Erro ao cadastrar cliente:", err);
+        }
+      }}
+    />
 
     <PayloadPreviewDialog
       aberto={previewAberto}
@@ -1017,30 +1009,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-      <ClienteFormDrawer
-        aberto={cadastroClienteAberto}
-        onFechar={() => setCadastroClienteAberto(false)}
-        onSalvar={async (dados) => {
-          try {
-            const res = criarCliente(dados);
-            if (res.ok) {
-              setDestinatario(res.cliente);
-              setCadastroClienteAberto(false);
-              toast.success("Cliente cadastrado e selecionado.");
-            } else if (res.duplicado) {
-              setDestinatario(res.cliente);
-              setCadastroClienteAberto(false);
-              toast.info("Cliente já existia e foi selecionado.");
-            }
-          } catch (err) {
-            console.error("Erro ao cadastrar cliente:", err);
-            toast.error("Erro ao salvar o cliente.");
-          }
-        }}
-      />
     </>
   );
 }
+
 
 function ClassificacaoFiscalPicker({ 
   value, 
