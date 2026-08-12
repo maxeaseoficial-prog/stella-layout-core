@@ -29,6 +29,9 @@ import { UsuariosTable } from "./UsuariosTable";
 import { UsuarioFormDrawer } from "./UsuarioFormDrawer";
 import { UsuarioViewDrawer } from "./UsuarioViewDrawer";
 import { RedefinirSenhaDialog } from "./RedefinirSenhaDialog";
+import { DiagnosticoAcessoDialog } from "./DiagnosticoAcessoDialog";
+import { RepararAcessoDialog } from "./RepararAcessoDialog";
+
 
 type Filtro = "todos" | "administrador" | "operador_matriz" | "ativos" | "inativos";
 
@@ -46,6 +49,11 @@ export function UsuariosManager() {
   const [excluir, setExcluir] = useState<Usuario | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const { sincronizar } = useUsuarios();
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [repairOpen, setRepairOpen] = useState(false);
+  const [ativoDiag, setAtivoDiag] = useState<Usuario | null>(null);
+  const [diagnosticoResult, setDiagnosticoResult] = useState<any>(null);
+
 
   const responsavel = user?.nome ?? "Sistema";
 
@@ -108,7 +116,18 @@ export function UsuariosManager() {
     setExcluir(null);
   }
 
+  async function handleDiagnosticar(u: Usuario) {
+    setAtivoDiag(u);
+    setDiagOpen(true);
+  }
+
+  function handleOpenRepair(diag: any) {
+    setDiagnosticoResult(diag);
+    setRepairOpen(true);
+  }
+
   async function handleSincronizar(u: Usuario) {
+
     // Remover a checagem antiga que impedia diagnóstico de usuários não sincronizados
 
     
@@ -182,9 +201,25 @@ export function UsuariosManager() {
         onResetSenha={abrirSenha}
         onToggleStatus={alternar}
         onDelete={setExcluir}
-        onSincronizar={handleSincronizar}
+        onSincronizar={handleDiagnosticar}
         loadingId={loadingId}
       />
+
+      <DiagnosticoAcessoDialog
+        open={diagOpen}
+        onOpenChange={setDiagOpen}
+        usuario={ativoDiag}
+        onRepair={handleOpenRepair}
+      />
+
+      <RepararAcessoDialog
+        open={repairOpen}
+        onOpenChange={setRepairOpen}
+        usuario={ativoDiag}
+        diagnostico={diagnosticoResult}
+        onSuccess={() => setDiagOpen(false)}
+      />
+
 
       <UsuarioFormDrawer
         open={formOpen}
