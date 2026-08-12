@@ -207,6 +207,7 @@ export function alternarStatus(id: string, status: "ativo" | "inativo", responsa
   commit(nova);
 }
 
+/** Redefinição administrativa da senha (local e Supabase). */
 export function redefinirSenha(
   id: string,
   novaSenha: string,
@@ -214,7 +215,18 @@ export function redefinirSenha(
   responsavel: string,
 ): { ok: boolean; erro?: string } {
   if (!novaSenha) return { ok: false, erro: "Informe a nova senha." };
+  
   const lista = garantirSeed();
+  const uAlvo = lista.find(x => x.id === id);
+  
+  if (uAlvo) {
+    // Tenta resetar no Supabase se for um usuário real (com e-mail)
+    import("@/lib/reset-senha.functions").then(({ resetarSenhaSupabase }) => {
+       resetarSenhaSupabase({ data: { email: uAlvo.email, novaSenha } })
+         .catch(err => console.error("Falha ao sincronizar senha com Supabase:", err));
+    });
+  }
+
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
     const atualizado: Usuario = {
