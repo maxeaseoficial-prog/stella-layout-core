@@ -185,7 +185,9 @@ export const alternarStatusSistema = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { atualizarAuthEMetadata } = await import("./usuarios.server");
     const { data: user } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+
 
     if (!user.user) return { ok: false, erro: "Usuário não encontrado." };
 
