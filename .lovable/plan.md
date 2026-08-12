@@ -1,42 +1,43 @@
-# Plano de Correção Final da Arquitetura de Usuários Stella - CONCLUÍDO
+# Plano de Ajuste de Integridade e Segurança de Usuários
 
-A arquitetura de usuários foi refatorada para garantir que o Supabase Auth seja a única fonte da verdade para autenticação.
+Corrigir a persistência de credenciais no localStorage, remover heurísticas de ID legadas e garantir que o Supabase Auth seja a única fonte de verdade para autenticação e gestão de usuários.
 
-## Alterações Realizadas
+## Alterações Técnicas
 
-### 1. Servidor: Resolução Dinâmica de Username
-- **Arquivo**: `src/lib/usuarios.server.ts`
-- **Ação**: Objeto `APELIDOS_LEGACY` removido.
-- **Mudança**: `buscarEmailPorUsername` agora consulta o Supabase Auth em tempo real via Admin API.
+### 1. Refatoração de Tipos (src/features/usuarios/types.ts)
+- Remover campo `senha` da interface `Usuario`.
+- Criar `CriarUsuarioInput` e `AtualizarUsuarioInput` para lidar com campos transitórios de senha.
 
-### 2. Frontend: Limpeza de Credenciais
-- **Arquivo**: `src/features/auth/useAuth.ts`
-- **Ação**: `CONTA_TESTE` anulado e `APELIDOS_EMAIL` removido.
-- **Mudança**: `identificadorParaEmail` agora depende exclusivamente da resolução do servidor.
+### 2. Sanitização do LocalStorage (src/features/usuarios/storage.ts)
+- Implementar sanitização na leitura (`carregarUsuarios`) para remover propriedades sensíveis (`senha`, `novaSenha`, etc.).
+- Garantir que a migração não apague usuários, apenas limpe os dados sensíveis.
 
-### 3. Persistência: Segurança
-- **Arquivo**: `src/features/usuarios/useUsuarios.ts` & `src/features/usuarios/types.ts`
-- **Ação**: 
-    - Campo `senha` tornado opcional no tipo `Usuario`.
-    - Senhas removidas do `SEED` e do `localStorage`.
-    - Heurística `isRealUser` removida; todas as atualizações agora consultam o servidor.
-    - `encontrarPorCredencial` desativada (login local não existe mais).
+### 3. Ajustes no Hook de Gestão (src/features/usuarios/useUsuarios.ts)
+- **Criação**: Desestruturar explicitamente a senha do input antes de persistir no cache local.
+- **Edição**: Remover `novaSenha` e campos de confirmação do patch antes de atualizar o cache local.
+- **Redefinição de Senha**: Remover `senha: novaSenha` da função `redefinirSenha`. Persistir apenas metadados de controle.
+- **Troca de Senha Própria**: Atualizar para usar Supabase Auth (via server function ou `supabase.auth.updateUser`) e não persistir a senha localmente.
+- **Heurística de ID**: Remover `isRealUser` em `alternarStatus`. Usar UUID check ou consultar o servidor.
+- **Seed**: Impedir que o SEED sobrescreva dados reais do servidor ou apareça quando o servidor já tem dados.
 
-### 4. Interface: Edição com Troca de Senha
-- **Arquivo**: `src/features/usuarios/UsuarioFormDrawer.tsx`
-- **Ação**: Adicionada seção "Alterar Senha" na edição de usuários.
-- **Mudança**: Implementado salvamento atômico de dados e senha.
+### 4. Melhoria nas Server Functions (src/lib/usuarios.functions.ts & usuarios.server.ts)
+- **Vínculo**: Validar `vinculo.ok` em todas as funções que chamam `vincularUsuarioEmpresa`.
+- **Username**: Garantir que a resolução de username seja 100% dinâmica no servidor.
 
-## Relatório de Verificação Final
+### 5. Ajustes na UI (src/features/usuarios/UsuarioFormDrawer.tsx)
+- Garantir que o formulário utilize os novos tipos de input.
+- Validar campos obrigatórios (E-mail e Usuário) conforme solicitado anteriormente, mas agora integrado à nova arquitetura.
 
-| Item | Status |
-| :--- | :--- |
-| Alias hardcoded de matriz removido | SIM |
-| Alias hardcoded de administrador removido | SIM |
-| CONTA_TESTE fora do login real | SIM |
-| Senhas removidas do armazenamento local | SIM |
-| Heurística de ID removida | SIM |
-| Login por Username 100% Dinâmico | SIM |
-| Alteração de E-mail/Senha funcional | SIM |
-| Build do sistema | SUCESSO |
+### 6. Verificação e Testes
+- Validar login por e-mail e username.
+- Inspecionar `stella.usuarios.v1` no localStorage para confirmar ausência de senhas.
 
+## Relatório Final Esperado
+- Login dinâmico preservado: SIM
+- Senhas removidas do localStorage: SIM
+- Campo senha removido de Usuario: SIM
+- novaSenha não persistida: SIM
+- Heurística de ID removida totalmente: SIM
+- Vinculo.ok verificado: SIM
+- Usuários carregados do servidor: SIM
+- E-mail alterado aparece em outro navegador: SIM
