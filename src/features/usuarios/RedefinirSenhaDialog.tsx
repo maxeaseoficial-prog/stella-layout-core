@@ -36,12 +36,12 @@ export function RedefinirSenhaDialog({ open, onOpenChange, usuario, responsavel 
     }
   }, [open]);
 
-  function salvar(e: React.FormEvent) {
+  async function salvar(e: React.FormEvent) {
     e.preventDefault();
     if (!usuario) return;
     if (!nova) return toast.error("Informe a nova senha.");
     if (nova !== confirmar) return toast.error("A confirmação não confere.");
-    const res = redefinirSenha(usuario.id, nova, exigir, responsavel);
+    const res = await redefinirSenha(usuario.id, nova, exigir, responsavel);
     if (!res.ok) return toast.error(res.erro ?? "Não foi possível redefinir.");
     toast.success("Senha redefinida com sucesso.");
     onOpenChange(false);
