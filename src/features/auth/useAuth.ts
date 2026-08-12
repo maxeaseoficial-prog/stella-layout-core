@@ -233,6 +233,13 @@ export async function login(
   });
 
   if (error || !data.user) {
+    console.error("STELLA_LOGIN_DIAGNOSTIC", {
+      etapa: "auth_attempt",
+      identificadorTipo: identificador.includes("@") ? "email" : "username",
+      emailResolvido: !!email,
+      authSuccess: false,
+      erroCodigo: error?.message || "USER_NOT_FOUND"
+    });
     return { ok: false, erro: "Usuário ou senha incorretos." };
   }
 
@@ -241,11 +248,17 @@ export async function login(
   
   const posLoginState = ler();
   if (!posLoginState.user) {
+    console.error("STELLA_LOGIN_DIAGNOSTIC", {
+      etapa: "vinculo_check",
+      authSuccess: true,
+      vinculoEncontrado: false
+    });
     return { ok: false, erro: "Acesso negado: Usuário sem vínculo com a empresa Stella." };
   }
 
   return { ok: true, precisaTrocarSenha: false };
 }
+
 
 
 export async function logout() {
