@@ -223,7 +223,23 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                   </button>
                   <Select
                     value={item.tamanho ?? ""}
-                    onValueChange={(v) => atualizarItem(item.id, "tamanho", v)}
+                    onValueChange={(v) => {
+                      atualizarItem(item.id, "tamanho", v);
+                      // Se o produto selecionado tiver variação de preço para este tamanho, atualizar o valor unitário
+                      if (produtoSelecionado?.variacoesTamanhos) {
+                        const variacao = produtoSelecionado.variacoesTamanhos.find(vt => vt.tamanho === v);
+                        if (variacao && variacao.precoAVista > 0) {
+                          atualizarItem(item.id, "valorUnitario", variacao.precoAVista);
+                          setRascunhos((r) => ({
+                            ...r,
+                            [item.id]: {
+                              ...r[item.id],
+                              valorStr: variacao.precoAVista.toFixed(2).replace(".", ","),
+                            },
+                          }));
+                        }
+                      }
+                    }}
                   >
                     <SelectTrigger
                       className={cn(
@@ -237,16 +253,28 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {tamanhos.length === 0 ? (
-                        <div className="px-2 py-3 text-xs text-muted-foreground">
-                          Nenhum tamanho cadastrado em Configurações.
-                        </div>
+                      {/* Primeiro mostrar tamanhos cadastrados no produto (com preços específicos) */}
+                      {produtoSelecionado?.variacoesTamanhos?.map((vt) => (
+                        <SelectItem key={`prod-${vt.tamanho}`} value={vt.tamanho}>
+                          {vt.tamanho} (Preço: {formatarMoeda(vt.precoAVista)})
+                        </SelectItem>
+                      ))}
+                      
+                      {/* Depois mostrar os tamanhos globais que não estão no produto */}
+                      {tamanhos.length > 0 ? (
+                        tamanhos
+                          .filter(t => !produtoSelecionado?.variacoesTamanhos?.some(vt => vt.tamanho === t.nome))
+                          .map((t) => (
+                            <SelectItem key={`global-${t.id}`} value={t.nome}>
+                              {t.nome}
+                            </SelectItem>
+                          ))
                       ) : (
-                        tamanhos.map((t) => (
-                          <SelectItem key={t.id} value={t.nome}>
-                            {t.nome}
-                          </SelectItem>
-                        ))
+                        !produtoSelecionado?.variacoesTamanhos?.length && (
+                          <div className="px-2 py-3 text-xs text-muted-foreground">
+                            Nenhum tamanho disponível.
+                          </div>
+                        )
                       )}
                     </SelectContent>
                   </Select>
