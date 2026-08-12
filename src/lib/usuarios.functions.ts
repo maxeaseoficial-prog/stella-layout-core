@@ -54,8 +54,9 @@ export const criarUsuarioSistema = createServerFn({ method: "POST" })
 
     if (!vinculo.ok) {
       // Idealmente aqui faríamos rollback do Auth, mas como o foco é sync, vamos reportar o erro
-      return { ok: false, erro: "Usuário criado no Auth, mas falha ao vincular à empresa: " + vinculo.erro };
+      return { ok: false, erro: "Usuário criado no Auth, mas falha crítica ao vincular à empresa: " + vinculo.erro };
     }
+
 
     return { ok: true, userId };
   });
@@ -131,11 +132,14 @@ export const sincronizarUsuarioLocal = createServerFn({ method: "POST" })
     }
 
     // 2. Garantir vínculo
-    await vincularUsuarioEmpresa({
+    const vinculo = await vincularUsuarioEmpresa({
       userId,
       papel: data.papel,
       permissoes: data.permissoes
     });
+
+    if (!vinculo.ok) return vinculo;
+
 
     return { ok: true, userId };
   });
@@ -169,11 +173,14 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
     if (!auth.ok) return auth;
     
     // Atualizar vínculo
-    await vincularUsuarioEmpresa({
+    const vinculo = await vincularUsuarioEmpresa({
       userId: data.userId,
       papel: data.papel,
       permissoes: data.permissoes
     });
+    
+    if (!vinculo.ok) return vinculo;
+
     
     return { ok: true };
   });

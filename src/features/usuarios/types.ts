@@ -26,7 +26,7 @@ export interface Usuario {
   telefone?: string;
   foto?: string; // data URL
   papel: Papel;
-  senha?: string; // Mantido opcional para compatibilidade Legada, mas não usado em produção Auth
+  // Credenciais não são persistidas localmente
   status: StatusUsuario;
   precisaTrocarSenha: boolean;
   criadoEm: string;
@@ -42,7 +42,12 @@ export interface Usuario {
 export type NovoUsuarioInput = Omit<
   Usuario,
   "id" | "criadoEm" | "atualizadoEm" | "historico" | "ultimoAcesso"
->;
+> & { senha: string };
+
+export type AtualizarUsuarioInput = Partial<Omit<Usuario, "id" | "criadoEm" | "historico">> & {
+  novaSenha?: string;
+};
+
 
 export const PAPEL_LABEL: Record<Papel, string> = {
   administrador: "Administrador",

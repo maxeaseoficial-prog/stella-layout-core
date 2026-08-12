@@ -50,11 +50,15 @@ const SEED: Usuario[] = [
 let seeded = false;
 function garantirSeed(): Usuario[] {
   const atuais = carregarUsuarios();
-  if (atuais.length === 0 && !seeded) {
+  // Se existem usuários reais, não precisamos do seed
+  const hasRealUsers = atuais.some(u => u.id.includes("-") || u.id.length > 20);
+  
+  if (atuais.length === 0 && !seeded && !hasRealUsers) {
     seeded = true;
     salvarUsuarios(SEED);
     return SEED;
   }
+
   return atuais;
 }
 
@@ -125,6 +129,7 @@ export function registrarAcesso(usuarioId: string) {
 }
 
 export async function criarUsuario(input: NovoUsuarioInput, responsavel: string): Promise<{ ok: boolean; erro?: string; id?: string }> {
+
   const lista = listarUsuarios(); // Use current list
   const usernameNorm = input.usuario.trim().toLowerCase();
   const emailNorm = input.email.trim().toLowerCase();
@@ -160,10 +165,11 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
     return { ok: false, erro: result.erro };
   }
 
+  const { senha: _senha, ...dadosSemSenha } = input;
   const novo: Usuario = {
-    ...input,
+    ...dadosSemSenha,
     usuario: usernameNorm,
-    email: input.email.trim(),
+    email: emailNorm,
     id: result.userId || uid(),
     criadoEm: nowIso(),
     atualizadoEm: nowIso(),
@@ -171,15 +177,17 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
       { id: uid(), data: nowIso(), acao: "criado", responsavel },
     ],
   };
+
   commit([novo, ...lista]);
   return { ok: true, id: novo.id };
 }
 
 export async function atualizarUsuario(
   id: string,
-  patch: Partial<Omit<Usuario, "id" | "criadoEm" | "historico">>,
+  patch: AtualizarUsuarioInput,
   responsavel: string,
 ): Promise<{ ok: boolean; erro?: string }> {
+
   const lista = garantirSeed();
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
@@ -216,21 +224,25 @@ export async function atualizarUsuario(
 
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
-    const atualizado: Usuario = { ...u, ...patch, atualizadoEm: nowIso() };
+    const { novaSenha: _ns, ...patchSemSenha } = patch as any;
+    const atualizado: Usuario = { ...u, ...patchSemSenha, atualizadoEm: nowIso() };
     return addHistorico(atualizado, { acao: "editado", responsavel });
   });
+
   commit(nova);
   return { ok: true };
 }
 
 export async function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string): Promise<{ ok: boolean; erro?: string }> {
-  const isRealUser = id.length > 20 || id.includes("-");
+  // Tentar sempre no servidor primeiro se for UUID
+  const isUUID = id.includes("-") || id.length > 20;
   
-  if (isRealUser) {
+  if (isUUID) {
     const { alternarStatusSistema } = await import("@/lib/usuarios.functions");
     const result = await alternarStatusSistema({ data: { userId: id, status } });
     if (!result.ok) return { ok: false, erro: result.erro };
   }
+
 
   const lista = garantirSeed();
   const nova = lista.map((u) => {
@@ -271,32 +283,37 @@ export async function redefinirSenha(
     if (u.id !== id) return u;
     const atualizado: Usuario = {
       ...u,
-      senha: novaSenha,
       precisaTrocarSenha: exigirTroca,
       atualizadoEm: nowIso(),
     };
     return addHistorico(atualizado, { acao: "senha_redefinida", responsavel });
   });
+
   commit(nova);
   return { ok: true };
 }
 
 /** Troca de senha realizada pelo próprio usuário (primeiro acesso). */
-export function trocarPropriaSenha(id: string, novaSenha: string): { ok: boolean; erro?: string } {
-  if (!novaSenha || novaSenha.length < 4) {
-    return { ok: false, erro: "A nova senha deve ter pelo menos 4 caracteres." };
+export async function trocarPropriaSenha(id: string, novaSenha: string): Promise<{ ok: boolean; erro?: string }> {
+  if (!novaSenha || novaSenha.length < 6) {
+    return { ok: false, erro: "A nova senha deve ter pelo menos 6 caracteres." };
   }
+
   const lista = garantirSeed();
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
+  const { trocarSenhaObrigatoria } = await import("@/features/auth/useAuth");
+  const result = await trocarSenhaObrigatoria(novaSenha);
+  if (!result.ok) return result;
+
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
     const atualizado: Usuario = {
       ...u,
-      senha: novaSenha,
       precisaTrocarSenha: false,
       atualizadoEm: nowIso(),
     };
+
     return addHistorico(atualizado, {
       acao: "senha_alterada",
       responsavel: u.nome,
@@ -317,6 +334,20 @@ export function excluirUsuario(id: string, _responsavel: string): { ok: boolean;
 
 export function useUsuarios() {
   const usuarios = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  
+  // Limpar cache local se o servidor tiver dados reais
+  useEffect(() => {
+    const list = carregarUsuarios();
+    const hasLegacySeed = list.some(u => u.id.startsWith("seed_"));
+    const hasRealUsers = list.some(u => u.id.includes("-") || u.id.length > 20);
+    
+    if (hasLegacySeed && hasRealUsers) {
+      // Se já temos usuários reais, removemos os seeds para evitar confusão visual
+      const clean = list.filter(u => !u.id.startsWith("seed_"));
+      commit(clean);
+    }
+  }, []);
+
   
   const sincronizar = async (u: Usuario, senha?: string) => {
     const { sincronizarUsuarioLocal } = await import("@/lib/usuarios.functions");
