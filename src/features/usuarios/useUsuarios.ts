@@ -1,7 +1,8 @@
-import { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useEffect } from "react";
 import { ROTAS_PERMITIDAS } from "@/features/auth/permissions";
 import { carregarUsuarios, salvarUsuarios, USUARIOS_EVENT } from "./storage";
-import type { HistoricoUsuario, NovoUsuarioInput, Usuario } from "./types";
+import type { HistoricoUsuario, NovoUsuarioInput, Usuario, AtualizarUsuarioInput } from "./types";
+
 
 function nowIso() {
   return new Date().toISOString();
@@ -200,7 +201,7 @@ export async function atualizarUsuario(
       usuario: patch.usuario ?? alvo.usuario,
       email: patch.email ?? alvo.email,
       papel: patch.papel ?? alvo.papel,
-      permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? ROTAS_PERMITIDAS[patch.papel ?? alvo.papel],
+      permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? (ROTAS_PERMITIDAS[patch.papel ?? alvo.papel] || []),
       status: patch.status ?? alvo.status,
       novaSenha: (patch as any).novaSenha,
     }
@@ -214,6 +215,7 @@ export async function atualizarUsuario(
     }
     patch.usuario = novoNome;
   }
+
   if (patch.email) {
     const novoEmail = patch.email.trim().toLowerCase();
     if (lista.some((u) => u.id !== id && u.email.toLowerCase() === novoEmail)) {
@@ -365,10 +367,11 @@ export function useUsuarios() {
     if (result.ok) {
       // Atualizar o ID local se mudou (migração para UUID)
       const lista = listarUsuarios();
-      const nova = lista.map(item => item.email === u.email ? { ...item, id: result.userId! } : item);
+      const nova = lista.map(item => item.email === u.email ? { ...item, id: (result as any).userId! } : item);
       commit(nova);
       return { ok: true };
     }
+
     return result;
   };
 
