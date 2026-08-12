@@ -153,6 +153,15 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       }
     }
 
+    console.log("Submitting update for user:", usuarioAtual.id, "with patch:", {
+      nome: form.nome.trim(),
+      usuario: form.usuario.trim(),
+      email: form.email.trim(),
+      papel: form.papel,
+      status: form.status,
+      novaSenha: form.novaSenha ? "***" : undefined,
+    });
+
     const res = await atualizarUsuario(
       usuarioAtual!.id,
       {
@@ -169,6 +178,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       } as any,
       responsavel,
     );
+    console.log("Update response:", res);
     if (!res.ok) {
       toast.error(res.erro ?? "Não foi possível salvar.");
       return;
