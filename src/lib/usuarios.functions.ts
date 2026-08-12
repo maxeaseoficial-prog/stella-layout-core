@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { z } from "zod";
 
 export const criarUsuarioSistema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+
   .inputValidator((d) =>
     z
       .object({
@@ -15,12 +19,20 @@ export const criarUsuarioSistema = createServerFn({ method: "POST" })
       })
       .parse(d)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { 
+      validarAdmin,
+
       criarUsuarioNoAuth, 
       vincularUsuarioEmpresa, 
       verificarDuplicidade 
     } = await import("./usuarios.server");
+
+    // Validar se o solicitante é administrador
+    if (!(await validarAdmin(context.supabase, context.userId))) {
+      return { ok: false, erro: "Acesso negado: Somente administradores podem criar usuários." };
+    }
+
 
     // 1. Verificar duplicidade (username e email) no Auth
     const duplicado = await verificarDuplicidade(data.usuario, data.email);
@@ -77,14 +89,22 @@ export const resolverEmailDeLogin = createServerFn({ method: "POST" })
 
 
 export const redefinirSenhaSistema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+
   .inputValidator((d) => 
     z.object({ 
       email: z.string().email(), 
       novaSenha: z.string().min(6) 
     }).parse(d)
   )
-  .handler(async ({ data }) => {
-    const { redefinirSenhaAuth } = await import("./usuarios.server");
+  .handler(async ({ data, context }) => {
+    const { redefinirSenhaAuth, validarAdmin } = await import("./usuarios.server");
+    
+    // Validar se o solicitante é administrador
+    if (!(await validarAdmin(context.supabase, context.userId))) {
+      return { ok: false, erro: "Acesso negado: Somente administradores podem redefinir senhas." };
+    }
+
     return await redefinirSenhaAuth(data.email, data.novaSenha);
   });
 
@@ -145,6 +165,8 @@ export const sincronizarUsuarioLocal = createServerFn({ method: "POST" })
   });
 
 export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+
   .inputValidator((d) => 
     z.object({
       userId: z.string(),
@@ -159,8 +181,14 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
       usuarioOriginal: z.string().optional(),
     }).parse(d)
   )
-  .handler(async ({ data }) => {
-    const { atualizarAuthEMetadata, vincularUsuarioEmpresa } = await import("./usuarios.server");
+  .handler(async ({ data, context }) => {
+    const { atualizarAuthEMetadata, vincularUsuarioEmpresa, validarAdmin } = await import("./usuarios.server");
+    
+    // Validar se o solicitante é administrador
+    if (!(await validarAdmin(context.supabase, context.userId))) {
+      return { ok: false, erro: "Acesso negado: Somente administradores podem atualizar usuários." };
+    }
+
     
     // Atualizar Auth
     const auth = await atualizarAuthEMetadata(data.userId, {
@@ -192,15 +220,23 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
 
 
 export const alternarStatusSistema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+
   .inputValidator((d) => 
     z.object({
       userId: z.string(),
       status: z.enum(["ativo", "inativo"])
     }).parse(d)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { atualizarAuthEMetadata, resolverAuthUser } = await import("./usuarios.server");
+    const { atualizarAuthEMetadata, resolverAuthUser, validarAdmin } = await import("./usuarios.server");
+    
+    // Validar se o solicitante é administrador
+    if (!(await validarAdmin(context.supabase, context.userId))) {
+      return { ok: false, erro: "Acesso negado: Somente administradores podem alterar status." };
+    }
+
     
     const realId = await resolverAuthUser(data.userId);
     if (!realId) return { ok: false, erro: "Usuário não localizado no Auth." };

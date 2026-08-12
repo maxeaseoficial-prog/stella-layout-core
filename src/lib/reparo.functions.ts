@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 import { z } from "zod";
 
 export const repararAcessoUsuario = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+
   .inputValidator((d) => 
     z.object({
       email: z.string().email(),
@@ -14,14 +18,22 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
       novaSenha: z.string().optional()
     }).parse(d)
   )
-  .handler(async ({ data }): Promise<{ ok: boolean; erro?: string; userId?: string }> => {
+  .handler(async ({ data, context }): Promise<{ ok: boolean; erro?: string; userId?: string }> => {
     const { 
+        validarAdmin,
         buscarUserPorEmail, 
+
         criarUsuarioNoAuth, 
         vincularUsuarioEmpresa,
         atualizarAuthEMetadata,
         redefinirSenhaAuth
     } = await import("./usuarios.server");
+
+    // Validar se o solicitante é administrador
+    if (!(await validarAdmin(context.supabase, context.userId))) {
+      return { ok: false, erro: "Acesso negado: Somente administradores podem reparar acessos." };
+    }
+
 
     // 1. Verificar se existe no Auth pelo e-mail
     let authUser = await buscarUserPorEmail(data.email);
