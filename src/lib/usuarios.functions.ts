@@ -150,6 +150,7 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
       papel: z.enum(["administrador", "operador_matriz", "caixa"]),
       permissoes: z.array(z.string()),
       status: z.enum(["ativo", "inativo"]),
+      novaSenha: z.string().min(6).optional(),
     }).parse(d)
   )
   .handler(async ({ data }) => {
@@ -161,7 +162,8 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
       nome: data.nome,
       usuario: data.usuario,
       papel: data.papel,
-      status: data.status
+      status: data.status,
+      novaSenha: data.novaSenha
     });
     
     if (!auth.ok) return auth;
@@ -196,4 +198,3 @@ export const alternarStatusSistema = createServerFn({ method: "POST" })
       status: data.status
     });
   });
-

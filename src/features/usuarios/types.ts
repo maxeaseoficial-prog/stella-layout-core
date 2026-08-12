@@ -26,7 +26,7 @@ export interface Usuario {
   telefone?: string;
   foto?: string; // data URL
   papel: Papel;
-  senha: string; // mock: texto simples (armazenamento local)
+  senha?: string; // Mantido opcional para compatibilidade Legada, mas não usado em produção Auth
   status: StatusUsuario;
   precisaTrocarSenha: boolean;
   criadoEm: string;

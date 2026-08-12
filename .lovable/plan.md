@@ -15,8 +15,9 @@ A arquitetura de usuários foi refatorada para garantir que o Supabase Auth seja
 - **Mudança**: `identificadorParaEmail` agora depende exclusivamente da resolução do servidor.
 
 ### 3. Persistência: Segurança
-- **Arquivo**: `src/features/usuarios/useUsuarios.ts`
+- **Arquivo**: `src/features/usuarios/useUsuarios.ts` & `src/features/usuarios/types.ts`
 - **Ação**: 
+    - Campo `senha` tornado opcional no tipo `Usuario`.
     - Senhas removidas do `SEED` e do `localStorage`.
     - Heurística `isRealUser` removida; todas as atualizações agora consultam o servidor.
     - `encontrarPorCredencial` desativada (login local não existe mais).
@@ -37,4 +38,5 @@ A arquitetura de usuários foi refatorada para garantir que o Supabase Auth seja
 | Heurística de ID removida | SIM |
 | Login por Username 100% Dinâmico | SIM |
 | Alteração de E-mail/Senha funcional | SIM |
+| Build do sistema | SUCESSO |
 
