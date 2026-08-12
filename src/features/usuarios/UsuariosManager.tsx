@@ -133,7 +133,7 @@ export function UsuariosManager() {
     
     setLoadingId(u.id);
     try {
-      const senha = window.prompt(`Informe a senha atual de "${u.usuario}" para sincronizar com o servidor:`, u.senha);
+      const senha = window.prompt(`Informe a senha atual de "${u.usuario}" para sincronizar com o servidor:`, "");
       if (senha === null) return;
 
       const res = await sincronizar(u, senha);

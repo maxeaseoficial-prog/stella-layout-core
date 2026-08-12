@@ -13,7 +13,12 @@ export function carregarUsuarios(): Usuario[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed as Usuario[];
+    const sanitized = (parsed as any[]).map(u => {
+      const { senha, novaSenha, confirmarSenha, confirmarNovaSenha, password, ...seguro } = u;
+      return seguro;
+    });
+    return sanitized as Usuario[];
+
   } catch {
     return [];
   }
