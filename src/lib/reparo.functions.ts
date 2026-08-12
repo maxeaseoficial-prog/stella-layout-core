@@ -46,7 +46,7 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
         userId = auth.userId!;
     } else {
         // CENÁRIO D: Existe, mas metadata pode estar errada ou incompleta
-        await atualizarAuthEMetadata(userId, {
+        const metadataResult = await atualizarAuthEMetadata(userId, {
             email: data.email,
             nome: data.nome,
             usuario: data.usuario,
@@ -54,9 +54,16 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
             status: data.status
         });
 
-        // Se mandou senha (Regra 16), redefinir para garantir acesso
+        if (!metadataResult.ok) {
+            return { ok: false, erro: metadataResult.erro };
+        }
+
+        // Se mandou senha, redefinir para garantir acesso
         if (data.novaSenha) {
-            await redefinirSenhaAuth(data.email, data.novaSenha);
+            const senhaResult = await redefinirSenhaAuth(data.email, data.novaSenha);
+            if (!senhaResult.ok) {
+                return { ok: false, erro: senhaResult.erro };
+            }
         }
     }
 

@@ -138,7 +138,7 @@ export function DiagnosticoAcessoDialog({ open, onOpenChange, usuario, onRepair 
                         ? "O ID local está em conflito com o ID do servidor. Isso impede a sincronização de dados."
                         : diagnostico.authStatus === "inativo"
                           ? "O usuário está marcado como Inativo no servidor e não poderá logar."
-                          : "Tudo parece correto. Se o login falhar, verifique a senha."}
+                          : "Tudo parece correto. Se o login falhar, tente redefinir a senha."}
                 </p>
               </div>
             </div>
@@ -147,9 +147,10 @@ export function DiagnosticoAcessoDialog({ open, onOpenChange, usuario, onRepair 
 
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
-          {!loading && diagnostico && !podeAutenticar && (
+          {!loading && diagnostico && (
             <Button onClick={() => onRepair(diagnostico)} className="gap-2">
-              <RefreshCw className="h-4 w-4" /> Reparar Acesso
+              <RefreshCw className="h-4 w-4" /> 
+              {podeAutenticar ? "Redefinir senha de acesso" : "Reparar Acesso"}
             </Button>
           )}
         </DialogFooter>
