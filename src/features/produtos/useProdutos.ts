@@ -85,11 +85,35 @@ export function deduplicarProdutosPorSku(produtos: Produto[]): Produto[] {
   });
 }
 
+const BACKUP_KEY = "stella.produtos.backup.before-dedupe";
+const STORAGE_KEY = "stella.produtos.v1";
+
 export function useProdutos() {
   const produtos = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const hidratado = isBrowser();
 
-  // Seed automático para demonstração/teste se a lista estiver vazia
+  // Deduplicação automática segura e backup
+  useEffect(() => {
+    if (!hidratado) return;
+
+    const atuais = getSnapshot();
+    const limpos = deduplicarProdutosPorSku(atuais);
+
+    if (limpos.length !== atuais.length) {
+      console.log(`[Deduplicação] Detectados ${atuais.length} itens, limpando para ${limpos.length}...`);
+      
+      // Criar backup real apenas se não existir um
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw && !localStorage.getItem(BACKUP_KEY)) {
+        localStorage.setItem(BACKUP_KEY, raw);
+        console.log(`[Deduplicação] Backup de ${atuais.length} itens criado com sucesso.`);
+      }
+
+      setProdutos(limpos);
+    }
+  }, [hidratado]);
+
+  // Seed automático apenas se realmente estiver vazio após deduplicação
   useEffect(() => {
     if (hidratado && produtos.length === 0) {
       const novasSementes = PRODUTOS_SEED.map(seed => ({
@@ -110,8 +134,7 @@ export function useProdutos() {
     if (entrada.sku) {
       const existente = snapshots.find(p => normalizarSku(p.sku) === skuNovo);
       if (existente) {
-        console.warn(`Tentativa de criar produto duplicado com SKU: ${entrada.sku}`);
-        return existente;
+        throw new Error(`Já existe um produto cadastrado com este SKU: ${entrada.sku}`);
       }
     }
 
@@ -134,10 +157,7 @@ export function useProdutos() {
     if (entrada.sku) {
       const conflito = snapshots.find(p => p.id !== id && normalizarSku(p.sku) === skuNovo);
       if (conflito) {
-        console.warn(`Tentativa de alterar SKU para um já existente: ${entrada.sku}`);
-        // Mantém o SKU original se houver conflito
-        const original = snapshots.find(p => p.id === id);
-        entrada.sku = original?.sku || entrada.sku;
+        throw new Error(`Este SKU já está sendo utilizado por outro produto: ${entrada.sku}`);
       }
     }
 
