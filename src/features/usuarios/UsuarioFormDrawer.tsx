@@ -118,6 +118,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         toast.error("A confirmação de senha não confere.");
         return;
       }
+      console.log("Creating new user with input:", { ...form, senha: "***", confirmar: "***" });
       const res = await criarUsuario(
         {
           nome: form.nome.trim(),
@@ -134,6 +135,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         responsavel,
       );
       if (!res.ok) {
+        console.warn("Create user failed:", res);
         toast.error(res.erro ?? "Não foi possível criar o usuário.");
         return;
       }

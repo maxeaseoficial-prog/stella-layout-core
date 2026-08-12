@@ -163,6 +163,7 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
   });
 
   if (!result.ok) {
+    console.warn("criarUsuarioSistema retornou erro:", result);
     return { ok: false, erro: result.erro };
   }
 

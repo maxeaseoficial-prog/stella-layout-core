@@ -106,10 +106,14 @@ export async function atualizarAuthEMetadata(userId: string, data: any) {
     updates.password = data.novaSenha;
   }
 
-  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, updates);
-
-  if (error) return { ok: false, erro: error.message };
-  return { ok: true };
+  try {
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, updates);
+    if (error) return { ok: false, erro: error.message };
+    return { ok: true };
+  } catch (err: any) {
+    console.error("Erro em atualizarAuthEMetadata:", err);
+    return { ok: false, erro: "Erro interno ao atualizar usuário: " + err.message };
+  }
 }
 
 export async function redefinirSenhaAuth(email: string, novaSenha: string) {
