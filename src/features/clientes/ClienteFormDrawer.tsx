@@ -419,7 +419,7 @@ export function ClienteFormDrawer({
                   />
                 </Campo>
 
-                <Campo label="CEP">
+                <Campo label="CEP" obrigatorio erro={erros.cep}>
                   <Input
                     value={form.cep}
                     onChange={async (e) => {
@@ -440,7 +440,7 @@ export function ClienteFormDrawer({
                   />
                 </Campo>
 
-                <Campo label="Estado">
+                <Campo label="Estado" obrigatorio erro={erros.estado}>
                   <Input
                     value={form.estado}
                     onChange={(e) => up("estado", e.target.value.toUpperCase().slice(0, 2))}
@@ -449,7 +449,7 @@ export function ClienteFormDrawer({
                   />
                 </Campo>
 
-                <Campo label="Cidade">
+                <Campo label="Cidade" obrigatorio erro={erros.cidade}>
                   <Input
                     value={form.cidade}
                     onChange={(e) => up("cidade", e.target.value)}
@@ -457,7 +457,7 @@ export function ClienteFormDrawer({
                   />
                 </Campo>
 
-                <Campo label="Bairro">
+                <Campo label="Bairro" obrigatorio erro={erros.bairro}>
                   <Input
                     value={form.bairro}
                     onChange={(e) => up("bairro", e.target.value)}
@@ -465,7 +465,7 @@ export function ClienteFormDrawer({
                   />
                 </Campo>
 
-                <Campo label="Logradouro" className="sm:col-span-2">
+                <Campo label="Logradouro" obrigatorio erro={erros.logradouro} className="sm:col-span-2">
                   <Input
                     value={form.logradouro}
                     onChange={(e) => up("logradouro", e.target.value)}
@@ -473,7 +473,7 @@ export function ClienteFormDrawer({
                   />
                 </Campo>
 
-                <Campo label="Número">
+                <Campo label="Número" obrigatorio erro={erros.numero}>
                   <Input
                     value={form.numero}
                     onChange={(e) => up("numero", e.target.value)}
