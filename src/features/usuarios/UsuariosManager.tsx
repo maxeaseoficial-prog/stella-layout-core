@@ -104,10 +104,8 @@ export function UsuariosManager() {
   }
 
   async function handleSincronizar(u: Usuario) {
-    if (u.id.length > 20 || u.id.includes("-")) {
-      toast.info("Usuário já está sincronizado.");
-      return;
-    }
+    // Remover a checagem antiga que impedia diagnóstico de usuários não sincronizados
+
     
     setLoadingId(u.id);
     try {
