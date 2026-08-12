@@ -354,7 +354,7 @@ export function ClienteFormDrawer({
                         placeholder="Ex.: Maria Souza"
                       />
                     </Campo>
-                    <Campo label="CNPJ">
+                    <Campo label="CNPJ" obrigatorio erro={erros.cnpj}>
                       <Input
                         value={form.cnpj}
                         onChange={(e) => up("cnpj", formatarCNPJ(e.target.value))}
