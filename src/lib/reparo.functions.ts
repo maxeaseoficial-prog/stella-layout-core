@@ -14,7 +14,7 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
       novaSenha: z.string().optional()
     }).parse(d)
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<{ ok: boolean; erro?: string; userId?: string }> => {
     const { 
         buscarUserPorEmail, 
         criarUsuarioNoAuth, 
@@ -70,5 +70,6 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
 
     if (!vinculo.ok) return vinculo;
 
-    return { ok: true, userId };
+    return { ok: true, userId: userId as string };
   });
+

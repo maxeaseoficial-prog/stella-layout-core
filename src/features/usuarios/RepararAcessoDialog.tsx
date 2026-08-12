@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
-import type { Usuario } from "../types";
+import type { Usuario } from "./types";
 import { repararAcessoUsuario } from "@/lib/reparo.functions";
 import { toast } from "@/lib/toast";
 import { useUsuarios } from "./useUsuarios";

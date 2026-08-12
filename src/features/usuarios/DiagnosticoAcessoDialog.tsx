@@ -7,8 +7,9 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, XCircle, AlertTriangle, Shield, Link as LinkIcon, User, Mail, Info } from "lucide-react";
-import type { Usuario } from "../types";
+import { Loader2, CheckCircle2, XCircle, AlertTriangle, Shield, Link as LinkIcon, User, Mail, Info, RefreshCw } from "lucide-react";
+import type { Usuario } from "./types";
+
 import { diagnosticarUsuario } from "@/lib/diagnostico.functions";
 import { toast } from "@/lib/toast";
 
