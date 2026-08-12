@@ -118,7 +118,7 @@ export function UsuariosManager() {
       if (res.ok) {
         toast.success("Usuário sincronizado com o servidor!");
       } else {
-        toast.error(res.erro ?? "Erro ao sincronizar.");
+        toast.error((res as any).erro ?? "Erro ao sincronizar.");
       }
     } catch (err) {
       toast.error("Erro na comunicação com o servidor.");
