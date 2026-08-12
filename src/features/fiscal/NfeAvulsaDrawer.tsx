@@ -921,33 +921,45 @@ const [buscaCliente, setBuscaCliente] = useState("");
         )}
 
         {!notaSucesso && (
-          <DialogFooter className="p-4 border-t bg-surface-muted/30 shrink-0 sticky bottom-0 z-20">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                if (itens.length > 0 || destinatario) {
-                  setDialogDescartarAberto(true);
-                } else {
-                  onFechar();
-                }
-              }} 
-              disabled={emitindo}
-            >
-            Cancelar
-          </Button>
-          <div className="flex-1" />
-          <Button
-            variant="outline"
-            onClick={handlePreview}
-            disabled={emitindo || previewCarregando}
-            className="gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            {previewCarregando ? "Montando..." : "Pré-visualizar"}
-          </Button>
-          <Button 
-            onClick={handleEmitir} 
+          <DialogFooter className="p-4 border-t bg-surface shrink-0 sticky bottom-0 z-20 flex items-center justify-between">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handlePreview} 
+                disabled={previewCarregando || itens.length === 0}
+                className="gap-2"
+              >
+                {previewCarregando ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                Prévia (JSON)
+              </Button>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground">Total da Nota</p>
+                <p className="text-xl font-black text-primary leading-none">{formatarMoeda(total)}</p>
+              </div>
+              <Button 
+                size="lg"
+                disabled={emitindo || !!validarDestinatario() || !!validarItens() || total <= 0}
+                onClick={handleEmitir}
+                className="gap-2 min-w-[180px]"
+              >
+                {emitindo ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Transmitindo...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-5 w-5" />
+                    Emitir Nota Fiscal
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogFooter>
+        )}
+
             disabled={emitindo}
             className="bg-primary hover:bg-primary/90 min-w-[140px]"
           >
