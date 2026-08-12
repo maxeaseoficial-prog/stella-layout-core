@@ -94,11 +94,15 @@ function getStableSnapshot(): AuthState {
 }
 const EMPTY_SNAPSHOT: AuthState = { user: null };
 
-function identificadorParaEmail(id: string): string {
+async function identificadorParaEmail(id: string): Promise<string> {
   const trimmed = id.trim();
   if (trimmed.includes("@")) return trimmed.toLowerCase();
-  const key = trimmed.toLowerCase();
-  return APELIDOS_EMAIL[key] ?? key;
+  
+  // Tentar resolver via API do servidor (que inclui o catálogo real e os apelidos legacy)
+  const { resolverEmailDeLogin } = await import("@/lib/usuarios.functions");
+  const { email } = await resolverEmailDeLogin({ data: { identificador: trimmed } });
+  
+  return email ?? trimmed;
 }
 
 async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null; foto?: string }> {
@@ -107,7 +111,11 @@ async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel
     .select("papel, permissoes")
     .eq("user_id", userId)
     .maybeSingle();
-  const papel = ((data?.papel as Papel | undefined) ?? "administrador") as Papel;
+  const papel = (data?.papel as Papel | undefined) ?? null;
+  if (!papel) {
+    // Se não tem vínculo, retorna um papel nulo ou mínimo, não administrador
+    return { papel: null as unknown as Papel, permissoes: [] };
+  }
   const permissoes = data?.permissoes as ModuloRota[] | null;
   // A coluna 'foto' ainda não existe no banco, então pegamos do metadados por enquanto
   return { papel, permissoes };
@@ -132,13 +140,20 @@ async function sincronizarSessao() {
     id: u.id,
     email: u.email ?? "",
     nome,
-    papel,
-    papelLabel: PAPEL_LABEL[papel],
+    papel: papel || "caixa", // Fallback seguro se chegar aqui sem papel
+    papelLabel: papel ? PAPEL_LABEL[papel] : "Sem Vínculo",
     foto: u.user_metadata?.avatar_url || u.user_metadata?.picture,
-    permissoesAbas: permissoes || meta.permissoes || ROTAS_PERMITIDAS[papel],
+    permissoesAbas: permissoes || meta.permissoes || (papel ? ROTAS_PERMITIDAS[papel] : []),
     logadoEm: new Date().toISOString(),
     precisaTrocarSenha: false,
   };
+
+  // Se o usuário estiver inativo no metadata, forçar logout
+  if (u.user_metadata?.status === "inativo") {
+    await logout();
+    return;
+  }
+
   escrever({ user: authUser });
 }
 
@@ -195,7 +210,7 @@ export async function login(
   identificador: string,
   senha: string,
 ): Promise<{ ok: boolean; erro?: string; precisaTrocarSenha?: boolean }> {
-  const email = identificadorParaEmail(identificador);
+  const email = await identificadorParaEmail(identificador);
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password: senha,

@@ -99,7 +99,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
     reader.readAsDataURL(file);
   }
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.nome.trim() || !form.email.trim() || !form.usuario.trim()) {
       toast.error("Preencha os campos obrigatórios.");
@@ -114,7 +114,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         toast.error("A confirmação de senha não confere.");
         return;
       }
-      const res = criarUsuario(
+      const res = await criarUsuario(
         {
           nome: form.nome.trim(),
           foto: form.foto,
@@ -139,7 +139,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
     }
 
     // edição — senha só é atualizada via "Redefinir senha"
-    const res = atualizarUsuario(
+    const res = await atualizarUsuario(
       usuarioAtual!.id,
       {
         nome: form.nome.trim(),

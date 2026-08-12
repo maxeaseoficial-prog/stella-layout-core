@@ -44,6 +44,8 @@ export function UsuariosManager() {
   const [ativoView, setAtivoView] = useState<Usuario | null>(null);
   const [ativoSenha, setAtivoSenha] = useState<Usuario | null>(null);
   const [excluir, setExcluir] = useState<Usuario | null>(null);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const { sincronizar } = useUsuarios();
 
   const responsavel = user?.nome ?? "Sistema";
 
@@ -101,6 +103,30 @@ export function UsuariosManager() {
     setExcluir(null);
   }
 
+  async function handleSincronizar(u: Usuario) {
+    if (u.id.length > 20 || u.id.includes("-")) {
+      toast.info("Usuário já está sincronizado.");
+      return;
+    }
+    
+    setLoadingId(u.id);
+    try {
+      const senha = window.prompt(`Informe a senha atual de "${u.usuario}" para sincronizar com o servidor:`, u.senha);
+      if (senha === null) return;
+
+      const res = await sincronizar(u, senha);
+      if (res.ok) {
+        toast.success("Usuário sincronizado com o servidor!");
+      } else {
+        toast.error((res as any).erro ?? "Erro ao sincronizar.");
+      }
+    } catch (err) {
+      toast.error("Erro na comunicação com o servidor.");
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -153,6 +179,8 @@ export function UsuariosManager() {
         onResetSenha={abrirSenha}
         onToggleStatus={alternar}
         onDelete={setExcluir}
+        onSincronizar={handleSincronizar}
+        loadingId={loadingId}
       />
 
       <UsuarioFormDrawer
