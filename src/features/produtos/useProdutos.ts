@@ -189,18 +189,19 @@ export function useProdutos() {
 
   const sincronizar = useCallback(() => {
     if (!hidratado) return;
-    const novasSementes = PRODUTOS_SEED.map((seed) => ({
-      ...seed,
-      id: novoId(),
-      criadoEm: new Date().toISOString(),
-      atualizadoEm: new Date().toISOString(),
-    }));
     
     const existentes = getSnapshot();
-    const skusExistentes = new Set(existentes.map(p => p.sku));
+    const skusExistentes = new Set(existentes.map(p => normalizarSku(p.sku)));
     
-    // Filtra para adicionar apenas o que não existe por SKU
-    const apenasNovos = novasSementes.filter(p => !skusExistentes.has(p.sku));
+    // Filtra do seed apenas os SKUs que realmente não existem
+    const apenasNovos = PRODUTOS_SEED
+      .filter(seed => !skusExistentes.has(normalizarSku(seed.sku)))
+      .map((seed) => ({
+        ...seed,
+        id: novoId(),
+        criadoEm: new Date().toISOString(),
+        atualizadoEm: new Date().toISOString(),
+      })) as Produto[];
     
     if (apenasNovos.length > 0) {
       setProdutos([...existentes, ...apenasNovos]);
@@ -209,8 +210,32 @@ export function useProdutos() {
     return 0;
   }, [hidratado]);
 
+  /** Função de manutenção para limpar duplicidades históricas */
+  const deduplicar = useCallback(() => {
+    if (!hidratado) return;
+    const atuais = getSnapshot();
+    const limpos = deduplicarProdutosPorSku(atuais);
+    if (limpos.length !== atuais.length) {
+      setProdutos(limpos);
+      return atuais.length - limpos.length;
+    }
+    return 0;
+  }, [hidratado]);
+
   return useMemo(
-    () => ({ produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar, sincronizar }),
-    [produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar, sincronizar],
+    () => ({ 
+      produtos, 
+      ativos, 
+      hidratado, 
+      criar, 
+      atualizar, 
+      excluir, 
+      remover, 
+      buscarPorId, 
+      filtrar, 
+      sincronizar,
+      deduplicar 
+    }),
+    [produtos, ativos, hidratado, criar, atualizar, excluir, remover, buscarPorId, filtrar, sincronizar, deduplicar],
   );
 }
