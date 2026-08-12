@@ -103,6 +103,18 @@ export function useProdutos() {
   }, [hidratado, produtos.length]);
 
   const criar = useCallback((entrada: ProdutoInput): Produto => {
+    const snapshots = getSnapshot();
+    const skuNovo = normalizarSku(entrada.sku);
+    
+    // Impedir duplicidade na criação se o SKU for informado
+    if (entrada.sku) {
+      const existente = snapshots.find(p => normalizarSku(p.sku) === skuNovo);
+      if (existente) {
+        console.warn(`Tentativa de criar produto duplicado com SKU: ${entrada.sku}`);
+        return existente;
+      }
+    }
+
     const agora = new Date().toISOString();
     const novo: Produto = {
       ...entrada,
@@ -110,13 +122,27 @@ export function useProdutos() {
       criadoEm: agora,
       atualizadoEm: agora,
     };
-    setProdutos([novo, ...getSnapshot()]);
+    setProdutos([novo, ...snapshots]);
     return novo;
   }, []);
 
   const atualizar = useCallback((id: string, entrada: ProdutoInput) => {
+    const snapshots = getSnapshot();
+    const skuNovo = normalizarSku(entrada.sku);
+
+    // Impedir alteração de SKU para um que já pertença a OUTRO produto
+    if (entrada.sku) {
+      const conflito = snapshots.find(p => p.id !== id && normalizarSku(p.sku) === skuNovo);
+      if (conflito) {
+        console.warn(`Tentativa de alterar SKU para um já existente: ${entrada.sku}`);
+        // Mantém o SKU original se houver conflito
+        const original = snapshots.find(p => p.id === id);
+        entrada.sku = original?.sku || entrada.sku;
+      }
+    }
+
     setProdutos(
-      getSnapshot().map((p) =>
+      snapshots.map((p) =>
         p.id === id
           ? { ...entrada, id: p.id, criadoEm: p.criadoEm, atualizadoEm: new Date().toISOString() }
           : p,
