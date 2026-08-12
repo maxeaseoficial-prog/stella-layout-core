@@ -134,25 +134,46 @@ export function registrarAcesso(usuarioId: string) {
   commit(nova);
 }
 
-export function criarUsuario(input: NovoUsuarioInput, responsavel: string): { ok: boolean; erro?: string; id?: string } {
+export async function criarUsuario(input: NovoUsuarioInput, responsavel: string): Promise<{ ok: boolean; erro?: string; id?: string }> {
   const lista = garantirSeed();
   const usernameNorm = input.usuario.trim().toLowerCase();
   const emailNorm = input.email.trim().toLowerCase();
+  
   if (!usernameNorm) return { ok: false, erro: "Informe o nome de usuário." };
   if (!input.nome.trim()) return { ok: false, erro: "Informe o nome completo." };
   if (!emailNorm) return { ok: false, erro: "Informe o e-mail." };
   if (!input.senha) return { ok: false, erro: "Informe a senha temporária." };
+
   if (lista.some((u) => u.usuario.toLowerCase() === usernameNorm)) {
-    return { ok: false, erro: "Já existe um usuário com este nome." };
+    return { ok: false, erro: "Já existe um usuário com este nome na lista local." };
   }
   if (lista.some((u) => u.email.toLowerCase() === emailNorm)) {
-    return { ok: false, erro: "Já existe um usuário com este e-mail." };
+    return { ok: false, erro: "Já existe um usuário com este e-mail na lista local." };
   }
+
+  // 1. Criar no Supabase Auth e vincular no servidor
+  const { criarUsuarioSistema } = await import("@/lib/usuarios.functions");
+  const result = await criarUsuarioSistema({
+    data: {
+      nome: input.nome.trim(),
+      usuario: usernameNorm,
+      email: emailNorm,
+      senha: input.senha,
+      papel: input.papel,
+      permissoesAbas: input.permissoesAbas || ROTAS_PERMITIDAS[input.papel],
+      status: input.status,
+    }
+  });
+
+  if (!result.ok) {
+    return { ok: false, erro: result.erro };
+  }
+
   const novo: Usuario = {
     ...input,
     usuario: usernameNorm,
     email: input.email.trim(),
-    id: uid(),
+    id: result.userId || uid(),
     criadoEm: nowIso(),
     atualizadoEm: nowIso(),
     historico: [
@@ -163,14 +184,34 @@ export function criarUsuario(input: NovoUsuarioInput, responsavel: string): { ok
   return { ok: true, id: novo.id };
 }
 
-export function atualizarUsuario(
+export async function atualizarUsuario(
   id: string,
   patch: Partial<Omit<Usuario, "id" | "criadoEm" | "historico">>,
   responsavel: string,
-): { ok: boolean; erro?: string } {
+): Promise<{ ok: boolean; erro?: string }> {
   const lista = garantirSeed();
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
+  
+  // Se for uma conta semente ou tiver um ID de UUID, tentar atualizar no servidor
+  const isRealUser = id.length > 20 || id.includes("-");
+
+  if (isRealUser) {
+    const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
+    const sync = await atualizarUsuarioSistema({
+      data: {
+        userId: id,
+        nome: patch.nome ?? alvo.nome,
+        usuario: patch.usuario ?? alvo.usuario,
+        email: patch.email ?? alvo.email,
+        papel: patch.papel ?? alvo.papel,
+        permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? ROTAS_PERMITIDAS[patch.papel ?? alvo.papel],
+        status: patch.status ?? alvo.status,
+      }
+    });
+    if (!sync.ok) return sync;
+  }
+
   if (patch.usuario) {
     const novoNome = patch.usuario.trim().toLowerCase();
     if (lista.some((u) => u.id !== id && u.usuario.toLowerCase() === novoNome)) {
@@ -185,6 +226,7 @@ export function atualizarUsuario(
     }
     patch.email = patch.email.trim();
   }
+
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
     const atualizado: Usuario = { ...u, ...patch, atualizadoEm: nowIso() };
