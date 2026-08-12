@@ -121,6 +121,7 @@ function estadoInicial(cliente?: Cliente | null): FormState {
 }
 
 import { formatarCEP, buscarCep, formatarCNPJ, formatarCPF, formatarTelefone, getIniciais, hojeISO } from "./utils";
+import { toast } from "sonner";
 
 export function ClienteFormDrawer({
   aberto,
@@ -167,7 +168,12 @@ export function ClienteFormDrawer({
     // REMOVIDO: bloqueio de cadastro por falta de endereço completo.
 
     setErros(e);
-    return Object.keys(e).length === 0;
+    if (Object.keys(e).length > 0) {
+      const primeiroErro = Object.values(e)[0];
+      toast.error(primeiroErro);
+      return false;
+    }
+    return true;
   }
 
   function handleSalvar() {

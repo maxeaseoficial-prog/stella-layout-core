@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -210,7 +211,10 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
   }
 
   function avancar() {
-    if (!podeAvancar()) return;
+    if (!podeAvancar()) {
+      if (erro) toast.error(erro);
+      return;
+    }
     setEtapa((e) => Math.min(3, e + 1));
   }
 
@@ -224,9 +228,13 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
     const msg = validarItens();
     if (msg) {
       setErro(msg);
+      toast.error(msg);
       return;
     }
-    if (!podeAvancar()) return;
+    if (!podeAvancar()) {
+      if (erro) toast.error(erro);
+      return;
+    }
 
     if (entregaImediata && !pedido) {
       setModalEntrega(true);
@@ -240,9 +248,13 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
     const msg = validarItens();
     if (msg) {
       setErro(msg);
+      toast.error(msg);
       return;
     }
-    if (!podeAvancar()) return;
+    if (!podeAvancar()) {
+      if (erro) toast.error(erro);
+      return;
+    }
 
     // Captura NCM snapshot
     const itensComSnapshot = form.itens.map(it => {
