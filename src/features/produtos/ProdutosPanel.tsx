@@ -64,15 +64,19 @@ export function ProdutosPanel() {
     setFormAberto(true);
   }
 
-  function handleSalvar(dados: ProdutoInput, id?: string) {
-    if (id) {
-      atualizar(id, dados);
-      toast.success("Produto atualizado com sucesso.");
-    } else {
-      criar(dados);
-      toast.success("Produto cadastrado com sucesso.");
+  async function handleSalvar(dados: ProdutoInput, id?: string) {
+    try {
+      if (id) {
+        atualizar(id, dados);
+        toast.success("Produto atualizado com sucesso.");
+      } else {
+        criar(dados);
+        toast.success("Produto cadastrado com sucesso.");
+      }
+      setFormAberto(false);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao salvar produto.");
     }
-    setFormAberto(false);
   }
 
   function confirmarExclusao() {
