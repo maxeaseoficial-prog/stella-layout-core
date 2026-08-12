@@ -24,22 +24,12 @@ const STORAGE_KEY = "stella:auth";
 const EVENT_NAME = "stella:auth:updated";
 const TENANT_ID_DEFAULT = "11111111-1111-1111-1111-111111111111";
 
-export const CONTA_TESTE = {
-  email: "administrador@gmail.com",
-  senha: "adm123",
-  usuarioMatriz: "matriz",
-  senhaMatriz: "matriz123",
-} as const;
+export const CONTA_TESTE = null;
 
 const PAPEL_LABEL: Record<Papel, string> = {
   administrador: "Administrador",
   operador_matriz: "Operador Matriz",
   caixa: "Caixa",
-};
-
-const APELIDOS_EMAIL: Record<string, string> = {
-  administrador: "administrador@gmail.com",
-  matriz: "matriz@stella.com.br",
 };
 
 export interface AuthUser {
