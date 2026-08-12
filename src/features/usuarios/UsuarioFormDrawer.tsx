@@ -109,6 +109,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       toast.error("Preencha os campos obrigatórios.");
       return;
     }
+    console.log("Submit triggered. isEdit:", isEdit);
     if (!isEdit) {
       if (!form.senha) {
         toast.error("Informe a senha temporária.");
@@ -152,7 +153,9 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       if (form.novaSenha !== form.confirmarNovaSenha) {
         toast.error("A confirmação da nova senha não confere.");
         return;
-      }
+    }
+
+    console.log("Proceeding to update user...");
     }
 
     console.log("Submitting update for user:", usuarioAtual.id, "with patch:", {
@@ -201,7 +204,13 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={submit} className="flex flex-1 flex-col overflow-hidden">
+        <form 
+          onSubmit={(e) => {
+            console.log("Form onSubmit event fired");
+            submit(e);
+          }} 
+          className="flex flex-1 flex-col overflow-hidden"
+        >
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
             {/* Foto */}
             <div className="flex items-center gap-4">

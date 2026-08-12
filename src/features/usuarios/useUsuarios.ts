@@ -149,6 +149,7 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
 
 
   // 1. Criar no Supabase Auth e vincular no servidor
+  console.log("Calling criarUsuarioSistema with data...");
   const { criarUsuarioSistema } = await import("@/lib/usuarios.functions");
   const result = await criarUsuarioSistema({
     data: {
