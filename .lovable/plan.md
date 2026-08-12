@@ -1,43 +1,31 @@
-# Plano de Ajuste de Integridade e Segurança de Usuários
+# Plano de Correção: UUID e Reconciliação de Identidade de Usuário
 
-Corrigir a persistência de credenciais no localStorage, remover heurísticas de ID legadas e garantir que o Supabase Auth seja a única fonte de verdade para autenticação e gestão de usuários.
+Corrigir o erro "Expected parameter to be UUID" ao editar usuários (como o Operador Matriz) e garantir que IDs legados (como `seed_matriz`) sejam substituídos pelos UUIDs reais do Supabase Auth no cache local após a primeira sincronização/edição bem-sucedida.
 
 ## Alterações Técnicas
 
-### 1. Refatoração de Tipos (src/features/usuarios/types.ts)
-- Remover campo `senha` da interface `Usuario`.
-- Criar `CriarUsuarioInput` e `AtualizarUsuarioInput` para lidar com campos transitórios de senha.
+### 1. Servidor: Resolução Canônica de Usuário
+- Criar `resolverAuthUser` em `src/lib/usuarios.server.ts` para localizar o UUID real via:
+    1. Verificação de UUID válido.
+    2. Busca por e-mail anterior/atual.
+    3. Busca por metadados de username.
+- Validar UUIDs usando regex real.
+- Atualizar `atualizarAuthEMetadata` para receber dados de busca e retornar o UUID canônico.
 
-### 2. Sanitização do LocalStorage (src/features/usuarios/storage.ts)
-- Implementar sanitização na leitura (`carregarUsuarios`) para remover propriedades sensíveis (`senha`, `novaSenha`, etc.).
-- Garantir que a migração não apague usuários, apenas limpe os dados sensíveis.
+### 2. Funções de Servidor: Retorno de ID
+- Atualizar `atualizarUsuarioSistema` e `alternarStatusSistema` para retornar o `userId` real do Supabase Auth.
+- Garantir que as operações administrativas (`updateUserById`) usem apenas o UUID resolvido.
 
-### 3. Ajustes no Hook de Gestão (src/features/usuarios/useUsuarios.ts)
-- **Criação**: Desestruturar explicitamente a senha do input antes de persistir no cache local.
-- **Edição**: Remover `novaSenha` e campos de confirmação do patch antes de atualizar o cache local.
-- **Redefinição de Senha**: Remover `senha: novaSenha` da função `redefinirSenha`. Persistir apenas metadados de controle.
-- **Troca de Senha Própria**: Atualizar para usar Supabase Auth (via server function ou `supabase.auth.updateUser`) e não persistir a senha localmente.
-- **Heurística de ID**: Remover `isRealUser` em `alternarStatus`. Usar UUID check ou consultar o servidor.
-- **Seed**: Impedir que o SEED sobrescreva dados reais do servidor ou apareça quando o servidor já tem dados.
+### 3. Frontend: Reconciliação de ID
+- Atualizar `atualizarUsuario` em `src/features/usuarios/useUsuarios.ts` para:
+    - Enviar `emailAtual` e `usuarioAtual` explicitamente.
+    - Se o `userId` retornado for diferente do ID local, atualizar o registro no `localStorage`.
+- Corrigir `alternarStatus` e `redefinirSenha` para também realizarem a resolution de UUID no servidor.
 
-### 4. Melhoria nas Server Functions (src/lib/usuarios.functions.ts & usuarios.server.ts)
-- **Vínculo**: Validar `vinculo.ok` em todas as funções que chamam `vincularUsuarioEmpresa`.
-- **Username**: Garantir que a resolução de username seja 100% dinâmica no servidor.
-
-### 5. Ajustes na UI (src/features/usuarios/UsuarioFormDrawer.tsx)
-- Garantir que o formulário utilize os novos tipos de input.
-- Validar campos obrigatórios (E-mail e Usuário) conforme solicitado anteriormente, mas agora integrado à nova arquitetura.
-
-### 6. Verificação e Testes
-- Validar login por e-mail e username.
-- Inspecionar `stella.usuarios.v1` no localStorage para confirmar ausência de senhas.
-
-## Relatório Final Esperado
-- Login dinâmico preservado: SIM
-- Senhas removidas do localStorage: SIM
-- Campo senha removido de Usuario: SIM
-- novaSenha não persistida: SIM
-- Heurística de ID removida totalmente: SIM
-- Vinculo.ok verificado: SIM
-- Usuários carregados do servidor: SIM
-- E-mail alterado aparece em outro navegador: SIM
+## Plano de Teste Obrigatório (Informar Resultados Concretos)
+- **Cenário**: Editar "Operador Matriz" que possui ID local `seed_matriz`.
+- **Ação**: Alterar telefone e salvar.
+- **Resultado Esperado**:
+    - Sucesso sem erro de UUID.
+    - O ID do usuário no cache local muda de `seed_matriz` para o UUID real do Supabase.
+    - Login por username (`matriz`) continua funcionando.
