@@ -989,22 +989,27 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-    <ClienteFormDrawer
-      aberto={cadastroClienteAberto}
-      onFechar={() => setCadastroClienteAberto(false)}
-      onSalvar={async (dados) => {
-        try {
-          const novo = await criarCliente(dados);
-          if (novo) {
-            setDestinatario(novo);
-            setCadastroClienteAberto(false);
-            toast.success("Cliente cadastrado e selecionado.");
+      <ClienteFormDrawer
+        aberto={cadastroClienteAberto}
+        onFechar={() => setCadastroClienteAberto(false)}
+        onSalvar={async (dados) => {
+          try {
+            const res = criarCliente(dados);
+            if (res.ok) {
+              setDestinatario(res.cliente);
+              setCadastroClienteAberto(false);
+              toast.success("Cliente cadastrado e selecionado.");
+            } else if (res.duplicado) {
+              setDestinatario(res.cliente);
+              setCadastroClienteAberto(false);
+              toast.info("Cliente já existia e foi selecionado.");
+            }
+          } catch (err) {
+            console.error("Erro ao cadastrar cliente:", err);
+            toast.error("Erro ao salvar o cliente.");
           }
-        } catch (err) {
-          console.error("Erro ao cadastrar cliente:", err);
-        }
-      }}
-    />
+        }}
+      />
     </>
   );
 }
