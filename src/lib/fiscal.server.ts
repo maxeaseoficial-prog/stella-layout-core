@@ -525,9 +525,24 @@ export function montarPayloadNfe(
   if (doc) {
     receiver.federalTaxNumber = doc;
     // Adiciona Inscrição Estadual (SEFAZ exige para PJ, "ISENTO" se não tiver)
+    // Adiciona Inscrição Estadual com validação de indicador
     if (cliente?.tipo === "empresa") {
-      receiver.stateTaxNumber = apenasDigitos(cliente.inscricaoEstadual) || "ISENTO";
+      const indicador = cliente.indicadorIe || (cliente.inscricaoEstadual ? "contribuinte" : "nao_contribuinte");
+      const ie = apenasDigitos(cliente.inscricaoEstadual);
+      
+      if (indicador === "contribuinte") {
+        if (!ie) {
+          throw new Error(`O destinatário "${getClienteNome(cliente)}" está marcado como Contribuinte ICMS, mas não possui Inscrição Estadual informada.`);
+        }
+        receiver.stateTaxNumber = ie;
+      } else if (indicador === "isento") {
+        receiver.stateTaxNumber = "ISENTO";
+      } else {
+        // Não contribuinte
+        receiver.stateTaxNumber = ""; 
+      }
     }
+
   }
   if (cliente?.cidade && cliente?.estado) {
     receiver.address = {
@@ -611,9 +626,12 @@ export function montarPayloadNfeAvulsa(
     receiver: {
       name: avulsa.destinatario.nome,
       federalTaxNumber: apenasDigitos(avulsa.destinatario.documento),
-      stateTaxNumber: (avulsa.destinatario.documento.replace(/\D/g, "").length === 14) 
-        ? (apenasDigitos(avulsa.destinatario.inscricaoEstadual) || "ISENTO")
-        : undefined,
+      stateTaxNumber: avulsa.destinatario.inscricaoEstadual === "ISENTO" 
+        ? "ISENTO" 
+        : (avulsa.destinatario.documento.replace(/\D/g, "").length === 14)
+          ? (apenasDigitos(avulsa.destinatario.inscricaoEstadual) || "")
+          : undefined,
+
       email: avulsa.destinatario.email,
       address: {
         street: avulsa.destinatario.logradouro || "",

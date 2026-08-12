@@ -89,13 +89,15 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     console.log("[Fiscal] Payload Destinatário (Pedido):", JSON.stringify({
       id: cliente?.id,
       nome: cliente ? getClienteNome(cliente) : "Não encontrado",
-      cep: cliente?.cep,
-      logradouro: cliente?.logradouro,
-      numero: cliente?.numero,
-      bairro: cliente?.bairro,
+      tipo: cliente?.tipo,
+      cnpjPresente: !!cliente?.tipo && cliente.tipo === 'empresa' && !!cliente.cnpj,
+      iePresente: !!cliente?.tipo && cliente.tipo === 'empresa' && !!cliente.inscricaoEstadual,
+      ieDigitos: cliente?.tipo === 'empresa' ? cliente.inscricaoEstadual?.length ?? 0 : 0,
+      indicadorIe: cliente?.tipo === 'empresa' ? (cliente as any).indicadorIe : 'N/A',
       cidade: cliente?.cidade,
       estado: cliente?.estado
     }, null, 2));
+
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);

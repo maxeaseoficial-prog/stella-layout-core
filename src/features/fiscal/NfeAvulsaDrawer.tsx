@@ -242,12 +242,20 @@ const [buscaCliente, setBuscaCliente] = useState("");
     const doc = (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "";
     if (doc.replace(/\D/g, "").length < 11) return "O destinatário não possui CPF/CNPJ válido cadastrado.";
     
+    if (destinatario.tipo === 'empresa') {
+      const indicador = destinatario.indicadorIe || (destinatario.inscricaoEstadual ? "contribuinte" : "nao_contribuinte");
+      if (indicador === 'contribuinte' && (!destinatario.inscricaoEstadual || destinatario.inscricaoEstadual === "ISENTO")) {
+        return "A Inscrição Estadual é obrigatória para destinatários contribuintes.";
+      }
+    }
+
     const nome = getClienteNome(destinatario);
     if (!nome || nome.trim().length < 2) return "O nome do destinatário é obrigatório.";
     if (!destinatario.cidade) return "O município do destinatário é obrigatório.";
     if (!destinatario.estado) return "A UF do destinatário é obrigatória.";
     if (!destinatario.cep) return "O CEP do destinatário é obrigatório.";
     if (!destinatario.logradouro) return "O logradouro (endereço) do destinatário é obrigatório.";
+
     
     return null;
   };
@@ -285,7 +293,9 @@ const [buscaCliente, setBuscaCliente] = useState("");
       complemento: destinatario.complemento || undefined,
       cidade: destinatario.cidade || undefined,
       estado: destinatario.estado || undefined,
-      inscricaoEstadual: (destinatario.tipo === 'empresa' ? destinatario.inscricaoEstadual : undefined) || "ISENTO",
+      inscricaoEstadual: destinatario.tipo === 'empresa' ? (destinatario.inscricaoEstadual || "") : "",
+      indicadorIe: destinatario.tipo === 'empresa' ? (destinatario.indicadorIe || (destinatario.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")) : undefined,
+
     },
     itens: itens.map((it: any) => ({
       id: it.id,
@@ -816,50 +826,54 @@ const [buscaCliente, setBuscaCliente] = useState("");
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border rounded-xl p-4 bg-surface space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-3.5 w-3.5" /> Resumo Fiscal
+              <div className="border rounded-xl p-4 bg-surface space-y-3 shadow-sm border-primary/20">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                  <Building className="h-3.5 w-3.5" /> Dados Fiscais do Destinatário
                 </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Ambiente:</span>
-                    <span className="font-semibold text-primary uppercase">{config.ambienteFiscal}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Itens fiscalmente válidos:</span>
-                    <span>{itens.filter(it => it.categoriaFiscalId && it.ncm.length === 8).length} de {itens.length}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Natureza:</span>
-                    <span>Venda</span>
-                  </div>
-                  <details className="group">
-                    <summary className="flex justify-between text-[11px] cursor-pointer hover:text-primary transition-colors py-1 list-none">
-                      <span className="text-primary font-medium">Ver detalhes fiscais</span>
-                      <span className="text-primary group-open:rotate-180 transition-transform">▼</span>
-                    </summary>
-                    <div className="pt-2 space-y-2 border-t mt-1 max-h-[120px] overflow-y-auto">
-                      {itens.map((it, idx) => {
-                        const ncmItem = (it.ncm || "").replace(/\D/g, "");
-                        const cfop = (destinatario?.estado === config.empresa.estado) 
-                          ? config.tributacao.cfopInterno 
-                          : config.tributacao.cfopInterestadual;
-                        const isSimples = config.tributacao.regime === "simplesNacional";
 
-                        return (
-                          <div key={idx} className="bg-surface-muted/50 p-2 rounded text-[10px] space-y-1">
-                            <p className="font-medium truncate">{it.descricao}</p>
-                            <div className="grid grid-cols-2 gap-x-2 text-muted-foreground">
-                              <span>NCM: {ncmItem || <span className="text-red-500">Pendente</span>}</span>
-                              <span>CFOP: {cfop}</span>
-                              <span>{isSimples ? "CSOSN" : "CST"}: {isSimples ? config.tributacao.csosn : config.tributacao.icmsCst}</span>
-                            </div>
+                <div className="space-y-2">
+                  {destinatario ? (
+                    <>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Razão Social/Nome:</span>
+                        <span className="font-semibold truncate max-w-[200px]">{getClienteNome(destinatario)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">CNPJ/CPF:</span>
+                        <span className="font-mono">{(destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf)?.replace(/\D/g, "")}</span>
+                      </div>
+                      {destinatario.tipo === 'empresa' && (
+                        <>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Indicador IE:</span>
+                            <Badge variant="outline" className="text-[10px] h-4 py-0 uppercase">
+                              {(destinatario.indicadorIe || (destinatario.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")).replace("_", " ")}
+                            </Badge>
                           </div>
-                        );
-                      })}
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Inscrição Estadual:</span>
+                            <span className={cn("font-mono", !destinatario.inscricaoEstadual && destinatario.indicadorIe === "contribuinte" && "text-destructive font-bold")}>
+                              {destinatario.inscricaoEstadual || (destinatario.indicadorIe === "contribuinte" ? "AUSENTE" : "NÃO INF.")}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">UF:</span>
+                        <span>{destinatario.estado || "Não informada"}</span>
+                      </div>
+                      <div className="pt-2 border-t mt-1 flex justify-between text-xs">
+                        <span className="text-muted-foreground">Ambiente:</span>
+                        <span className="font-bold text-primary uppercase">{config.ambienteFiscal}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-4 text-xs text-muted-foreground italic">
+                      Selecione um destinatário para ver os dados fiscais.
                     </div>
-                  </details>
+                  )}
                 </div>
+
               </div>
 
               <div className="border rounded-xl p-4 bg-surface-muted/30 space-y-2">
@@ -907,59 +921,63 @@ const [buscaCliente, setBuscaCliente] = useState("");
         )}
 
         {!notaSucesso && (
-          <DialogFooter className="p-4 border-t bg-surface-muted/30 shrink-0 sticky bottom-0 z-20">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                if (itens.length > 0 || destinatario) {
-                  setDialogDescartarAberto(true);
-                } else {
-                  onFechar();
-                }
-              }} 
-              disabled={emitindo}
-            >
-            Cancelar
-          </Button>
-          <div className="flex-1" />
-          <Button
-            variant="outline"
-            onClick={handlePreview}
-            disabled={emitindo || previewCarregando}
-            className="gap-2"
-          >
-            <FileText className="h-4 w-4" />
-            {previewCarregando ? "Montando..." : "Pré-visualizar"}
-          </Button>
-          <Button 
-            onClick={handleEmitir} 
-            disabled={emitindo}
-            className="bg-primary hover:bg-primary/90 min-w-[140px]"
-          >
-            {emitindo ? "Transmitindo..." : "Confirmar e Emitir"}
-          </Button>
+          <DialogFooter className="p-4 border-t bg-surface shrink-0 sticky bottom-0 z-20 flex items-center justify-between">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handlePreview} 
+                disabled={previewCarregando || itens.length === 0}
+                className="gap-2"
+              >
+                {previewCarregando ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                Prévia (JSON)
+              </Button>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground">Total da Nota</p>
+                <p className="text-xl font-black text-primary leading-none">{formatarMoeda(total)}</p>
+              </div>
+              <Button 
+                size="lg"
+                disabled={emitindo || !!validarDestinatario() || !!validarItens() || total <= 0}
+                onClick={handleEmitir}
+                className="gap-2 min-w-[180px]"
+              >
+                {emitindo ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    Transmitindo...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="h-5 w-5" />
+                    Emitir Nota Fiscal
+                  </>
+                )}
+              </Button>
+            </div>
           </DialogFooter>
         )}
       </DialogContent>
-      </Dialog>
+    </Dialog>
 
-      <ClienteFormDrawer
-        aberto={cadastroClienteAberto}
-        onFechar={() => setCadastroClienteAberto(false)}
-        onSalvar={async (dados) => {
-          try {
-            const novo = await criarCliente(dados);
-            if (novo) {
-              setDestinatario(novo);
-              setCadastroClienteAberto(false);
-              toast.success("Cliente cadastrado e selecionado.");
-            }
-          } catch (err) {
-            console.error("Erro ao cadastrar cliente:", err);
+    <ClienteFormDrawer
+      aberto={cadastroClienteAberto}
+      onFechar={() => setCadastroClienteAberto(false)}
+      onSalvar={async (dados) => {
+        try {
+          const novo = await criarCliente(dados);
+          if (novo) {
+            setDestinatario(novo);
+            setCadastroClienteAberto(false);
+            toast.success("Cliente cadastrado e selecionado.");
           }
-        }}
-      />
+        } catch (err) {
+          console.error("Erro ao cadastrar cliente:", err);
+        }
+      }}
+    />
 
     <PayloadPreviewDialog
       aberto={previewAberto}
@@ -991,30 +1009,10 @@ const [buscaCliente, setBuscaCliente] = useState("");
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-      <ClienteFormDrawer
-        aberto={cadastroClienteAberto}
-        onFechar={() => setCadastroClienteAberto(false)}
-        onSalvar={async (dados) => {
-          try {
-            const res = criarCliente(dados);
-            if (res.ok) {
-              setDestinatario(res.cliente);
-              setCadastroClienteAberto(false);
-              toast.success("Cliente cadastrado e selecionado.");
-            } else if (res.duplicado) {
-              setDestinatario(res.cliente);
-              setCadastroClienteAberto(false);
-              toast.info("Cliente já existia e foi selecionado.");
-            }
-          } catch (err) {
-            console.error("Erro ao cadastrar cliente:", err);
-            toast.error("Erro ao salvar o cliente.");
-          }
-        }}
-      />
     </>
   );
 }
+
 
 function ClassificacaoFiscalPicker({ 
   value, 
