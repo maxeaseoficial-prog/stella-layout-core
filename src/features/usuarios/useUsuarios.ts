@@ -19,7 +19,6 @@ const SEED: Usuario[] = [
     usuario: "administrador",
     email: "administrador@gmail.com",
     papel: "administrador",
-    senha: "adm123",
     status: "ativo",
     precisaTrocarSenha: false,
     criadoEm: nowIso(),
@@ -36,7 +35,6 @@ const SEED: Usuario[] = [
     usuario: "matriz",
     email: "matriz@stella.com.br",
     papel: "operador_matriz",
-    senha: "matriz123",
     status: "ativo",
     precisaTrocarSenha: false,
     criadoEm: nowIso(),
@@ -112,18 +110,10 @@ export function listarUsuarios(): Usuario[] {
   return garantirSeed();
 }
 
-export function encontrarPorCredencial(identificador: string, senha: string): Usuario | null {
-  const id = identificador.trim().toLowerCase();
-  const lista = garantirSeed();
-  const u = lista.find(
-    (x) =>
-      (x.usuario.toLowerCase() === id || x.email.toLowerCase() === id) &&
-      x.senha === senha,
-  );
-  if (u && !u.permissoesAbas) {
-    u.permissoesAbas = ROTAS_PERMITIDAS[u.papel];
-  }
-  return u ?? null;
+export function encontrarPorCredencial(_identificador: string, _senha: string): Usuario | null {
+  // A autenticação agora é feita exclusivamente via Supabase Auth no servidor.
+  // Esta função não deve mais ser usada para verificar senhas locais.
+  return null;
 }
 
 export function registrarAcesso(usuarioId: string) {
@@ -194,24 +184,20 @@ export async function atualizarUsuario(
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
   
-  // Se for uma conta semente ou tiver um ID de UUID, tentar atualizar no servidor
-  const isRealUser = id.length > 20 || id.includes("-");
-
-  if (isRealUser) {
-    const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
-    const sync = await atualizarUsuarioSistema({
-      data: {
-        userId: id,
-        nome: patch.nome ?? alvo.nome,
-        usuario: patch.usuario ?? alvo.usuario,
-        email: patch.email ?? alvo.email,
-        papel: patch.papel ?? alvo.papel,
-        permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? ROTAS_PERMITIDAS[patch.papel ?? alvo.papel],
-        status: patch.status ?? alvo.status,
-      }
-    });
-    if (!sync.ok) return sync;
-  }
+  const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
+  const sync = await atualizarUsuarioSistema({
+    data: {
+      userId: id,
+      nome: patch.nome ?? alvo.nome,
+      usuario: patch.usuario ?? alvo.usuario,
+      email: patch.email ?? alvo.email,
+      papel: patch.papel ?? alvo.papel,
+      permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? ROTAS_PERMITIDAS[patch.papel ?? alvo.papel],
+      status: patch.status ?? alvo.status,
+      novaSenha: (patch as any).novaSenha,
+    }
+  });
+  if (!sync.ok) return sync;
 
   if (patch.usuario) {
     const novoNome = patch.usuario.trim().toLowerCase();

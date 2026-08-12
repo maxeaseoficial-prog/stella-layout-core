@@ -42,6 +42,8 @@ interface FormState {
   usuario: string;
   senha: string;
   confirmar: string;
+  novaSenha?: string;
+  confirmarNovaSenha?: string;
   papel: Papel;
   status: StatusUsuario;
   precisaTrocarSenha: boolean;
@@ -57,6 +59,8 @@ function initialState(u: Usuario | null): FormState {
     usuario: u?.usuario ?? "",
     senha: "",
     confirmar: "",
+    novaSenha: "",
+    confirmarNovaSenha: "",
     papel: u?.papel ?? "operador_matriz",
     status: u?.status ?? "ativo",
     precisaTrocarSenha: u?.precisaTrocarSenha ?? true,
@@ -138,7 +142,17 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       return;
     }
 
-    // edição — senha só é atualizada via "Redefinir senha"
+    if (form.novaSenha) {
+      if (form.novaSenha.length < 6) {
+        toast.error("A nova senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+      if (form.novaSenha !== form.confirmarNovaSenha) {
+        toast.error("A confirmação da nova senha não confere.");
+        return;
+      }
+    }
+
     const res = await atualizarUsuario(
       usuarioAtual!.id,
       {
@@ -151,7 +165,8 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         status: form.status,
         precisaTrocarSenha: form.precisaTrocarSenha,
         permissoesAbas: form.permissoesAbas,
-      },
+        novaSenha: form.novaSenha || undefined,
+      } as any,
       responsavel,
     );
     if (!res.ok) {
@@ -280,9 +295,40 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
                 )}
               </div>
               {isEdit && (
-                <p className="text-xs text-muted-foreground">
-                  Para trocar a senha use a ação <strong>Redefinir senha</strong> na lista.
-                </p>
+                <div className="space-y-3 rounded-md border border-dashed border-pink-200 bg-pink-50/30 p-4">
+                  <h4 className="text-[10px] font-bold uppercase text-pink-500">Alterar Senha</h4>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label>Nova senha</Label>
+                      <div className="relative">
+                        <Input
+                          type={mostrarSenha ? "text" : "password"}
+                          value={form.novaSenha}
+                          onChange={(e) => setForm({ ...form, novaSenha: e.target.value })}
+                          placeholder="Mínimo 6 caracteres"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setMostrarSenha((v) => !v)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:bg-muted"
+                        >
+                          {mostrarSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Confirmar nova senha</Label>
+                      <Input
+                        type={mostrarSenha ? "text" : "password"}
+                        value={form.confirmarNovaSenha}
+                        onChange={(e) => setForm({ ...form, confirmarNovaSenha: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Deixe em branco para manter a senha atual.
+                  </p>
+                </div>
               )}
             </section>
 

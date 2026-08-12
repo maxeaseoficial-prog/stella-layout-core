@@ -71,14 +71,7 @@ export async function vincularUsuarioEmpresa({ userId, papel, permissoes }: any)
 }
 
 export async function buscarEmailPorUsername(username: string) {
-  // Caso especial para os seeds hardcoded no useAuth que devem continuar funcionando
-  const APELIDOS_LEGACY: Record<string, string> = {
-    administrador: "administrador@gmail.com",
-    matriz: "matriz@stella.com.br",
-  };
-  
   const lower = username.toLowerCase();
-  if (APELIDOS_LEGACY[lower]) return APELIDOS_LEGACY[lower];
 
   const { data: list } = await supabaseAdmin.auth.admin.listUsers();
   const user = list?.users.find(u => u.user_metadata?.usuario?.toLowerCase() === lower);
@@ -96,6 +89,27 @@ export async function buscarEmailPorUsername(username: string) {
   return vinculo ? user.email : null;
 }
 
+export async function atualizarAuthEMetadata(userId: string, data: any) {
+  const updates: any = {
+    email: data.email,
+    user_metadata: {
+      nome: data.nome,
+      usuario: data.usuario,
+      papel: data.papel,
+      status: data.status
+    }
+  };
+
+  if (data.novaSenha) {
+    updates.password = data.novaSenha;
+  }
+
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, updates);
+
+  if (error) return { ok: false, erro: error.message };
+  return { ok: true };
+}
+
 export async function redefinirSenhaAuth(email: string, novaSenha: string) {
   const user = await buscarUserPorEmail(email);
   if (!user) return { ok: false, erro: "Usuário não encontrado no Supabase Auth." };
@@ -108,17 +122,3 @@ export async function redefinirSenhaAuth(email: string, novaSenha: string) {
   return { ok: true };
 }
 
-export async function atualizarAuthEMetadata(userId: string, data: any) {
-  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-    email: data.email,
-    user_metadata: {
-      nome: data.nome,
-      usuario: data.usuario,
-      papel: data.papel,
-      status: data.status
-    }
-  });
-
-  if (error) return { ok: false, erro: error.message };
-  return { ok: true };
-}
