@@ -65,14 +65,15 @@ export const resolverEmailDeLogin = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { buscarEmailPorUsername } = await import("./usuarios.server");
     
-    // Se já for e-mail, retorna ele mesmo
     if (data.identificador.includes("@")) {
       return { email: data.identificador.toLowerCase() };
     }
 
     const email = await buscarEmailPorUsername(data.identificador);
-    return { email };
+    // Retorna null se não encontrar, conforme solicitado (regra 9)
+    return { email: email || null };
   });
+
 
 export const redefinirSenhaSistema = createServerFn({ method: "POST" })
   .inputValidator((d) => 

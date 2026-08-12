@@ -94,16 +94,16 @@ function getStableSnapshot(): AuthState {
 }
 const EMPTY_SNAPSHOT: AuthState = { user: null };
 
-async function identificadorParaEmail(id: string): Promise<string> {
+async function identificadorParaEmail(id: string): Promise<string | null> {
   const trimmed = id.trim();
   if (trimmed.includes("@")) return trimmed.toLowerCase();
   
-  // Tentar resolver via API do servidor (que inclui o catálogo real e os apelidos legacy)
   const { resolverEmailDeLogin } = await import("@/lib/usuarios.functions");
   const { email } = await resolverEmailDeLogin({ data: { identificador: trimmed } });
   
-  return email ?? trimmed;
+  return email || null;
 }
+
 
 async function papelEPermissoesDoUsuario(userId: string): Promise<{ papel: Papel; permissoes: ModuloRota[] | null; foto?: string }> {
   const { data } = await supabase
@@ -128,34 +128,45 @@ async function sincronizarSessao() {
     escrever({ user: null });
     return;
   }
+
   const { papel, permissoes } = await papelEPermissoesDoUsuario(u.id);
+  
+  // Regra 12: Usuário sem vínculo não pode entrar
+  if (!papel) {
+    await logout();
+    return;
+  }
+
+  // Regra 14: Validar status inativo via metadata
+  if (u.user_metadata?.status === "inativo") {
+    await logout();
+    return;
+  }
+
   const meta = (u.user_metadata ?? {}) as {
     nome?: string;
     usuario?: string;
     papel?: Papel;
     permissoes?: ModuloRota[];
   };
+
   const nome = meta.nome ?? (u.email?.split("@")[0] ?? "Usuário");
+  
   const authUser: AuthUser = {
     id: u.id,
     email: u.email ?? "",
     nome,
-    papel: papel || "caixa", // Fallback seguro se chegar aqui sem papel
-    papelLabel: papel ? PAPEL_LABEL[papel] : "Sem Vínculo",
+    papel,
+    papelLabel: PAPEL_LABEL[papel],
     foto: u.user_metadata?.avatar_url || u.user_metadata?.picture,
-    permissoesAbas: permissoes || meta.permissoes || (papel ? ROTAS_PERMITIDAS[papel] : []),
+    permissoesAbas: permissoes || meta.permissoes || ROTAS_PERMITIDAS[papel],
     logadoEm: new Date().toISOString(),
     precisaTrocarSenha: false,
   };
 
-  // Se o usuário estiver inativo no metadata, forçar logout
-  if (u.user_metadata?.status === "inativo") {
-    await logout();
-    return;
-  }
-
   escrever({ user: authUser });
 }
+
 
 // Assina onAuthStateChange uma única vez, no boot do módulo (client-side)
 if (isBrowser()) {
@@ -190,17 +201,17 @@ export function useAuth(): {
     () => EMPTY_SNAPSHOT,
   );
   const papel = state.user?.papel ?? null;
-  // Fallback para as rotas padrão se as permissões customizadas não existirem (usuários antigos/migração)
-  const permissoesAbas = (state.user as any)?.permissoesAbas ?? (papel ? ROTAS_PERMITIDAS[papel] : []);
+  const permissoesAbas = state.user?.permissoesAbas ?? [];
 
   return {
     user: state.user,
     isAuthenticated: !!state.user,
     papel,
-    capacidades: capacidadesDe(papel ?? "administrador"),
+    capacidades: capacidadesDe(papel), // Regra 13: zero capacidades se null
     permissoesAbas,
   };
 }
+
 
 export function usuarioAtual(): AuthUser | null {
   return ler().user;
@@ -211,16 +222,31 @@ export async function login(
   senha: string,
 ): Promise<{ ok: boolean; erro?: string; precisaTrocarSenha?: boolean }> {
   const email = await identificadorParaEmail(identificador);
+  
+  if (!email) {
+    return { ok: false, erro: "Usuário não encontrado ou acesso não sincronizado." };
+  }
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password: senha,
   });
+
   if (error || !data.user) {
     return { ok: false, erro: "Usuário ou senha incorretos." };
   }
+
+  // Sincronizar e validar sessão real
   await sincronizarSessao();
+  
+  const posLoginState = ler();
+  if (!posLoginState.user) {
+    return { ok: false, erro: "Acesso negado: Usuário sem vínculo com a empresa Stella." };
+  }
+
   return { ok: true, precisaTrocarSenha: false };
 }
+
 
 export async function logout() {
   await supabase.auth.signOut();
