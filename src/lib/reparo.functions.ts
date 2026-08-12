@@ -15,11 +15,15 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
     }).parse(d)
   )
   .handler(async ({ data }): Promise<{ ok: boolean; erro?: string; userId?: string }> => {
-    const { buscarUserPorEmail, criarUsuarioNoAuth, vincularUsuarioEmpresa, atualizarAuthEMetadata, redefinirSenhaAuth } = await import("./usuarios.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { 
+        buscarUserPorEmail, 
+        criarUsuarioNoAuth, 
+        vincularUsuarioEmpresa,
+        atualizarAuthEMetadata,
+        redefinirSenhaAuth
+    } = await import("./usuarios.server");
 
-
-    // 1. Verificar se existe no Auth
+    // 1. Verificar se existe no Auth pelo e-mail
     let authUser = await buscarUserPorEmail(data.email);
     let userId = authUser?.id;
 
@@ -41,7 +45,7 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
         if (!auth.ok) return auth;
         userId = auth.userId!;
     } else {
-        // CENÁRIO D: Existe, mas metadata pode estar errada
+        // CENÁRIO D: Existe, mas metadata pode estar errada ou incompleta
         await atualizarAuthEMetadata(userId, {
             email: data.email,
             nome: data.nome,
@@ -50,13 +54,13 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
             status: data.status
         });
 
-        // Se mandou senha, redefinir para garantir acesso
+        // Se mandou senha (Regra 16), redefinir para garantir acesso
         if (data.novaSenha) {
             await redefinirSenhaAuth(data.email, data.novaSenha);
         }
     }
 
-    // CENÁRIO B: Garantir vínculo
+    // CENÁRIO B: Garantir vínculo na tabela empresa_usuarios
     const vinculo = await vincularUsuarioEmpresa({
         userId,
         papel: data.papel,
@@ -65,6 +69,6 @@ export const repararAcessoUsuario = createServerFn({ method: "POST" })
 
     if (!vinculo.ok) return vinculo;
 
+    // Retorna o userId real do Auth para atualizar o cadastro local (CENÁRIO C)
     return { ok: true, userId: userId as string };
   });
-
