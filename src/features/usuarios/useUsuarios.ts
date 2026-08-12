@@ -195,7 +195,7 @@ export async function atualizarUsuario(
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
   
-  let syncResult;
+  let syncResult: { ok: boolean; erro?: string; userId?: string };
   try {
     const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
     syncResult = await atualizarUsuarioSistema({
@@ -208,9 +208,12 @@ export async function atualizarUsuario(
         permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? (ROTAS_PERMITIDAS[patch.papel ?? alvo.papel] || []),
         status: patch.status ?? alvo.status,
         novaSenha: (patch as any).novaSenha,
+        emailOriginal: alvo.email,
+        usuarioOriginal: alvo.usuario,
       }
     });
   } catch (err: any) {
+
     console.error("Erro ao chamar atualizarUsuarioSistema:", err);
     return { ok: false, erro: "Falha na comunicação com o servidor: " + err.message };
   }
@@ -251,11 +254,12 @@ export async function atualizarUsuario(
 
 export async function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string): Promise<{ ok: boolean; erro?: string }> {
   // Sempre tentar resolver e alternar no servidor
-  let syncResult;
+  let syncResult: { ok: boolean; erro?: string; userId?: string };
   try {
     const { alternarStatusSistema } = await import("@/lib/usuarios.functions");
     syncResult = await alternarStatusSistema({ data: { userId: id, status } });
     if (!syncResult.ok) return { ok: false, erro: syncResult.erro };
+
   } catch (err: any) {
     console.error("Erro ao alternar status no servidor:", err);
     return { ok: false, erro: "Erro ao sincronizar status: " + err.message };
