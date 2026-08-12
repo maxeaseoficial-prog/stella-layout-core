@@ -90,6 +90,8 @@ export async function buscarEmailPorUsername(username: string) {
 }
 
 export async function atualizarAuthEMetadata(userId: string, data: any) {
+  if (!userId || userId.length < 5) return { ok: false, erro: "ID de usuário inválido para atualização." };
+
   const updates: any = {
     email: data.email,
     user_metadata: {
