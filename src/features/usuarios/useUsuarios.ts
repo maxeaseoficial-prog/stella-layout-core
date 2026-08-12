@@ -208,23 +208,24 @@ export function alternarStatus(id: string, status: "ativo" | "inativo", responsa
 }
 
 /** Redefinição administrativa da senha (local e Supabase). */
-export function redefinirSenha(
+export async function redefinirSenha(
   id: string,
   novaSenha: string,
   exigirTroca: boolean,
   responsavel: string,
-): { ok: boolean; erro?: string } {
+): Promise<{ ok: boolean; erro?: string }> {
   if (!novaSenha) return { ok: false, erro: "Informe a nova senha." };
   
   const lista = garantirSeed();
   const uAlvo = lista.find(x => x.id === id);
   
   if (uAlvo) {
-    // Tenta resetar no Supabase se for um usuário real (com e-mail)
-    import("@/lib/reset-senha.functions").then(({ resetarSenhaSupabase }) => {
-       resetarSenhaSupabase({ data: { email: uAlvo.email, novaSenha } })
-         .catch(err => console.error("Falha ao sincronizar senha com Supabase:", err));
-    });
+    const { redefinirSenhaSistema } = await import("@/lib/usuarios.functions");
+    const result = await redefinirSenhaSistema({ data: { email: uAlvo.email, novaSenha } });
+    
+    if (!result.ok) {
+      return { ok: false, erro: result.erro };
+    }
   }
 
   const nova = lista.map((u) => {
@@ -277,5 +278,32 @@ export function excluirUsuario(id: string, _responsavel: string): { ok: boolean;
 
 export function useUsuarios() {
   const usuarios = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  return { usuarios: usuarios.map(u => ({ ...u, padrao: u.padrao ?? false })) };
+  
+  const sincronizar = async (u: Usuario, senha?: string) => {
+    const { sincronizarUsuarioLocal } = await import("@/lib/usuarios.functions");
+    const result = await sincronizarUsuarioLocal({
+      data: {
+        email: u.email,
+        nome: u.nome,
+        usuario: u.usuario,
+        papel: u.papel,
+        permissoes: u.permissoesAbas || ROTAS_PERMITIDAS[u.papel],
+        senhaTemporaria: senha
+      }
+    });
+
+    if (result.ok) {
+      // Atualizar o ID local se mudou (migração para UUID)
+      const lista = listarUsuarios();
+      const nova = lista.map(item => item.email === u.email ? { ...item, id: result.userId! } : item);
+      commit(nova);
+      return { ok: true };
+    }
+    return result;
+  };
+
+  return { 
+    usuarios: usuarios.map(u => ({ ...u, padrao: u.padrao ?? false })),
+    sincronizar
+  };
 }
