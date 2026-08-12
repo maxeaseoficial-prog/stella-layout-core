@@ -161,12 +161,10 @@ export function ClienteFormDrawer({
     if (!form.dataCadastro) e.dataCadastro = "Informe a data de cadastro.";
     
     // Validações para NF-e
-    if (!form.cep.trim()) e.cep = "CEP é obrigatório para NF-e.";
-    if (!form.logradouro.trim()) e.logradouro = "Logradouro é obrigatório para NF-e.";
-    if (!form.bairro.trim()) e.bairro = "Bairro é obrigatório para NF-e.";
-    if (!form.cidade.trim()) e.cidade = "Cidade é obrigatória para NF-e.";
-    if (!form.estado.trim()) e.estado = "Estado (UF) é obrigatório para NF-e.";
-    if (!form.numero.trim()) e.numero = "Número é obrigatório para NF-e.";
+    // Validações para NF-e (apenas se algum campo de endereço for preenchido ou se for salvar)
+    // Para simplificar o cadastro inicial, tornamos opcionais aqui e validamos apenas na NF-e se necessário,
+    // OU deixamos apenas como aviso visual se o usuário quiser emitir nota depois.
+    // REMOVIDO: bloqueio de cadastro por falta de endereço completo.
 
     setErros(e);
     return Object.keys(e).length === 0;
