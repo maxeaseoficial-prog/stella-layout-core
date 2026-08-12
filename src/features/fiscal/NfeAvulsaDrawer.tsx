@@ -242,7 +242,8 @@ const [buscaCliente, setBuscaCliente] = useState("");
     const doc = (destinatario.tipo === 'empresa' ? destinatario.cnpj : destinatario.cpf) || "";
     if (doc.replace(/\D/g, "").length < 11) return "O destinatário não possui CPF/CNPJ válido cadastrado.";
     
-    if (!destinatario.nome || destinatario.nome.trim().length < 2) return "O nome do destinatário é obrigatório.";
+    const nome = getClienteNome(destinatario);
+    if (!nome || nome.trim().length < 2) return "O nome do destinatário é obrigatório.";
     if (!destinatario.cidade) return "O município do destinatário é obrigatório.";
     if (!destinatario.estado) return "A UF do destinatário é obrigatória.";
     if (!destinatario.cep) return "O CEP do destinatário é obrigatório.";
