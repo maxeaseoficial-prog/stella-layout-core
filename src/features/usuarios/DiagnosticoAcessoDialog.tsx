@@ -90,24 +90,25 @@ export function DiagnosticoAcessoDialog({ open, onOpenChange, usuario, onRepair 
               <StatusRow 
                 label="Cadastro local" 
                 status="ok" 
-                detail="OK" 
+                detail={usuario.id.length > 20 ? "Sincronizado" : "Legacy"} 
               />
               <StatusRow 
                 label="Supabase Auth" 
                 status={diagnostico.authEncontrado ? "ok" : "error"} 
-                detail={diagnostico.authEncontrado ? "OK" : "AUSENTE"} 
+                detail={diagnostico.authEncontrado ? "Encontrado" : "Ausente"} 
               />
               <StatusRow 
                 label="Vínculo empresa" 
                 status={diagnostico.vinculoEncontrado ? "ok" : "error"} 
-                detail={diagnostico.vinculoEncontrado ? "OK" : "AUSENTE"} 
+                detail={diagnostico.vinculoEncontrado ? "Ativo" : "Ausente"} 
               />
               <StatusRow 
                 label="Coincidência de ID" 
                 status={diagnostico.idsCoincidem ? "ok" : "warning"} 
-                detail={diagnostico.idsCoincidem ? "SIM" : "NÃO"} 
+                detail={diagnostico.idsCoincidem ? "Sim" : "Não"} 
               />
             </div>
+
 
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="space-y-1">
