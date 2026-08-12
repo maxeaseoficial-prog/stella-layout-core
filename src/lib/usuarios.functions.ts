@@ -65,14 +65,15 @@ export const resolverEmailDeLogin = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { buscarEmailPorUsername } = await import("./usuarios.server");
     
-    // Se já for e-mail, retorna ele mesmo
     if (data.identificador.includes("@")) {
       return { email: data.identificador.toLowerCase() };
     }
 
     const email = await buscarEmailPorUsername(data.identificador);
-    return { email };
+    // Retorna null se não encontrar, conforme solicitado (regra 9)
+    return { email: email || null };
   });
+
 
 export const redefinirSenhaSistema = createServerFn({ method: "POST" })
   .inputValidator((d) => 
@@ -174,3 +175,25 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
     
     return { ok: true };
   });
+
+export const alternarStatusSistema = createServerFn({ method: "POST" })
+  .inputValidator((d) => 
+    z.object({
+      userId: z.string().uuid(),
+      status: z.enum(["ativo", "inativo"])
+    }).parse(d)
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { atualizarAuthEMetadata } = await import("./usuarios.server");
+    const { data: user } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+
+
+    if (!user.user) return { ok: false, erro: "Usuário não encontrado." };
+
+    return await atualizarAuthEMetadata(data.userId, {
+      ...user.user.user_metadata,
+      status: data.status
+    });
+  });
+

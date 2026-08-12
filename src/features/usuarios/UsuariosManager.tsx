@@ -29,6 +29,9 @@ import { UsuariosTable } from "./UsuariosTable";
 import { UsuarioFormDrawer } from "./UsuarioFormDrawer";
 import { UsuarioViewDrawer } from "./UsuarioViewDrawer";
 import { RedefinirSenhaDialog } from "./RedefinirSenhaDialog";
+import { DiagnosticoAcessoDialog } from "./DiagnosticoAcessoDialog";
+import { RepararAcessoDialog } from "./RepararAcessoDialog";
+
 
 type Filtro = "todos" | "administrador" | "operador_matriz" | "ativos" | "inativos";
 
@@ -46,6 +49,11 @@ export function UsuariosManager() {
   const [excluir, setExcluir] = useState<Usuario | null>(null);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const { sincronizar } = useUsuarios();
+  const [diagOpen, setDiagOpen] = useState(false);
+  const [repairOpen, setRepairOpen] = useState(false);
+  const [ativoDiag, setAtivoDiag] = useState<Usuario | null>(null);
+  const [diagnosticoResult, setDiagnosticoResult] = useState<any>(null);
+
 
   const responsavel = user?.nome ?? "Sistema";
 
@@ -90,11 +98,16 @@ export function UsuariosManager() {
     setAtivoSenha(u);
     setSenhaOpen(true);
   }
-  function alternar(u: Usuario) {
+  async function alternar(u: Usuario) {
     const novo = u.status === "ativo" ? "inativo" : "ativo";
-    alternarStatus(u.id, novo, responsavel);
-    toast.success(`Usuário ${novo === "ativo" ? "ativado" : "desativado"}.`);
+    const res = await alternarStatus(u.id, novo, responsavel);
+    if (res.ok) {
+      toast.success(`Usuário ${novo === "ativo" ? "ativado" : "desativado"}.`);
+    } else {
+      toast.error(res.erro || "Erro ao atualizar status.");
+    }
   }
+
   function confirmarExclusao() {
     if (!excluir) return;
     const res = excluirUsuario(excluir.id, responsavel);
@@ -103,11 +116,20 @@ export function UsuariosManager() {
     setExcluir(null);
   }
 
+  async function handleDiagnosticar(u: Usuario) {
+    setAtivoDiag(u);
+    setDiagOpen(true);
+  }
+
+  function handleOpenRepair(diag: any) {
+    setDiagnosticoResult(diag);
+    setRepairOpen(true);
+  }
+
   async function handleSincronizar(u: Usuario) {
-    if (u.id.length > 20 || u.id.includes("-")) {
-      toast.info("Usuário já está sincronizado.");
-      return;
-    }
+
+    // Remover a checagem antiga que impedia diagnóstico de usuários não sincronizados
+
     
     setLoadingId(u.id);
     try {
@@ -179,9 +201,25 @@ export function UsuariosManager() {
         onResetSenha={abrirSenha}
         onToggleStatus={alternar}
         onDelete={setExcluir}
-        onSincronizar={handleSincronizar}
+        onSincronizar={handleDiagnosticar}
         loadingId={loadingId}
       />
+
+      <DiagnosticoAcessoDialog
+        open={diagOpen}
+        onOpenChange={setDiagOpen}
+        usuario={ativoDiag}
+        onRepair={handleOpenRepair}
+      />
+
+      <RepararAcessoDialog
+        open={repairOpen}
+        onOpenChange={setRepairOpen}
+        usuario={ativoDiag}
+        diagnostico={diagnosticoResult}
+        onSuccess={() => setDiagOpen(false)}
+      />
+
 
       <UsuarioFormDrawer
         open={formOpen}

@@ -125,14 +125,14 @@ export function UsuariosTable({
                       <KeyRound className="mr-2 h-4 w-4" /> Redefinir senha
                     </DropdownMenuItem>
                     {onSincronizar && (
-                      <DropdownMenuItem 
-                        onClick={() => onSincronizar(u)}
-                        disabled={loadingId === u.id || (u.id.length > 20 || u.id.includes("-"))}
-                        className={u.id.length > 20 || u.id.includes("-") ? "text-emerald-600 font-medium" : "text-amber-600"}
-                      >
-                        <RefreshCw className={`mr-2 h-4 w-4 ${loadingId === u.id ? "animate-spin" : ""}`} /> 
-                        {u.id.length > 20 || u.id.includes("-") ? "Sincronizado" : "Sincronizar Acesso"}
-                      </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => onSincronizar(u)}
+                          disabled={loadingId === u.id}
+                        >
+                          <RefreshCw className={`mr-2 h-4 w-4 ${loadingId === u.id ? "animate-spin" : ""}`} /> 
+                          Diagnosticar Acesso
+                        </DropdownMenuItem>
+
                     )}
                     <DropdownMenuItem onClick={() => onToggleStatus(u)}>
                       <Power className="mr-2 h-4 w-4" />

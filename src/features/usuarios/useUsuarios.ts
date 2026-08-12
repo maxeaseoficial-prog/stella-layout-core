@@ -135,7 +135,7 @@ export function registrarAcesso(usuarioId: string) {
 }
 
 export async function criarUsuario(input: NovoUsuarioInput, responsavel: string): Promise<{ ok: boolean; erro?: string; id?: string }> {
-  const lista = garantirSeed();
+  const lista = listarUsuarios(); // Use current list
   const usernameNorm = input.usuario.trim().toLowerCase();
   const emailNorm = input.email.trim().toLowerCase();
   
@@ -145,11 +145,12 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
   if (!input.senha) return { ok: false, erro: "Informe a senha temporária." };
 
   if (lista.some((u) => u.usuario.toLowerCase() === usernameNorm)) {
-    return { ok: false, erro: "Já existe um usuário com este nome na lista local." };
+    return { ok: false, erro: "Já existe um usuário com este nome na Stella." };
   }
   if (lista.some((u) => u.email.toLowerCase() === emailNorm)) {
-    return { ok: false, erro: "Já existe um usuário com este e-mail na lista local." };
+    return { ok: false, erro: "Já existe um usuário com este e-mail na Stella." };
   }
+
 
   // 1. Criar no Supabase Auth e vincular no servidor
   const { criarUsuarioSistema } = await import("@/lib/usuarios.functions");
@@ -236,7 +237,15 @@ export async function atualizarUsuario(
   return { ok: true };
 }
 
-export function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string) {
+export async function alternarStatus(id: string, status: "ativo" | "inativo", responsavel: string): Promise<{ ok: boolean; erro?: string }> {
+  const isRealUser = id.length > 20 || id.includes("-");
+  
+  if (isRealUser) {
+    const { alternarStatusSistema } = await import("@/lib/usuarios.functions");
+    const result = await alternarStatusSistema({ data: { userId: id, status } });
+    if (!result.ok) return { ok: false, erro: result.erro };
+  }
+
   const lista = garantirSeed();
   const nova = lista.map((u) => {
     if (u.id !== id) return u;
@@ -247,7 +256,9 @@ export function alternarStatus(id: string, status: "ativo" | "inativo", responsa
     });
   });
   commit(nova);
+  return { ok: true };
 }
+
 
 /** Redefinição administrativa da senha (local e Supabase). */
 export async function redefinirSenha(
