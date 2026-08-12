@@ -154,18 +154,22 @@ export function ClienteFormDrawer({
     const e: Record<string, string> = {};
     if (form.tipo === "pessoa_fisica") {
       if (!form.nome.trim()) e.nome = "Informe o nome completo.";
+      if (!form.cpf.trim()) e.cpf = "Informe o CPF.";
     } else {
       if (!form.nomeEmpresa.trim()) e.nomeEmpresa = "Informe o nome da empresa.";
       if (!form.responsavel.trim()) e.responsavel = "Informe o nome do responsável.";
+      if (!form.cnpj.trim()) e.cnpj = "Informe o CNPJ.";
     }
     if (!form.telefone.trim()) e.telefone = "Informe o telefone / WhatsApp.";
     if (!form.dataCadastro) e.dataCadastro = "Informe a data de cadastro.";
     
-    // Validações para NF-e
-    // Validações para NF-e (apenas se algum campo de endereço for preenchido ou se for salvar)
-    // Para simplificar o cadastro inicial, tornamos opcionais aqui e validamos apenas na NF-e se necessário,
-    // OU deixamos apenas como aviso visual se o usuário quiser emitir nota depois.
-    // REMOVIDO: bloqueio de cadastro por falta de endereço completo.
+    // Endereço obrigatório
+    if (!form.cep.trim()) e.cep = "Informe o CEP.";
+    if (!form.estado.trim()) e.estado = "Informe o Estado.";
+    if (!form.cidade.trim()) e.cidade = "Informe a Cidade.";
+    if (!form.bairro.trim()) e.bairro = "Informe o Bairro.";
+    if (!form.logradouro.trim()) e.logradouro = "Informe o Logradouro.";
+    if (!form.numero.trim()) e.numero = "Informe o Número.";
 
     setErros(e);
     if (Object.keys(e).length > 0) {
