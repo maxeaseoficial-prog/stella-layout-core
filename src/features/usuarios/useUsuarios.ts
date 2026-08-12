@@ -149,6 +149,7 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
 
 
   // 1. Criar no Supabase Auth e vincular no servidor
+  console.log("Calling criarUsuarioSistema with data...");
   const { criarUsuarioSistema } = await import("@/lib/usuarios.functions");
   const result = await criarUsuarioSistema({
     data: {
@@ -163,6 +164,7 @@ export async function criarUsuario(input: NovoUsuarioInput, responsavel: string)
   });
 
   if (!result.ok) {
+    console.warn("criarUsuarioSistema retornou erro:", result);
     return { ok: false, erro: result.erro };
   }
 
@@ -193,20 +195,30 @@ export async function atualizarUsuario(
   const alvo = lista.find((u) => u.id === id);
   if (!alvo) return { ok: false, erro: "Usuário não encontrado." };
   
-  const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
-  const sync = await atualizarUsuarioSistema({
-    data: {
-      userId: id,
-      nome: patch.nome ?? alvo.nome,
-      usuario: patch.usuario ?? alvo.usuario,
-      email: patch.email ?? alvo.email,
-      papel: patch.papel ?? alvo.papel,
-      permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? (ROTAS_PERMITIDAS[patch.papel ?? alvo.papel] || []),
-      status: patch.status ?? alvo.status,
-      novaSenha: (patch as any).novaSenha,
-    }
-  });
-  if (!sync.ok) return sync;
+  let syncResult;
+  try {
+    const { atualizarUsuarioSistema } = await import("@/lib/usuarios.functions");
+    syncResult = await atualizarUsuarioSistema({
+      data: {
+        userId: id,
+        nome: patch.nome ?? alvo.nome,
+        usuario: patch.usuario ?? alvo.usuario,
+        email: patch.email ?? alvo.email,
+        papel: patch.papel ?? alvo.papel,
+        permissoes: patch.permissoesAbas ?? alvo.permissoesAbas ?? (ROTAS_PERMITIDAS[patch.papel ?? alvo.papel] || []),
+        status: patch.status ?? alvo.status,
+        novaSenha: (patch as any).novaSenha,
+      }
+    });
+  } catch (err: any) {
+    console.error("Erro ao chamar atualizarUsuarioSistema:", err);
+    return { ok: false, erro: "Falha na comunicação com o servidor: " + err.message };
+  }
+
+  if (!syncResult.ok) {
+    console.warn("atualizarUsuarioSistema retornou erro:", syncResult);
+    return syncResult;
+  }
 
   if (patch.usuario) {
     const novoNome = patch.usuario.trim().toLowerCase();

@@ -109,6 +109,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       toast.error("Preencha os campos obrigatórios.");
       return;
     }
+    console.log("Submit triggered. isEdit:", isEdit);
     if (!isEdit) {
       if (!form.senha) {
         toast.error("Informe a senha temporária.");
@@ -118,6 +119,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         toast.error("A confirmação de senha não confere.");
         return;
       }
+      console.log("Creating new user with input:", { ...form, senha: "***", confirmar: "***" });
       const res = await criarUsuario(
         {
           nome: form.nome.trim(),
@@ -134,6 +136,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
         responsavel,
       );
       if (!res.ok) {
+        console.warn("Create user failed:", res);
         toast.error(res.erro ?? "Não foi possível criar o usuário.");
         return;
       }
@@ -150,8 +153,19 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       if (form.novaSenha !== form.confirmarNovaSenha) {
         toast.error("A confirmação da nova senha não confere.");
         return;
-      }
     }
+
+    console.log("Proceeding to update user...");
+    }
+
+    console.log("Submitting update for user:", usuarioAtual.id, "with patch:", {
+      nome: form.nome.trim(),
+      usuario: form.usuario.trim(),
+      email: form.email.trim(),
+      papel: form.papel,
+      status: form.status,
+      novaSenha: form.novaSenha ? "***" : undefined,
+    });
 
     const res = await atualizarUsuario(
       usuarioAtual!.id,
@@ -169,6 +183,7 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
       } as any,
       responsavel,
     );
+    console.log("Update response:", res);
     if (!res.ok) {
       toast.error(res.erro ?? "Não foi possível salvar.");
       return;
@@ -189,7 +204,13 @@ export function UsuarioFormDrawer({ open, onOpenChange, usuarioAtual, responsave
           </SheetDescription>
         </SheetHeader>
 
-        <form onSubmit={submit} className="flex flex-1 flex-col overflow-hidden">
+        <form 
+          onSubmit={(e) => {
+            console.log("Form onSubmit event fired");
+            submit(e);
+          }} 
+          className="flex flex-1 flex-col overflow-hidden"
+        >
           <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
             {/* Foto */}
             <div className="flex items-center gap-4">

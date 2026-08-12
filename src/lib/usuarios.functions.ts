@@ -147,7 +147,7 @@ export const sincronizarUsuarioLocal = createServerFn({ method: "POST" })
 export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
   .inputValidator((d) => 
     z.object({
-      userId: z.string().uuid(),
+      userId: z.string(),
       email: z.string().email(),
       nome: z.string(),
       usuario: z.string(),
@@ -188,7 +188,7 @@ export const atualizarUsuarioSistema = createServerFn({ method: "POST" })
 export const alternarStatusSistema = createServerFn({ method: "POST" })
   .inputValidator((d) => 
     z.object({
-      userId: z.string().uuid(),
+      userId: z.string(),
       status: z.enum(["ativo", "inativo"])
     }).parse(d)
   )
