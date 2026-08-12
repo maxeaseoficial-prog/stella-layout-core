@@ -172,8 +172,14 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
     const novosErros: Record<string, string> = {};
     if (!form.nome.trim()) novosErros.nome = "Informe o nome do produto.";
     if (!form.categoria) novosErros.categoria = "Selecione a categoria.";
+    if (!form.categoriaFiscalId) novosErros.categoriaFiscalId = "Selecione a classificação fiscal.";
+    
     setErros(novosErros);
-    if (Object.keys(novosErros).length > 0) return;
+    if (Object.keys(novosErros).length > 0) {
+      const primeiroErro = Object.values(novosErros)[0];
+      toast.error(primeiroErro);
+      return;
+    }
 
     const dados: ProdutoInput = {
       nome: form.nome.trim(),
