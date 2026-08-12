@@ -130,6 +130,10 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
     onChange(itens.map((i) => (i.id === id ? { ...i, [key]: value } : i)));
   }
 
+  function atualizarCamposItem(id: string, updates: Partial<ItemPedido>) {
+    onChange(itens.map((i) => (i.id === id ? { ...i, ...updates } : i)));
+  }
+
   function salvarPersonalizacoes(id: string, p: Personalizacao[]) {
     atualizarItem(id, "personalizacoes", p);
   }
@@ -222,11 +226,16 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                   <Select
                     value={item.tamanho ?? ""}
                     onValueChange={(v) => {
-                      atualizarItem(item.id, "tamanho", v);
-                      // Se o produto selecionado tiver variação de preço para este tamanho, atualizar o valor unitário
                       const variacao = produtoSelecionado?.variacoesTamanhos?.find(vt => vt.tamanho === v);
+                      
+                      const updates: Partial<ItemPedido> = { tamanho: v };
                       if (variacao) {
-                        atualizarItem(item.id, "valorUnitario", variacao.precoAVista);
+                        updates.valorUnitario = variacao.precoAVista;
+                      }
+
+                      atualizarCamposItem(item.id, updates);
+
+                      if (variacao) {
                         setRascunhos((r) => ({
                           ...r,
                           [item.id]: {
