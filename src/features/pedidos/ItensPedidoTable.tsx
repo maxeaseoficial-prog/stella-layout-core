@@ -78,6 +78,7 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
   function selecionarProduto(itemId: string, produtoId: string) {
     const p = produtosAtivos.find((x) => x.id === produtoId);
     if (!p) return;
+    
     onChange(
       itens.map((i) =>
         i.id === itemId
@@ -85,21 +86,18 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
               ...i,
               produtoId: p.id,
               produto: p.nome,
-              valorUnitario: i.valorUnitario > 0 ? i.valorUnitario : p.precoBase,
+              tamanho: undefined, // Resetar tamanho ao trocar produto
+              valorUnitario: p.precoBase, // Carregar preço base do novo produto
             }
           : i,
       ),
     );
+
     setRascunhos((r) => ({
       ...r,
       [itemId]: {
         quantidadeStr: r[itemId]?.quantidadeStr ?? String(itens.find((i) => i.id === itemId)?.quantidade ?? 1),
-        valorStr:
-          r[itemId]?.valorStr && r[itemId]!.valorStr.length > 0
-            ? r[itemId]!.valorStr
-            : p.precoBase > 0
-              ? p.precoBase.toFixed(2).replace(".", ",")
-              : "",
+        valorStr: p.precoBase > 0 ? p.precoBase.toFixed(2).replace(".", ",") : "",
       },
     }));
   }
@@ -226,18 +224,16 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                     onValueChange={(v) => {
                       atualizarItem(item.id, "tamanho", v);
                       // Se o produto selecionado tiver variação de preço para este tamanho, atualizar o valor unitário
-                      if (produtoSelecionado?.variacoesTamanhos) {
-                        const variacao = produtoSelecionado.variacoesTamanhos.find(vt => vt.tamanho === v);
-                        if (variacao && variacao.precoAVista > 0) {
-                          atualizarItem(item.id, "valorUnitario", variacao.precoAVista);
-                          setRascunhos((r) => ({
-                            ...r,
-                            [item.id]: {
-                              ...r[item.id],
-                              valorStr: variacao.precoAVista.toFixed(2).replace(".", ","),
-                            },
-                          }));
-                        }
+                      const variacao = produtoSelecionado?.variacoesTamanhos?.find(vt => vt.tamanho === v);
+                      if (variacao) {
+                        atualizarItem(item.id, "valorUnitario", variacao.precoAVista);
+                        setRascunhos((r) => ({
+                          ...r,
+                          [item.id]: {
+                            ...r[item.id],
+                            valorStr: variacao.precoAVista.toFixed(2).replace(".", ","),
+                          },
+                        }));
                       }
                     }}
                   >
@@ -253,25 +249,28 @@ export function ItensPedidoTable({ itens, onChange }: Props) {
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {/* Primeiro mostrar tamanhos cadastrados no produto (com preços específicos) */}
-                      {produtoSelecionado?.variacoesTamanhos?.map((vt) => (
-                        <SelectItem key={`prod-${vt.tamanho}`} value={vt.tamanho}>
-                          {vt.tamanho} (Preço: {formatarMoeda(vt.precoAVista)})
-                        </SelectItem>
-                      ))}
-                      
-                      {/* Depois mostrar os tamanhos globais que não estão no produto */}
-                      {tamanhos.length > 0 ? (
-                        tamanhos
-                          .filter(t => !produtoSelecionado?.variacoesTamanhos?.some(vt => vt.tamanho === t.nome))
-                          .map((t) => (
+                      {/* Se o produto tem variações, mostrar APENAS elas */}
+                      {produtoSelecionado?.variacoesTamanhos && produtoSelecionado.variacoesTamanhos.length > 0 ? (
+                        produtoSelecionado.variacoesTamanhos.map((vt) => (
+                          <SelectItem key={`prod-${vt.tamanho}`} value={vt.tamanho}>
+                            <span className="flex w-full items-center justify-between gap-6 min-w-[120px]">
+                              <span>{vt.tamanho}</span>
+                              <span className="text-xs text-muted-foreground font-normal">
+                                {formatarMoeda(vt.precoAVista)}
+                              </span>
+                            </span>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        /* Fallback para tamanhos globais somente se não houver variações no produto */
+                        tamanhos.length > 0 ? (
+                          tamanhos.map((t) => (
                             <SelectItem key={`global-${t.id}`} value={t.nome}>
                               {t.nome}
                             </SelectItem>
                           ))
-                      ) : (
-                        !produtoSelecionado?.variacoesTamanhos?.length && (
-                          <div className="px-2 py-3 text-xs text-muted-foreground">
+                        ) : (
+                          <div className="px-2 py-3 text-xs text-muted-foreground text-center">
                             Nenhum tamanho disponível.
                           </div>
                         )
