@@ -96,15 +96,22 @@ export interface Capacidades {
 export function capacidadesDe(papel: Papel | null): Capacidades {
   if (!papel) {
     return {
-      visualizarDashboard: false,
-      gerenciarEstoque: false,
-      gerenciarFinanceiro: false,
-      gerenciarPedidos: false,
-      gerenciarClientes: false,
-      emitirNotasFiscais: false,
-      gerenciarConfiguracoes: false,
+      pedidos: {
+        criar: false,
+        editar: false,
+        excluir: false,
+        cancelar: false,
+        registrarPagamento: false,
+        imprimir: false,
+        alterarQualquerStatus: false,
+        emitir_nfe: false,
+      },
+      clientes: { criar: false, editar: false, excluir: false },
+      matrizesLogos: { upload: false, editar: false, excluir: false },
+      configuracoes: { admin: false },
     };
   }
+
 
   if (papel === "administrador") {
     return {
