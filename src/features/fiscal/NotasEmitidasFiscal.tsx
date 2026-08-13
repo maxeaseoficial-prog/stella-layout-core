@@ -60,9 +60,10 @@ export function NotasEmitidasFiscal() {
     return notas.filter(n => {
       const termo = busca.toLowerCase();
       const nomeDest = (n.resumo_destinatario as any)?.nome?.toLowerCase() || "";
+      const spedyId = n.spedy_id?.toLowerCase() || "";
       return (
         nomeDest.includes(termo) ||
-        n.spedy_id.toLowerCase().includes(termo) ||
+        spedyId.includes(termo) ||
         (n.chave_acesso ?? "").includes(termo) ||
         (n.numero?.toString() ?? "").includes(termo)
       );
@@ -115,7 +116,7 @@ export function NotasEmitidasFiscal() {
               filtradas.map((n) => (
                 <TableRow key={n.id}>
                   <TableCell className="font-semibold">
-                    {n.numero ? `${n.numero}/${n.serie}` : n.spedy_id.slice(0, 8)}
+                    {n.numero ? `${n.numero}/${n.serie}` : (n.spedy_id?.slice(0, 8) ?? n.external_id?.slice(0, 8) ?? 'TRANS...') }
                   </TableCell>
                   <TableCell>
                     <div className="text-sm font-medium">{(n.resumo_destinatario as any)?.nome}</div>
@@ -158,18 +159,18 @@ export function NotasEmitidasFiscal() {
                         <AlertCircle className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" className="gap-2" asChild disabled={n.status !== 'authorized'}>
+                    <Button size="sm" variant="outline" className="gap-2" asChild disabled={!n.spedy_id || n.status !== 'authorized'}>
                       <a 
-                        href={urlDanfePdf({ ambiente: n.ambiente as any, spedyId: n.spedy_id })} 
+                        href={n.spedy_id ? urlDanfePdf({ ambiente: n.ambiente as any, spedyId: n.spedy_id }) : "#"} 
                         target="_blank" 
                         rel="noopener noreferrer"
                       >
                         <ExternalLink className="h-4 w-4" /> DANFE
                       </a>
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" asChild title="Baixar XML" disabled={n.status !== 'authorized'}>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" asChild title="Baixar XML" disabled={!n.spedy_id || n.status !== 'authorized'}>
                       <a 
-                        href={urlXmlNfe({ ambiente: n.ambiente as any, spedyId: n.spedy_id })} 
+                        href={n.spedy_id ? urlXmlNfe({ ambiente: n.ambiente as any, spedyId: n.spedy_id }) : "#"} 
                         download
                       >
                         <Download className="h-4 w-4" />
