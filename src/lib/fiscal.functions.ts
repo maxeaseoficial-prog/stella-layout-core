@@ -24,7 +24,7 @@ import {
   validarConfigFiscal,
   validarPedidoParaNfe,
 } from "./fiscal.server";
-import { validarDestinatarioNfe } from "@/features/fiscal/utils/preflight.server";
+import { validarDestinatarioNfe, SpedyReceiverSchema } from "@/features/fiscal/utils/preflight.server";
 
 
 function mensagemDe(e: unknown, fallback: string): string {

@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { supabaseAuthMiddleware } from "./auth-middleware";
 import { assertAdminFiscal } from "./fiscal.server";
+
 
 export const getBuildInfo = createServerFn({ method: "GET" })
   .handler(async () => {
@@ -22,7 +24,7 @@ export const diagnosticarNfeRejeitada = createServerFn({ method: "POST" })
     integrationId: z.string().optional(),
     filtrarRejeicao232: z.boolean().optional()
   }).parse(data))
-  .handler(async ({ input, context }) => {
+  .handler(async ({ data: input, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
 
     let query = context.supabase
