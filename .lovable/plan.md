@@ -25,3 +25,10 @@ Recuperar os dados da última nota rejeitada (232) no banco de dados para analis
 - **Diagnóstico de Payload:** `const bodyHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)));`
 - **Segurança:** O log de diagnóstico no console do servidor (`[Fiscal Server] API_REQUEST_PAYLOAD`) deve omitir `X-Api-Key` mas incluir a estrutura completa do `receiver`.
 - **Ambiente:** Testes obrigatórios em `sandbox` antes de qualquer nova tentativa em `produção`.
+
+---
+
+CORREÇÃO CRÍTICA DE AMBIENTES FISCAIS — DESCOBRIMOS UMA DIVERGÊNCIA ENTRE STELLA E SPEDY
+[Detailed rules 1-12 regarding environment separation, API keys, and validation]
+RELATÓRIO FINAL
+[Checklist and requirements]
