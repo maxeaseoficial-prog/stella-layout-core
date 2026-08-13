@@ -334,13 +334,33 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:present...` : 'none';
-  
+
+  let payloadLog: any = null;
+  let bodyHash = "n/a";
+  if (init?.body) {
+    try {
+      const bodyStr = init.body as string;
+      const parsed = JSON.parse(bodyStr);
+      payloadLog = { ...parsed };
+      
+      // Gerar hash simples para comparação de integridade (SHA-256 no worker pode precisar de import crypto)
+      // Usaremos um log da estrutura para o hash visual
+      bodyHash = `len:${bodyStr.length}`;
+    } catch (e) {}
+  }
+
+
   console.log("[Fiscal Server] API_FISCAL_DIAGNOSTICS:", {
     API_FISCAL_ENVIRONMENT: ambiente,
     API_FISCAL_BASE_URL: SPEDY_BASE_URLS[ambiente],
     API_FISCAL_KEY_PRESENT: !!apiKeyInfo.key,
-    path
+    path,
+    API_FISCAL_BODY_HASH: bodyHash,
+    API_FISCAL_PAYLOAD_STRUCTURE: payloadLog ? {
+      receiver: payloadLog.receiver,
+      integrationId: payloadLog.integrationId,
+      itemsCount: payloadLog.items?.length
+    } : null
   });
 
   const response = await fetch(url, {
@@ -548,9 +568,18 @@ export function montarPayloadNfe(
         receiver.stateTaxNumber = "ISENTO";
         receiver.indicatorStateTaxNumber = 2;
       } else {
-        receiver.stateTaxNumber = ""; 
+        receiver.stateTaxNumber = undefined; // Campos opcionais omitidos do JSON
         receiver.indicatorStateTaxNumber = 9;
       }
+
+      // Validação de Schema (Zod) antes de retornar
+      import("@/features/fiscal/utils/preflight.server").then(({ SpedyReceiverSchema }) => {
+        const validation = SpedyReceiverSchema.safeParse(receiver);
+        if (!validation.success) {
+          console.error("[Fiscal Server] SCHEMA_VALIDATION_FAILED:", validation.error.format());
+        }
+      });
+
     }
   }
 

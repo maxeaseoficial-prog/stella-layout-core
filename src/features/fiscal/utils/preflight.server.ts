@@ -1,6 +1,30 @@
-
+import { z } from "zod";
 import type { Cliente } from "@/features/clientes/types";
 import { getClienteNome } from "@/features/clientes/types";
+
+/** 
+ * Schema oficial Spedy v1 para o Destinatário (Receiver)
+ * Baseado em docs.spedy.com.br
+ */
+export const SpedyReceiverSchema = z.object({
+  name: z.string().max(60),
+  federalTaxNumber: z.string(), // CPF ou CNPJ (apenas dígitos)
+  stateTaxNumber: z.string().optional(), // IE
+  indicatorStateTaxNumber: z.number().int().min(1).max(9).optional(), // 1, 2, 9
+  email: z.string().email().optional(),
+  address: z.object({
+    street: z.string().max(60),
+    number: z.string().max(60),
+    district: z.string().max(60),
+    complement: z.string().max(60).optional(),
+    postalCode: z.string().length(8),
+    city: z.object({
+      name: z.string().max(60),
+      state: z.string().length(2)
+    })
+  }).optional()
+});
+
 
 export interface FiscalValidationResult {
   ok: boolean;
