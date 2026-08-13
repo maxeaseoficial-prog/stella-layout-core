@@ -179,7 +179,12 @@ export interface Pedido {
   etapa: EtapaKanban;
   /** Badges livres (nota fiscal, prioridade, retirada, etc.). */
   badges?: PedidoBadge[];
-  /** Retorno da emissão de NF-e (Spedy). Ausente = "Não emitida". */
+  /** Controle manual de emissão de nota fiscal externa. */
+  notaFiscalControle?: {
+    emitida: boolean;
+    emitidaEm?: string; // ISO timestamp
+  };
+  /** Retorno da emissão de NF-e (Spedy) - MANTIDO APENAS PARA HISTÓRICO. */
   notaFiscal?: NotaFiscalPedido | null;
   previsaoEntrega?: string; // ISO date
   observacoes?: string;

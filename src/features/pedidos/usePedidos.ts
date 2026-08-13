@@ -519,6 +519,30 @@ export function usePedidos() {
    * `descricaoHistorico` registra marcos (envio, autorização, rejeição,
    * cancelamento); omita para atualizações silenciosas de status.
    */
+  const marcarNotaEmitida = useCallback((id: string, emitida: boolean) => {
+    commit(setPedidos, (atual) =>
+      atual.map((p) => {
+        if (p.id !== id) return p;
+        const notaFiscalControle = {
+          emitida,
+          emitidaEm: emitida ? new Date().toISOString() : undefined,
+        };
+        return {
+          ...p,
+          notaFiscalControle,
+          atualizadoEm: new Date().toISOString(),
+          historico: [
+            novaEntradaHistorico(
+              "nota_fiscal",
+              emitida ? "Nota fiscal marcada como emitida (controle manual)." : "Nota fiscal marcada como não emitida (controle manual).",
+            ),
+            ...p.historico,
+          ],
+        };
+      }),
+    );
+  }, []);
+
   const salvarNotaFiscal = useCallback(
     (id: string, nota: NotaFiscalPedido | null | undefined, descricaoHistorico?: string) => {
       commit(setPedidos, (atual) =>

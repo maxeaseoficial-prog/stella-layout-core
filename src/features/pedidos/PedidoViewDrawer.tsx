@@ -1,4 +1,4 @@
-import { CheckCircle2, ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
+import { CheckCircle2, ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet, XCircle } from "lucide-react";
 import { toast } from "@/lib/toast";
 
 import {
@@ -39,7 +39,6 @@ import { useAuth } from "@/features/auth/useAuth";
 import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
 import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
 import { usePedidos } from "./usePedidos";
-import { NotaFiscalSection } from "@/features/fiscal/NotaFiscalSection";
 import { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 import {
   abrirWhatsApp,
@@ -94,11 +93,10 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  // A aba fiscal só aparece para o Administrador.
-  const abaFiscal = cap.emitir_nfe;
-  const { alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
+  const { marcarNotaEmitida, alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos() as any;
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
+  const [confirmarNfeManual, setConfirmarNfeManual] = useState<boolean | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [gerandoOP, setGerandoOP] = useState(false);
   const [confirmarAprovacao, setConfirmarAprovacao] = useState(false);
@@ -194,7 +192,7 @@ export function PedidoViewDrawer({
                     variant="outline"
                     className={cn("font-medium", corStatusProducao(pedido.statusProducao))}
                   >
-                    {LABEL_STATUS_PRODUCAO[pedido.statusProducao]}
+                    {(LABEL_STATUS_PRODUCAO as any)[pedido.statusProducao]}
                   </Badge>
                   <Badge
                     variant="outline"
@@ -203,7 +201,7 @@ export function PedidoViewDrawer({
                       corStatusFinanceiro(pedido.statusFinanceiro),
                     )}
                   >
-                    {LABEL_STATUS_FINANCEIRO[pedido.statusFinanceiro]}
+                    {(LABEL_STATUS_FINANCEIRO as any)[pedido.statusFinanceiro]}
                   </Badge>
                 </div>
               </div>
@@ -218,16 +216,13 @@ export function PedidoViewDrawer({
                     <TabsTrigger value="arquivos">
                       Arquivos (
                       {pedido.itens.reduce(
-                        (n, it) => n + (it.arquivos?.length ?? 0),
+                        (n: number, it: any) => n + (it.arquivos?.length ?? 0),
                         0,
                       ) + pedido.arquivos.length}
                       )
                     </TabsTrigger>
 
                     <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
-                    {abaFiscal && (
-                      <TabsTrigger value="nota-fiscal">Nota Fiscal</TabsTrigger>
-                    )}
                     <TabsTrigger value="historico">Histórico</TabsTrigger>
                   </TabsList>
                 </div>
@@ -237,6 +232,43 @@ export function PedidoViewDrawer({
                     <OrcamentosPendentesSection pedido={pedido} />
                   )}
                   <TabsContent value="geral" className="mt-0 space-y-4">
+                    <Bloco titulo="Controle de Nota Fiscal">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {pedido.notaFiscalControle?.emitida ? (
+                            <div className="flex items-center gap-2 text-emerald-600 font-medium">
+                              <CheckCircle2 className="h-5 w-5" />
+                              <span>Nota emitida {pedido.notaFiscalControle.emitidaEm && `em ${formatarDataBR(pedido.notaFiscalControle.emitidaEm)}`}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-amber-600 font-medium">
+                              <div className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin-slow" />
+                              <span>Pendente de faturamento externo</span>
+                            </div>
+                          )}
+                        </div>
+                        {pedido.notaFiscalControle?.emitida ? (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-muted-foreground hover:text-destructive h-8"
+                            onClick={() => setConfirmarNfeManual(false)}
+                          >
+                            Marcar como não emitida
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-8 gap-2"
+                            onClick={() => setConfirmarNfeManual(true)}
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Marcar como emitida
+                          </Button>
+                        )}
+                      </div>
+                    </Bloco>
+
                     <Bloco titulo="Cliente">
                       {cliente ? (
                         <div className="flex items-center gap-3">
@@ -289,7 +321,7 @@ export function PedidoViewDrawer({
                   </TabsContent>
 
                   <TabsContent value="produtos" className="mt-0 space-y-3">
-                    {pedido.itens.map((item) => (
+                    {pedido.itens.map((item: any) => (
                       <ItemDetalhado
                         key={item.id}
                         pedidoId={pedido.id}
@@ -300,7 +332,7 @@ export function PedidoViewDrawer({
 
                   <TabsContent value="arquivos" className="mt-0 space-y-3">
                     {(() => {
-                      const grupos = pedido.itens.map((item) => ({
+                      const grupos = pedido.itens.map((item: any) => ({
                         titulo:
                           (item.produto?.trim() || "Produto") +
                           (item.tamanho ? ` (${item.tamanho})` : ""),
@@ -315,7 +347,7 @@ export function PedidoViewDrawer({
                         });
                       }
                       const totalArquivos = grupos.reduce(
-                        (n, g) => n + g.arquivos.length,
+                        (n: number, g: any) => n + g.arquivos.length,
                         0,
                       );
                       if (totalArquivos === 0) {
@@ -328,8 +360,8 @@ export function PedidoViewDrawer({
                         );
                       }
                       return grupos
-                        .filter((g) => g.arquivos.length > 0)
-                        .map((g, idx) => (
+                        .filter((g: any) => g.arquivos.length > 0)
+                        .map((g: any, idx: number) => (
                           <Bloco
                             key={idx}
                             titulo={
@@ -339,7 +371,7 @@ export function PedidoViewDrawer({
                             }
                           >
                             <ul className="grid gap-2 sm:grid-cols-2">
-                              {g.arquivos.map((arq) => {
+                              {g.arquivos.map((arq: any) => {
                                 const isImg = ["png", "jpg", "jpeg", "svg"].includes(
                                   arq.extensao,
                                 );
@@ -389,6 +421,26 @@ export function PedidoViewDrawer({
                           </Bloco>
                         ));
                     })()}
+                    </TabsContent>
+                  <TabsContent value="historico" className="mt-0">
+                    <Bloco titulo="Linha do Tempo">
+                      <ul className="space-y-4">
+                        {pedido.historico.map((h: any) => (
+                          <li key={h.id} className="flex gap-3">
+                            <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-medium text-foreground">
+                                {h.descricao}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {formatarDataHoraBR(h.data)}
+                                {h.usuario && ` • por ${h.usuario}`}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </Bloco>
                   </TabsContent>
 
 
@@ -400,7 +452,7 @@ export function PedidoViewDrawer({
                         </p>
                       ) : (
                         <ul className="divide-y divide-border">
-                          {pedido.itens.map((it) => {
+                          {pedido.itens.map((it: any) => {
                             const adicionais = it.adicionais ?? [];
                             return (
                               <li key={it.id} className="space-y-1 py-2 text-sm">
@@ -422,7 +474,7 @@ export function PedidoViewDrawer({
                                     {formatarMoeda(it.valorUnitario)}
                                   </span>
                                 </div>
-                                {adicionais.map((a) => (
+                                {adicionais.map((a: any) => (
                                   <div
                                     key={a.id}
                                     className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground"
@@ -482,14 +534,14 @@ export function PedidoViewDrawer({
                         </p>
                       ) : (
                         <ul className="divide-y divide-border">
-                          {pedido.pagamentos.map((pg) => (
+                          {pedido.pagamentos.map((pg: any) => (
                             <li
                               key={pg.id}
                               className="flex items-center justify-between py-2 text-sm"
                             >
                               <div>
                                 <p className="font-medium text-foreground">
-                                  {LABEL_FORMA_PAGAMENTO_PEDIDO[pg.forma]}
+                                  {(LABEL_FORMA_PAGAMENTO_PEDIDO as any)[pg.forma]}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {formatarDataBR(pg.data)}
@@ -506,16 +558,11 @@ export function PedidoViewDrawer({
                     </Bloco>
                   </TabsContent>
 
-                  {abaFiscal && (
-                    <TabsContent value="nota-fiscal" className="mt-0">
-                      <NotaFiscalSection pedido={pedido} />
-                    </TabsContent>
-                  )}
 
                   <TabsContent value="historico" className="mt-0">
                     <Bloco titulo="Histórico do pedido">
                       <ul className="space-y-3">
-                        {pedido.historico.map((h) => (
+                        {pedido.historico.map((h: any) => (
                           <li key={h.id} className="flex gap-3">
                             <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
                             <div>
