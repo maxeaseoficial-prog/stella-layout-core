@@ -456,7 +456,6 @@ export function montarPayloadNfe(
   config: FiscalConfig,
 ): Record<string, unknown> {
   const t = config.tributacao;
-  const isHomologacao = config.ambienteFiscal === "homologacao";
   const ufEmitente = config.empresa.estado.trim().toUpperCase();
   const ufDestino = (cliente?.estado ?? "").trim().toUpperCase();
   const interestadual = !!ufDestino && !!ufEmitente && ufDestino !== ufEmitente;
@@ -516,58 +515,14 @@ export function montarPayloadNfe(
   const indicator = indicatorMap[(cliente as any)?.indicadorIe] ?? 9;
   const ieValida = indicator === 1 ? apenasDigitos((cliente as any)?.inscricaoEstadual) : undefined;
 
-  return {
-    integrationId: pedido.id.slice(0, 36),
-    receiver: {
-      name: getClienteNome(cliente || ({} as Cliente)).slice(0, 60),
-      federalTaxNumber: apenasDigitos((cliente as any)?.cnpj || (cliente as any)?.cpf),
-      stateTaxNumber: ieValida,
-      indicatorStateTaxNumber: indicator,
-      email: cliente?.email,
-      address: {
-        street: (cliente?.logradouro || "").slice(0, 60),
-        number: (cliente?.numero || "").slice(0, 60),
-        district: (cliente?.bairro || "").slice(0, 60),
-        complement: (cliente?.complemento || "").slice(0, 60),
-        postalCode: apenasDigitos(cliente?.cep).slice(0, 8),
-        city: {
-          name: (cliente?.cidade || "").slice(0, 60),
-          state: (cliente?.estado || "").slice(0, 2).toUpperCase(),
-        },
-      },
-    },
-    items: ajustados.map((i) => ({
-      code: i.code,
-      description: i.description,
-      quantity: i.quantity,
-      unitAmount: i.unitAmount,
-      totalAmount: i.totalAmount,
-      ncm: i.ncm || t.ncm,
-      cfop: cfop,
-      taxes: montarImpostos(t)(i.totalAmount),
-    })),
-    totalAmount: totalPedido,
-    payments: pedido.pagamentos.map((p) => ({
-      method: getMapaPagamentoSpedy(p.forma),
-      amount: p.valor,
-    })),
-  };
-}
-
-      return { ...i, totalAmount: total, unitAmount: round6(total / i.quantity) };
-    });
-  }
-
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
   const taxes = montarImpostos(t);
 
   const items = ajustados.map((i) => {
     const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
-    
     if (ncmItem.length !== 8) {
       throw new Error(`O produto "${i.description}" não possui um NCM válido de 8 dígitos cadastrado.`);
     }
-
     return {
       code: i.code,
       description: i.description,
@@ -585,82 +540,40 @@ export function montarPayloadNfe(
     };
   });
 
-  const total: Record<string, number> = {
-    invoiceAmount: totalPedido,
-    productAmount: totalPedido,
-  };
-
-  const payments = [
-    {
-      method: pedido.pagamentos.length > 0 ? (MAPA_PAGAMENTO_SPEDY[pedido.pagamentos[0].forma] ?? "other") : "other",
-      amount: totalPedido,
-    }
-  ];
-
-  const receiver: Record<string, unknown> = {
-    name: cliente ? getClienteNome(cliente) : "Consumidor Final",
-  };
-  const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : (cliente as any)?.cpf);
-  if (doc) {
-    receiver.federalTaxNumber = doc;
-    if (cliente?.tipo === "empresa") {
-      const indicador = (cliente as any).indicadorIe;
-      // 1. Não permitir inferência (Legacy fix)
-      if (!indicador) {
-        throw new Error(`Classificação de Inscrição Estadual do destinatário "${getClienteNome(cliente)}" não definida. Atualize o cadastro do cliente antes de emitir.`);
-      }
-      
-      const ie = apenasDigitos(cliente.inscricaoEstadual);
-      
-      // 2. Bloqueio prévio no servidor para contribuintes sem IE
-      if (indicador === "contribuinte") {
-        if (!ie) {
-          throw new Error(`O destinatário "${getClienteNome(cliente)}" está marcado como Contribuinte ICMS, mas não possui Inscrição Estadual informada.`);
-        }
-        receiver.stateTaxNumber = ie;
-        receiver.indicatorStateTaxNumber = 1;
-      } else if (indicador === "isento") {
-        receiver.stateTaxNumber = "ISENTO";
-        receiver.indicatorStateTaxNumber = 2;
-      } else {
-        receiver.stateTaxNumber = undefined; // Campos opcionais omitidos do JSON
-        receiver.indicatorStateTaxNumber = 9;
-      }
-
-      // Validação de Schema (Zod) antes de retornar
-      import("@/features/fiscal/utils/preflight.server").then(({ SpedyReceiverSchema }) => {
-        const validation = SpedyReceiverSchema.safeParse(receiver);
-        if (!validation.success) {
-          console.error("[Fiscal Server] SCHEMA_VALIDATION_FAILED:", validation.error.format());
-        }
-      });
-
-    }
-  }
-
-  if (cliente?.cidade && cliente?.estado) {
-    receiver.address = {
-      street: cliente.logradouro || "",
-      number: cliente.numero || "",
-      district: cliente.bairro || "",
-      complement: cliente.complemento || "",
-      postalCode: apenasDigitos(cliente.cep),
-      city: { name: cliente.cidade, state: cliente.estado.trim().toUpperCase() },
-    };
-  }
-
   return {
     isFinalCustomer: true,
     operationType: "outgoing",
     destination,
     presenceType: "presence",
     operationNature: "Venda de Mercadoria",
-    sendEmailToCustomer: false,
     integrationId: pedido.id.slice(0, 36),
-    receiver,
+    receiver: {
+      name: getClienteNome(cliente || ({} as Cliente)).slice(0, 60),
+      federalTaxNumber: apenasDigitos((cliente as any)?.cnpj || (cliente as any)?.cpf),
+      stateTaxNumber: indicator === 2 ? "ISENTO" : ieValida,
+      indicatorStateTaxNumber: indicator,
+      email: cliente?.email,
+      address: {
+        street: (cliente?.logradouro || "").slice(0, 60),
+        number: (cliente?.numero || "").slice(0, 60),
+        district: (cliente?.bairro || "").slice(0, 60),
+        complement: (cliente?.complemento || "").slice(0, 60),
+        postalCode: apenasDigitos(cliente?.cep).slice(0, 8),
+        city: {
+          name: (cliente?.cidade || "").slice(0, 60),
+          state: (cliente?.estado || "").slice(0, 2).toUpperCase(),
+        },
+      },
+    },
     items,
-    payments,
-    total,
+    payments: pedido.pagamentos.map((p) => ({
+      method: getMapaPagamentoSpedy(p.forma),
+      amount: p.valor,
+    })),
+    total: {
+      invoiceAmount: totalPedido,
+      productAmount: totalPedido,
+    },
   };
 }
 
@@ -679,18 +592,14 @@ export function montarPayloadNfeAvulsa(
 
   const items = avulsa.itens.map((i: any) => {
     const ncmItem = apenasDigitos(i.ncm) || ncmPadrao;
-
     if (ncmItem.length !== 8) {
       throw new Error(`O produto "${i.descricao}" não possui um NCM válido de 8 dígitos.`);
     }
-
-    // Coerência obrigatória (rejeição SEFAZ 630): vProd = qCom × vUnCom = qTrib × vUnTrib
     const valores = calcularValoresItemFiscal({
       quantidade: Number(i.quantidade),
       valorUnitario: Number(i.valorUnitario),
       unidade: i.unidade || "UN",
     });
-
     return {
       code: "AVULSO",
       description: i.descricao,
@@ -702,13 +611,12 @@ export function montarPayloadNfeAvulsa(
     };
   });
 
-  // Diagnóstico numérico (sem dados sensíveis)
-  console.log(
-    "NFE_ITEM_TOTAL_DIAGNOSTICS",
-    JSON.stringify(diagnosticarItensFiscais(items as any)),
-  );
-
-
+  const indicatorMap: Record<string, number> = {
+    contribuinte: 1,
+    isento: 2,
+    nao_contribuinte: 9,
+  };
+  const indicator = indicatorMap[avulsa.destinatario.indicadorIe] ?? 9;
 
   return {
     isFinalCustomer: true,
@@ -720,12 +628,8 @@ export function montarPayloadNfeAvulsa(
     receiver: {
       name: avulsa.destinatario.nome,
       federalTaxNumber: apenasDigitos(avulsa.destinatario.documento),
-      stateTaxNumber: avulsa.destinatario.inscricaoEstadual === "ISENTO" 
-        ? "ISENTO" 
-        : (avulsa.destinatario.documento.replace(/\D/g, "").length === 14)
-          ? (apenasDigitos(avulsa.destinatario.inscricaoEstadual) || "")
-          : undefined,
-
+      stateTaxNumber: indicator === 2 ? "ISENTO" : (indicator === 1 ? apenasDigitos(avulsa.destinatario.inscricaoEstadual) : undefined),
+      indicatorStateTaxNumber: indicator,
       email: avulsa.destinatario.email,
       address: {
         street: avulsa.destinatario.logradouro || "",
@@ -747,6 +651,7 @@ export function montarPayloadNfeAvulsa(
     }
   };
 }
+
 
 export function notaFiscalDeResposta(
   res: any,
