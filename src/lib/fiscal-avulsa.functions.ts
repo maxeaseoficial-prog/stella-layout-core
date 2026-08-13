@@ -73,12 +73,50 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
 
     try {
-      const res = await spedyFetch(
-        apiKeyInfo,
-        config.ambienteApi,
-        "/product-invoices",
-        { method: "POST", body: JSON.stringify(payload) },
-      );
+      // 5. Persistir TENTATIVA antes do POST para auditoria
+      const tentativaNota: any = {
+        spedyId: null,
+        ambiente: config.ambienteApi,
+        integrationId: data.id.slice(0, 36),
+        status: "sending",
+        valor: data.total,
+        processingDetail: { message: "Iniciando transmissão de NF-e Avulsa para Spedy..." }
+      };
+
+      let idInterno: string | null = null;
+      try {
+        idInterno = await persistirNfeNoBanco(
+          context.supabase,
+          tentativaNota,
+          "avulsa",
+          payload,
+          data.destinatario,
+          data.destinatario.id,
+          null
+        );
+      } catch (tentativaError) {
+        console.error("[emitirNfeAvulsa] Falha ao salvar tentativa pré-transmissão:", tentativaError);
+      }
+
+      let res;
+      try {
+        res = await spedyFetch(
+          apiKeyInfo,
+          config.ambienteApi,
+          "/product-invoices",
+          { method: "POST", body: JSON.stringify(payload) },
+        );
+      } catch (spedyError: any) {
+        if (idInterno) {
+          const erroNota = {
+            ...tentativaNota,
+            status: "error",
+            processingDetail: { message: spedyError.message || "Erro na transmissão para Spedy" }
+          };
+          await persistirNfeNoBanco(context.supabase, erroNota, "avulsa", undefined, undefined, undefined, null, idInterno);
+        }
+        throw spedyError;
+      }
       
       const nota = notaFiscalDeResposta(res, config.ambienteApi, data.id.slice(0, 36));
       
@@ -87,17 +125,17 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
           context.supabase,
           nota,
           "avulsa",
-          payload,
-          data.destinatario,
+          undefined,
+          undefined,
           data.destinatario.id,
-          null
+          null,
+          idInterno
         );
       } catch (persistError) {
-        console.error("[Fiscal Functions] FISCAL_REMOTE_CREATED_LOCAL_PERSIST_FAILED (Avulsa):", {
+        console.error("[emitirNfeAvulsa] FISCAL_REMOTE_CREATED_LOCAL_PERSIST_FAILED:", {
           spedyId: nota.spedyId,
-          integrationId: nota.integrationId,
           status: nota.status,
-          userId: context.userId
+          idInterno
         });
       }
 
@@ -194,11 +232,12 @@ export const consultarStatusNfe = createServerFn({ method: "POST" })
       await persistirNfeNoBanco(
         context.supabase,
         nota,
-        "avulsa", // Simplificação, persistirNfeNoBanco lida com upsert por spedy_id
+        "avulsa",
+        undefined,
+        undefined,
         null,
         null,
-        null,
-        null
+        null // Usa upsert por spedy_id
       );
       
       return { ok: true as const, nota };
