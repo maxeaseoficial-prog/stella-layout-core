@@ -48,9 +48,9 @@ export function ConfiguracoesFiscaisForm() {
   const [removendoChave, setRemovendoChave] = useState(false);
   const [chaveInput, setChaveInput] = useState("");
   const [mostrarChave, setMostrarChave] = useState(false);
-  const [statusChaves, setStatusChaves] = useState<{ 
-    sandbox: { configurada: boolean; parcial?: string }; 
-    producao: { configurada: boolean; parcial?: string } 
+  const [statusChave, setStatusChave] = useState<{ 
+    configurada: boolean; 
+    parcial: string | null 
   } | null>(null);
   const [dialogRemover, setDialogRemover] = useState(false);
 
@@ -58,7 +58,7 @@ export function ConfiguracoesFiscaisForm() {
   async function carregarStatus() {
     try {
       const res = await carregarSegredosFiscais();
-      setStatusChaves(res);
+      setStatusChave(res);
     } catch (error) {
       console.error("Erro ao carregar status da chave:", error);
     }
@@ -88,11 +88,11 @@ export function ConfiguracoesFiscaisForm() {
     if (!chaveInput.trim()) return;
     setSalvandoChave(true);
     try {
-      await salvarSegredoFiscal({ data: { ambiente: form.ambienteApi, chave: chaveInput.trim() } });
+      await salvarSegredoFiscal({ data: { chave: chaveInput.trim() } });
       await carregarStatus();
       setChaveInput("");
       setMostrarChave(false);
-      toast.success(`Credencial da API (${form.ambienteApi}) salva com sucesso.`);
+      toast.success("Credencial da API Spedy salva com sucesso.");
     } catch (error) {
       toast.error("Erro ao salvar credencial.");
     } finally {
@@ -103,10 +103,10 @@ export function ConfiguracoesFiscaisForm() {
   async function handleRemoverChave() {
     setRemovendoChave(true);
     try {
-      await removerSegredoFiscal({ data: { ambiente: form.ambienteApi } });
+      await removerSegredoFiscal();
       await carregarStatus();
       setDialogRemover(false);
-      toast.success(`Credencial da API (${form.ambienteApi}) removida.`);
+      toast.success("Credencial da API Spedy removida.");
     } catch (error) {
       toast.error("Erro ao remover credencial.");
     } finally {
@@ -121,24 +121,22 @@ export function ConfiguracoesFiscaisForm() {
       if (res.ok) {
         toast.success(res.mensagem);
       } else {
-        if (res.mensagem.includes("401")) {
-          toast.error("A credencial da API de Nota Fiscal foi rejeitada. Verifique a chave cadastrada.");
-        } else if (res.mensagem.includes("403")) {
-          toast.error("A credencial não possui permissão para executar esta operação.");
-        } else if (res.mensagem.includes("Spedy") || res.mensagem.includes("conexão")) {
-          toast.error("Não foi possível se comunicar com a API de Nota Fiscal.");
+        // Trata mensagens de erro de forma mais amigável e segura
+        if (res.mensagem.toLowerCase().includes("auth") || res.mensagem.includes("401") || res.mensagem.includes("403")) {
+          toast.error("Credencial da API Spedy inválida ou sem permissão. Verifique a chave cadastrada.");
         } else {
           toast.error(res.mensagem);
         }
       }
-    } catch (error) {
-      toast.error("Não foi possível se comunicar com a API de Nota Fiscal.");
+    } catch (error: any) {
+      console.error("Erro ao testar conexão:", error);
+      toast.error("Falha na comunicação com o servidor.");
     } finally {
       setTestando(false);
     }
   }
 
-  const statusAtual = form.ambienteApi === "sandbox" ? statusChaves?.sandbox : statusChaves?.producao;
+  
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -179,23 +177,7 @@ export function ConfiguracoesFiscaisForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label>Ambiente da API</Label>
-            <Select value={form.ambienteApi} onValueChange={v => setForm({...form, ambienteApi: v as any})}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="producao">Conta principal (Produção)</SelectItem>
-                <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              Sandbox e Produção utilizam contas/credenciais separadas na Spedy.
-            </p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Ambiente Fiscal (NF-e)</Label>
+            <Label>Ambiente Fiscal NF-e</Label>
             <Select value={form.ambienteFiscal} onValueChange={v => setForm({...form, ambienteFiscal: v as any})}>
               <SelectTrigger>
                 <SelectValue />
@@ -205,14 +187,30 @@ export function ConfiguracoesFiscaisForm() {
                 <SelectItem value="producao">Produção (Com valor fiscal)</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-[10px] text-muted-foreground">
+              Define se a nota terá validade jurídica (Produção) ou apenas para testes (Homologação).
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Ambiente da API (Spedy)</Label>
+            <Select value={form.ambienteApi} onValueChange={v => setForm({...form, ambienteApi: v as any})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="producao">Produção (Live)</SelectItem>
+                <SelectItem value="sandbox">Sandbox (Desenvolvimento)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           
           <div className="grid gap-2">
-            <Label>Chave da API ({form.ambienteApi === "sandbox" ? "Sandbox" : "Produção"})</Label>
+            <Label>Chave da API Spedy</Label>
             <div className="relative">
               <Input 
                 type={mostrarChave ? "text" : "password"}
-                placeholder={`Cole a credencial da API de ${form.ambienteApi}`}
+                placeholder="Cole a credencial da API Spedy"
                 value={chaveInput}
                 onChange={e => setChaveInput(e.target.value)}
                 className="pr-10"
@@ -229,9 +227,9 @@ export function ConfiguracoesFiscaisForm() {
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[11px] text-muted-foreground">Status:</span>
-              {statusAtual?.configurada ? (
+              {statusChave?.configurada ? (
                 <span className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Credencial configurada {statusAtual.parcial && `(${statusAtual.parcial})`}
+                  <CheckCircle2 className="h-3 w-3" /> Credencial configurada {statusChave.parcial && `(${statusChave.parcial})`}
                 </span>
               ) : (
                 <span className="text-[11px] font-medium text-amber-600 flex items-center gap-1">
@@ -255,14 +253,14 @@ export function ConfiguracoesFiscaisForm() {
                 variant="outline" 
                 className="flex-1 gap-2" 
                 onClick={handleTestar} 
-                disabled={testando || !statusAtual?.configurada}
+                disabled={testando || !statusChave?.configurada}
               >
                 <RefreshCw className={cn("h-4 w-4", testando && "animate-spin")} />
                 Testar conexão
               </Button>
             </div>
             
-            {statusAtual?.configurada && (
+            {statusChave?.configurada && (
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -310,7 +308,7 @@ export function ConfiguracoesFiscaisForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover credencial?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza de que deseja remover a credencial da API ({form.ambienteApi})?
+              Tem certeza de que deseja remover a credencial da API Spedy?
               Esta ação impedirá a emissão de novas notas neste ambiente até que uma nova chave seja configurada.
             </AlertDialogDescription>
           </AlertDialogHeader>

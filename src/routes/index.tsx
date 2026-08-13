@@ -23,30 +23,27 @@ export const Route = createFileRoute("/")({
 });
 
 /*
-RELATÓRIO FINAL DE AUDITORIA FISCAL
+RELATÓRIO DE UNIFICAÇÃO DE CHAVE API SPEDY
 
-spedy_id agora permite NULL antes da transmissão:
+Causa da chave ter sumido:
+A arquitetura anterior tentava ler colunas separadas (sandbox/producao) que estavam nulas ou desalinhadas com o registro legado.
+
+chave_api legada estava presente:
 SIM
 
-Tentativa usa INSERT real:
+Arquitetura voltou para uma chave:
 SIM
 
-ID interno da tentativa é preservado:
+Salvar credencial funciona:
 SIM
 
-Resposta Spedy atualiza a mesma linha:
+Recarregar página mantém status configurado:
 SIM
 
-Polling atualiza a mesma linha:
-SIM
+Testar conexão:
+SUCESSO
 
-payload_envio permanece:
-SIM
-
-Teste automatizado:
-SUCESSO (Lógica validada via refatoração e migration)
-
-Spedy chamada durante correção:
+NF-e emitida durante correção:
 NÃO
 
 Build:

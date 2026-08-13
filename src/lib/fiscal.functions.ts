@@ -351,35 +351,26 @@ export const carregarSegredosFiscais = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { carregarSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
     await assertAdminFiscal(context.supabase, context.userId);
-    const chaves = await carregarSegredosFiscaisServer(context.supabase);
-    return { 
-      sandbox: chaves.sandbox ? { configurada: true, parcial: `••••••••${chaves.sandbox.slice(-4)}` } : { configurada: false },
-      producao: chaves.producao ? { configurada: true, parcial: `••••••••${chaves.producao.slice(-4)}` } : { configurada: false }
-    };
+    return await carregarSegredosFiscaisServer(context.supabase);
   });
 
 export const salvarSegredoFiscal = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
   .inputValidator((data) => z.object({ 
-    ambiente: z.enum(["sandbox", "producao"]),
     chave: z.string().min(1) 
   }).parse(data))
   .handler(async ({ data, context }) => {
     const { salvarSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
     await assertAdminFiscal(context.supabase, context.userId);
-    await salvarSegredosFiscaisServer(context.supabase, { [data.ambiente]: data.chave });
+    await salvarSegredosFiscaisServer(context.supabase, data.chave);
     return { ok: true };
   });
 
 export const removerSegredoFiscal = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
-  .inputValidator((data) => z.object({ 
-    ambiente: z.enum(["sandbox", "producao"])
-  }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { salvarSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
+  .handler(async ({ context }) => {
+    const { removerSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
     await assertAdminFiscal(context.supabase, context.userId);
-    // Aqui passamos uma string vazia para o ambiente específico para "remover"
-    await salvarSegredosFiscaisServer(context.supabase, { [data.ambiente]: "" });
+    await removerSegredosFiscaisServer(context.supabase);
     return { ok: true };
   });
