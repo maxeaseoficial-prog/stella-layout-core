@@ -543,7 +543,7 @@ export function usePedidos() {
     );
   }, []);
 
-  const salvarNotaFiscal = useCallback(
+  const salvarNotaFiscal = useCallback((id: string, nota: NotaFiscalPedido, hDesc?: string) => {
     (id: string, nota: NotaFiscalPedido | null | undefined, descricaoHistorico?: string) => {
       commit(setPedidos, (atual) =>
         atual.map((p) => {

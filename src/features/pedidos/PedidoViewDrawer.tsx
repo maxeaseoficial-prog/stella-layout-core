@@ -39,7 +39,6 @@ import { useAuth } from "@/features/auth/useAuth";
 import { STATUS_PERMITIDOS_MATRIZ } from "@/features/auth/permissions";
 import { LABEL_PENDENCIA_ADICIONAL } from "@/features/adicionais";
 import { usePedidos } from "./usePedidos";
-import { NotaFiscalSection } from "@/features/fiscal/NotaFiscalSection";
 import { OrcamentosPendentesSection } from "./OrcamentosPendentesSection";
 import {
   abrirWhatsApp,
@@ -94,7 +93,7 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  const { marcarNotaEmitida, alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
+  const { marcarNotaEmitida, alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos() as any;
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
   const [confirmarNfeManual, setConfirmarNfeManual] = useState<boolean | null>(null);
@@ -559,11 +558,6 @@ export function PedidoViewDrawer({
                     </Bloco>
                   </TabsContent>
 
-                  {abaFiscal && (
-                    <TabsContent value="nota-fiscal" className="mt-0">
-                      <NotaFiscalSection pedido={pedido} />
-                    </TabsContent>
-                  )}
 
                   <TabsContent value="historico" className="mt-0">
                     <Bloco titulo="Histórico do pedido">
