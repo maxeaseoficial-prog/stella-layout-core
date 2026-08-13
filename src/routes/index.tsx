@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Painel | Stella Espaço dos Uniformes" },
       {
         property: "og:description",
-        content: "Indicadores de vendas, produção e financeiro do Stella ERP.",
+        content: "Indicadores de vendas, production e financeiro do Stella ERP.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

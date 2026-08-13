@@ -122,10 +122,8 @@ export async function persistirNfeNoBanco(
   
   if (!empUser) throw new Error("Tenant não encontrado para o usuário.");
 
-  const record = {
+  const record: any = {
     tenant_id: empUser.empresa_id,
-    cliente_id: clienteId || null,
-    pedido_id: pedidoId || null,
     tipo_emissao: tipo,
     spedy_id: nota.spedyId,
     ambiente: nota.ambiente,
@@ -139,14 +137,25 @@ export async function persistirNfeNoBanco(
     data_autorizacao: nota.autorizadaEm,
     external_id: nota.integrationId,
     mensagem_sefaz: nota.processingDetail?.message,
-    payload_envio: payloadEnvio,
-    resumo_destinatario: resumoDestinatario,
     updated_at: new Date().toISOString()
   };
 
-  // Se o spedy_id for nulo (falha na API), não tentamos upsert
+  if (clienteId !== undefined && clienteId !== null) record.cliente_id = clienteId;
+  if (pedidoId !== undefined && pedidoId !== null) record.pedido_id = pedidoId;
+  if (payloadEnvio !== undefined && payloadEnvio !== null) record.payload_envio = payloadEnvio;
+  if (resumoDestinatario !== undefined && resumoDestinatario !== null) record.resumo_destinatario = resumoDestinatario;
+
+  // Se não houver spedy_id, tentamos localizar pelo external_id (integrationId) para salvar a tentativa
   if (!record.spedy_id) {
-    console.error("[Fiscal Server] FISCAL_PERSISTENCE_SKIPPED: spedy_id is null.");
+    if (record.external_id) {
+      const { error } = await supabase
+        .from("notas_fiscais")
+        .upsert(record, { onConflict: "tenant_id,external_id" });
+      
+      if (error) {
+        console.error("[Fiscal Server] FISCAL_ATTEMPT_PERSISTENCE_ERROR:", error);
+      }
+    }
     return;
   }
 
