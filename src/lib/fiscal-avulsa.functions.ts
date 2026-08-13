@@ -12,6 +12,7 @@ import {
   persistirNfeNoBanco
 } from "./fiscal.server";
 import { diagnosticarItensFiscais, type DiagnosticoItemFiscal } from "./fiscal-itens";
+import { SpedyReceiverSchema } from "@/features/fiscal/utils/preflight.server";
 
 export const emitirNfeAvulsa = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
@@ -62,7 +63,7 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     // Validação Síncrona Bloqueante do Payload Final (Receiver) para Avulsa
     const validationSpedy = SpedyReceiverSchema.safeParse(payload.receiver);
     if (!validationSpedy.success) {
-      const errorPaths = validationSpedy.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ");
+      const errorPaths = validationSpedy.error.issues.map((i: any) => `${i.path.join(".")}: ${i.message}`).join("; ");
       return { 
         ok: false as const, 
         mensagem: `Payload do destinatário da NF-e Avulsa incompatível com o contrato Spedy: ${errorPaths}` 
