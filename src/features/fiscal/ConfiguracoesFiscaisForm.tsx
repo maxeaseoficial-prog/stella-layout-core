@@ -24,7 +24,7 @@ import { useFiscalConfig } from "./useFiscalConfig";
 import { toast } from "@/lib/toast";
 import { 
   testarConexaoFiscal, 
-  carregarSegredoFiscal, 
+  carregarSegredosFiscais, 
   salvarSegredoFiscal, 
   removerSegredoFiscal 
 } from "@/lib/fiscal.functions";
@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 export function ConfiguracoesFiscaisForm() {
   const { config, salvar, carregando } = useFiscalConfig();
@@ -47,19 +48,23 @@ export function ConfiguracoesFiscaisForm() {
   const [removendoChave, setRemovendoChave] = useState(false);
   const [chaveInput, setChaveInput] = useState("");
   const [mostrarChave, setMostrarChave] = useState(false);
-  const [statusChave, setStatusChave] = useState<{ configurada: boolean; parcial?: string } | null>(null);
+  const [statusChaves, setStatusChaves] = useState<{ 
+    sandbox: { configurada: boolean; parcial?: string }; 
+    producao: { configurada: boolean; parcial?: string } 
+  } | null>(null);
   const [dialogRemover, setDialogRemover] = useState(false);
 
-  // Carrega status da chave
-  useEffect(() => {
-    async function carregarStatus() {
-      try {
-        const res = await carregarSegredoFiscal();
-        setStatusChave(res);
-      } catch (error) {
-        console.error("Erro ao carregar status da chave:", error);
-      }
+  // Carrega status das chaves
+  async function carregarStatus() {
+    try {
+      const res = await carregarSegredosFiscais();
+      setStatusChaves(res);
+    } catch (error) {
+      console.error("Erro ao carregar status da chave:", error);
     }
+  }
+
+  useEffect(() => {
     carregarStatus();
   }, []);
 
@@ -83,12 +88,11 @@ export function ConfiguracoesFiscaisForm() {
     if (!chaveInput.trim()) return;
     setSalvandoChave(true);
     try {
-      await salvarSegredoFiscal({ data: { chave: chaveInput.trim() } });
-      const status = await carregarSegredoFiscal();
-      setStatusChave(status);
+      await salvarSegredoFiscal({ data: { ambiente: form.ambienteApi, chave: chaveInput.trim() } });
+      await carregarStatus();
       setChaveInput("");
       setMostrarChave(false);
-      toast.success("Credencial da API salva com sucesso.");
+      toast.success(`Credencial da API (${form.ambienteApi}) salva com sucesso.`);
     } catch (error) {
       toast.error("Erro ao salvar credencial.");
     } finally {
@@ -99,10 +103,10 @@ export function ConfiguracoesFiscaisForm() {
   async function handleRemoverChave() {
     setRemovendoChave(true);
     try {
-      await removerSegredoFiscal();
-      setStatusChave({ configurada: false });
+      await removerSegredoFiscal({ data: { ambiente: form.ambienteApi } });
+      await carregarStatus();
       setDialogRemover(false);
-      toast.success("Credencial da API removida.");
+      toast.success(`Credencial da API (${form.ambienteApi}) removida.`);
     } catch (error) {
       toast.error("Erro ao remover credencial.");
     } finally {
@@ -117,7 +121,6 @@ export function ConfiguracoesFiscaisForm() {
       if (res.ok) {
         toast.success(res.mensagem);
       } else {
-        // Mapeamento de erros conforme solicitado
         if (res.mensagem.includes("401")) {
           toast.error("A credencial da API de Nota Fiscal foi rejeitada. Verifique a chave cadastrada.");
         } else if (res.mensagem.includes("403")) {
@@ -134,6 +137,8 @@ export function ConfiguracoesFiscaisForm() {
       setTestando(false);
     }
   }
+
+  const statusAtual = form.ambienteApi === "sandbox" ? statusChaves?.sandbox : statusChaves?.producao;
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
@@ -170,7 +175,7 @@ export function ConfiguracoesFiscaisForm() {
           <CardTitle className="text-sm font-semibold flex items-center gap-2 text-primary">
             <Key className="h-4 w-4" /> API NOTA FISCAL
           </CardTitle>
-          <CardDescription>Configure a credencial utilizada para comunicação com o serviço de emissão de Nota Fiscal.</CardDescription>
+          <CardDescription>Configure as credenciais utilizadas para comunicação com o serviço Spedy.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
@@ -180,13 +185,12 @@ export function ConfiguracoesFiscaisForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="producao">Conta principal</SelectItem>
-                <SelectItem value="sandbox">Sandbox de desenvolvedor</SelectItem>
+                <SelectItem value="producao">Conta principal (Produção)</SelectItem>
+                <SelectItem value="sandbox">Sandbox (Teste)</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-[10px] text-muted-foreground">
-              Esta configuração define a conta utilizada para conexão com a API. 
-              O ambiente fiscal da NF-e (Homologação/Produção) é configurado separadamente.
+              Sandbox e Produção utilizam contas/credenciais separadas na Spedy.
             </p>
           </div>
 
@@ -204,11 +208,11 @@ export function ConfiguracoesFiscaisForm() {
           </div>
           
           <div className="grid gap-2">
-            <Label>Chave da API</Label>
+            <Label>Chave da API ({form.ambienteApi === "sandbox" ? "Sandbox" : "Produção"})</Label>
             <div className="relative">
               <Input 
                 type={mostrarChave ? "text" : "password"}
-                placeholder="Cole a credencial da API"
+                placeholder={`Cole a credencial da API de ${form.ambienteApi}`}
                 value={chaveInput}
                 onChange={e => setChaveInput(e.target.value)}
                 className="pr-10"
@@ -225,9 +229,9 @@ export function ConfiguracoesFiscaisForm() {
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[11px] text-muted-foreground">Status:</span>
-              {statusChave?.configurada ? (
+              {statusAtual?.configurada ? (
                 <span className="text-[11px] font-medium text-emerald-600 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Credencial configurada {statusChave.parcial && `(${statusChave.parcial})`}
+                  <CheckCircle2 className="h-3 w-3" /> Credencial configurada {statusAtual.parcial && `(${statusAtual.parcial})`}
                 </span>
               ) : (
                 <span className="text-[11px] font-medium text-amber-600 flex items-center gap-1">
@@ -245,20 +249,20 @@ export function ConfiguracoesFiscaisForm() {
                 disabled={salvandoChave || !chaveInput.trim()}
               >
                 {salvandoChave ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Salvar credencial
+                Salvar
               </Button>
               <Button 
                 variant="outline" 
                 className="flex-1 gap-2" 
                 onClick={handleTestar} 
-                disabled={testando || !statusChave?.configurada}
+                disabled={testando || !statusAtual?.configurada}
               >
                 <RefreshCw className={cn("h-4 w-4", testando && "animate-spin")} />
                 Testar conexão
               </Button>
             </div>
             
-            {statusChave?.configurada && (
+            {statusAtual?.configurada && (
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -306,8 +310,8 @@ export function ConfiguracoesFiscaisForm() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover credencial?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza de que deseja remover a credencial da API de Nota Fiscal?
-              Esta ação impedirá a emissão de novas notas até que uma nova chave seja configurada.
+              Tem certeza de que deseja remover a credencial da API ({form.ambienteApi})?
+              Esta ação impedirá a emissão de novas notas neste ambiente até que uma nova chave seja configurada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -338,5 +342,3 @@ export function ConfiguracoesFiscaisForm() {
     </div>
   );
 }
-
-import { cn } from "@/lib/utils";

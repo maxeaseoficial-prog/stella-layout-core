@@ -304,35 +304,40 @@ export const reenviarDanfePedido = createServerFn({ method: "POST" })
     }
   });
 
-export const carregarSegredoFiscal = createServerFn({ method: "GET" })
+export const carregarSegredosFiscais = createServerFn({ method: "GET" })
   .middleware([supabaseAuthMiddleware])
   .handler(async ({ context }) => {
-    const { carregarSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    const { carregarSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
     await assertAdminFiscal(context.supabase, context.userId);
-    const chave = await carregarSegredoFiscalServer(context.supabase);
-    if (!chave) return { configurada: false };
-    // Retorna apenas os últimos 4 caracteres para identificação parcial
+    const chaves = await carregarSegredosFiscaisServer(context.supabase);
     return { 
-      configurada: true, 
-      parcial: `••••••••${chave.slice(-4)}` 
+      sandbox: chaves.sandbox ? { configurada: true, parcial: `••••••••${chaves.sandbox.slice(-4)}` } : { configurada: false },
+      producao: chaves.producao ? { configurada: true, parcial: `••••••••${chaves.producao.slice(-4)}` } : { configurada: false }
     };
   });
 
 export const salvarSegredoFiscal = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
-  .inputValidator((data) => z.object({ chave: z.string().min(1) }).parse(data))
+  .inputValidator((data) => z.object({ 
+    ambiente: z.enum(["sandbox", "producao"]),
+    chave: z.string().min(1) 
+  }).parse(data))
   .handler(async ({ data, context }) => {
-    const { salvarSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+    const { salvarSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
     await assertAdminFiscal(context.supabase, context.userId);
-    await salvarSegredoFiscalServer(context.supabase, data.chave);
+    await salvarSegredosFiscaisServer(context.supabase, { [data.ambiente]: data.chave });
     return { ok: true };
   });
 
 export const removerSegredoFiscal = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
-  .handler(async ({ context }) => {
-    const { removerSegredoFiscalServer, assertAdminFiscal } = await import("./fiscal.server");
+  .inputValidator((data) => z.object({ 
+    ambiente: z.enum(["sandbox", "producao"])
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { salvarSegredosFiscaisServer, assertAdminFiscal } = await import("./fiscal.server");
     await assertAdminFiscal(context.supabase, context.userId);
-    await removerSegredoFiscalServer(context.supabase);
+    // Aqui passamos uma string vazia para o ambiente específico para "remover"
+    await salvarSegredosFiscaisServer(context.supabase, { [data.ambiente]: "" });
     return { ok: true };
   });

@@ -707,18 +707,24 @@ export type Database = {
       segredos_fiscais: {
         Row: {
           chave_api: string
+          chave_api_producao: string | null
+          chave_api_sandbox: string | null
           id: string
           tenant_id: string
           updated_at: string | null
         }
         Insert: {
           chave_api: string
+          chave_api_producao?: string | null
+          chave_api_sandbox?: string | null
           id?: string
           tenant_id: string
           updated_at?: string | null
         }
         Update: {
           chave_api?: string
+          chave_api_producao?: string | null
+          chave_api_sandbox?: string | null
           id?: string
           tenant_id?: string
           updated_at?: string | null
