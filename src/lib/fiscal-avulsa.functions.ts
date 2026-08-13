@@ -21,6 +21,8 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
       id: z.string().optional(),
       nome: z.string(),
       documento: z.string(),
+      indicadorIe: z.enum(["contribuinte", "isento", "nao_contribuinte"]),
+      inscricaoEstadual: z.string().optional(),
       email: z.string().optional(),
       cep: z.string().optional(),
       logradouro: z.string().optional(),
@@ -56,6 +58,17 @@ export const emitirNfeAvulsa = createServerFn({ method: "POST" })
     if (erroConfig) return { ok: false as const, mensagem: erroConfig };
 
     const payload = montarPayloadNfeAvulsa(data, config);
+
+    // Validação Síncrona Bloqueante do Payload Final (Receiver) para Avulsa
+    const validationSpedy = SpedyReceiverSchema.safeParse(payload.receiver);
+    if (!validationSpedy.success) {
+      const errorPaths = validationSpedy.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ");
+      return { 
+        ok: false as const, 
+        mensagem: `Payload do destinatário da NF-e Avulsa incompatível com o contrato Spedy: ${errorPaths}` 
+      };
+    }
+
     const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
 
     try {
@@ -105,6 +118,8 @@ export const previewPayloadNfeAvulsa = createServerFn({ method: "POST" })
       id: z.string().optional(),
       nome: z.string(),
       documento: z.string(),
+      indicadorIe: z.enum(["contribuinte", "isento", "nao_contribuinte"]),
+      inscricaoEstadual: z.string().optional(),
       email: z.string().optional(),
       cep: z.string().optional(),
       logradouro: z.string().optional(),
