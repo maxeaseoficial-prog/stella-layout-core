@@ -121,6 +121,30 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
     
     try {
+      // 5. Persistir TENTATIVA antes do POST para auditoria (mesmo se a Spedy falhar)
+      const tentativaNota: any = {
+        spedyId: null,
+        ambiente: config.ambienteApi,
+        integrationId: pedido.id.slice(0, 36),
+        status: "sending",
+        valor: pedido.total,
+        processingDetail: { message: "Iniciando transmissão para Spedy..." }
+      };
+
+      try {
+        await persistirNfeNoBanco(
+          context.supabase,
+          tentativaNota,
+          "pedido",
+          payload,
+          cliente,
+          cliente?.id,
+          pedido.id
+        );
+      } catch (tentativaError) {
+        console.error("[Fiscal Functions] Falha ao salvar tentativa pré-transmissão:", tentativaError);
+      }
+
       const res = await spedyFetch(
         apiKeyInfo,
         config.ambienteApi,
@@ -211,9 +235,9 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
           context.supabase,
           nota,
           pedidoId ? "pedido" : "avulsa",
-          null,
-          null,
-          null,
+          undefined, // Não sobrescrever payload_envio
+          undefined, // Não sobrescrever resumo_destinatario
+          undefined, // Não sobrescrever cliente_id
           pedidoId
         );
       } catch (e) {
