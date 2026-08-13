@@ -529,7 +529,7 @@ export type Database = {
           protocolo: string | null
           resumo_destinatario: Json | null
           serie: string | null
-          spedy_id: string
+          spedy_id: string | null
           status: string
           tenant_id: string
           tipo_emissao: string
@@ -552,7 +552,7 @@ export type Database = {
           protocolo?: string | null
           resumo_destinatario?: Json | null
           serie?: string | null
-          spedy_id: string
+          spedy_id?: string | null
           status: string
           tenant_id: string
           tipo_emissao: string
@@ -575,7 +575,7 @@ export type Database = {
           protocolo?: string | null
           resumo_destinatario?: Json | null
           serie?: string | null
-          spedy_id?: string
+          spedy_id?: string | null
           status?: string
           tenant_id?: string
           tipo_emissao?: string
