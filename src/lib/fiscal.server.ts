@@ -336,28 +336,32 @@ export async function spedyFetch(
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
 
   let payloadLog: any = null;
-  let bodyHash = "n/a";
-  if (init?.body) {
+  let bodySha256 = "n/a";
+  if (init?.body && typeof init.body === "string") {
     try {
-      const bodyStr = init.body as string;
+      const bodyStr = init.body;
       const parsed = JSON.parse(bodyStr);
       payloadLog = { ...parsed };
       
-      // Gerar hash simples para comparação de integridade (SHA-256 no worker pode precisar de import crypto)
-      // Usaremos um log da estrutura para o hash visual
-      bodyHash = `len:${bodyStr.length}`;
-    } catch (e) {}
+      const { createHash } = await import("node:crypto");
+      bodySha256 = createHash("sha256").update(bodyStr).digest("hex");
+    } catch (e) {
+      console.error("[Fiscal Server] Failed to hash body:", e);
+    }
   }
-
 
   console.log("[Fiscal Server] API_FISCAL_DIAGNOSTICS:", {
     API_FISCAL_ENVIRONMENT: ambiente,
     API_FISCAL_BASE_URL: SPEDY_BASE_URLS[ambiente],
     API_FISCAL_KEY_PRESENT: !!apiKeyInfo.key,
     path,
-    API_FISCAL_BODY_HASH: bodyHash,
+    API_FISCAL_BODY_SHA256: bodySha256,
     API_FISCAL_PAYLOAD_STRUCTURE: payloadLog ? {
-      receiver: payloadLog.receiver,
+      receiverPresent: !!payloadLog.receiver,
+      federalTaxNumberPresent: !!payloadLog.receiver?.federalTaxNumber,
+      stateTaxNumberPresent: !!payloadLog.receiver?.stateTaxNumber,
+      indicatorFieldName: "indicatorStateTaxNumber",
+      indicatorValue: payloadLog.receiver?.indicatorStateTaxNumber,
       integrationId: payloadLog.integrationId,
       itemsCount: payloadLog.items?.length
     } : null

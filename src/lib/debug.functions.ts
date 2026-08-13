@@ -15,18 +15,32 @@ export const getBuildInfo = createServerFn({ method: "GET" })
 /**
  * Recupera os dados de uma nota fiscal rejeitada para diagnóstico.
  */
-export const diagnosticarNfeRejeitada = createServerFn({ method: "GET" })
+export const diagnosticarNfeRejeitada = createServerFn({ method: "POST" })
   .middleware([supabaseAuthMiddleware])
-  .handler(async ({ context }) => {
+  .inputValidator((data) => z.object({ 
+    spedyId: z.string().optional(),
+    integrationId: z.string().optional(),
+    filtrarRejeicao232: z.boolean().optional()
+  }).parse(data))
+  .handler(async ({ input, context }) => {
     await assertAdminFiscal(context.supabase, context.userId);
 
-    const { data, error } = await context.supabase
+    let query = context.supabase
       .from("notas_fiscais")
       .select("*")
-      .eq("status", "rejected")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .order("updated_at", { ascending: false });
+
+    if (input.spedyId) {
+      query = query.eq("spedy_id", input.spedyId);
+    } else if (input.integrationId) {
+      query = query.eq("external_id", input.integrationId);
+    } else if (input.filtrarRejeicao232) {
+      query = query.eq("status", "rejected").ilike("mensagem_sefaz", "%232%");
+    } else {
+      query = query.eq("status", "rejected");
+    }
+
+    const { data, error } = await query.limit(1).maybeSingle();
 
     if (error) throw error;
     if (!data) return { ok: false, mensagem: "Nenhuma nota rejeitada encontrada." };
