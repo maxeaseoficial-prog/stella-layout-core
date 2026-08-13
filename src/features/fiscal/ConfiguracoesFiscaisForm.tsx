@@ -103,7 +103,7 @@ export function ConfiguracoesFiscaisForm() {
   async function handleRemoverChave() {
     setRemovendoChave(true);
     try {
-      await removerSegredoFiscal({ data: { ambiente: form.ambienteApi } });
+      await removerSegredoFiscal();
       await carregarStatus();
       setDialogRemover(false);
       toast.success("Credencial da API Spedy removida.");
