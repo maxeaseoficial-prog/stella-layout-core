@@ -335,6 +335,10 @@ export async function spedyFetch(
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
 
+  if (!apiKeyInfo.key) {
+    throw new Error(`Chave de API não configurada para o ambiente ${ambiente}.`);
+  }
+
   let payloadLog: any = null;
   let bodySha256 = "n/a";
   if (init?.body && typeof init.body === "string") {
@@ -371,7 +375,7 @@ export async function spedyFetch(
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "X-Api-Key": apiKeyInfo.key,
+      "apikey": apiKeyInfo.key,
       ...(init?.headers ?? {}),
     },
   });

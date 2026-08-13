@@ -55,8 +55,8 @@ export interface FiscalConfig {
   empresa: EmpresaFiscal;
   ambienteApi: AmbienteApiSpedy;
   ambienteFiscal: AmbienteFiscalNfe;
-  apiKeySandbox: string; // Legado
-  apiKeyProducao: string; // Legado
+  apiKeySandbox: string;
+  apiKeyProducao: string;
   tributacao: TributacaoPadrao;
   ultimoTeste?: TesteConexaoFiscal;
   liberacaoPedido: "producao" | "finalizado";
