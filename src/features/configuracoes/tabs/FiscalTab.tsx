@@ -340,7 +340,7 @@ export function FiscalTab() {
 
       <SectionCard
         title="API Spedy"
-        description="A Spedy emite uma única chave por conta, válida para Sandbox e Produção. A chave fica salva no cofre de segredos do servidor — nunca aparece no código, no banco de dados ou no navegador."
+        description="A Spedy emite credenciais separadas para Sandbox e Produção. As chaves ficam salvas no cofre de segredos do servidor — nunca aparecem no código, no banco de dados ou no navegador."
         icon={<Plug className="h-4 w-4" />}
       >
         <div className="grid gap-4 sm:grid-cols-2">
@@ -390,14 +390,9 @@ export function FiscalTab() {
             <div className="flex items-start gap-2 rounded-md border border-border bg-surface-muted/60 px-3 py-2 text-xs text-muted-foreground">
               <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
               <p>
-                A chave está salva no <strong>cofre de segredos</strong> do
-                sistema — ela nunca aparece no código, no banco de dados ou no
-                navegador, e serve para os dois ambientes (Sandbox e Produção).
-                Para trocar a chave, peça para atualizar o segredo{" "}
-                <code className="rounded bg-background px-1 py-0.5 font-mono text-[11px]">
-                  SPEDY_API_KEY
-                </code>
-                .
+                As chaves estão salvas no <strong>cofre de segredos</strong> do
+                sistema — elas nunca aparecem no código, no banco de dados ou no
+                navegador. O sistema utiliza automaticamente a chave correspondente ao ambiente selecionado (Sandbox ou Produção).
               </p>
             </div>
           </div>
