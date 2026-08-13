@@ -82,9 +82,6 @@ function estadoInicial(produto?: Produto | null): FormState {
     return {
       nome: "",
       sku: "",
-      ncm: "",
-      categoriaFiscalId: "",
-      descricaoFiscal: "",
       categoria: "",
       precoStr: "",
       personalizacoes: { ...PERSONALIZACOES_VAZIAS },
@@ -98,9 +95,6 @@ function estadoInicial(produto?: Produto | null): FormState {
   return {
     nome: produto.nome,
     sku: produto.sku ?? "",
-    categoriaFiscalId: (produto as any).categoriaFiscalId ?? "",
-    ncm: produto.ncm ?? "",
-    descricaoFiscal: (produto as any).descricaoFiscal ?? "",
     categoria: produto.categoria,
     precoStr: produto.precoBase > 0 ? produto.precoBase.toFixed(2).replace(".", ",") : "",
     personalizacoes: { ...produto.personalizacoes },
@@ -172,7 +166,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
     const novosErros: Record<string, string> = {};
     if (!form.nome.trim()) novosErros.nome = "Informe o nome do produto.";
     if (!form.categoria) novosErros.categoria = "Selecione a categoria.";
-    if (!form.categoriaFiscalId) novosErros.categoriaFiscalId = "Selecione a classificação fiscal.";
+    // Validação fiscal removida
     
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0) {
@@ -184,9 +178,6 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
     const dados: ProdutoInput = {
       nome: form.nome.trim(),
       sku: form.sku.trim() || undefined,
-      ncm: form.ncm.trim() || undefined,
-      categoriaFiscalId: form.categoriaFiscalId || undefined,
-      descricaoFiscal: form.descricaoFiscal || undefined,
       categoria: form.categoria,
       precoBase: parsePreco(form.precoStr),
       variacoesTamanhos: form.variacoesTamanhos.length > 0 ? form.variacoesTamanhos : undefined,

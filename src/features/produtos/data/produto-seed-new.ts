@@ -7,9 +7,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 25.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 25.50, precoCreditoAVista: 26.90, precoCreditoParcelado: 29.50 },
@@ -33,9 +33,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 28.00,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: true, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 28.00, precoCreditoAVista: 29.50, precoCreditoParcelado: 30.50 },
@@ -59,9 +59,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 31.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: true, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 31.50, precoCreditoAVista: 32.90, precoCreditoParcelado: 34.50 },
@@ -85,9 +85,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "moletom",
     precoBase: 64.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 64.50, precoCreditoAVista: 67.30, precoCreditoParcelado: 71.50 },
@@ -111,9 +111,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "leg",
     precoBase: 28.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 28.50, precoCreditoAVista: 29.50, precoCreditoParcelado: 31.50 },
@@ -137,9 +137,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 36.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "01", precoAVista: 36.50, precoCreditoAVista: 38.00, precoCreditoParcelado: 40.50 },
@@ -156,9 +156,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 38.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "01", precoAVista: 38.50, precoCreditoAVista: 40.50, precoCreditoParcelado: 42.50 },
@@ -174,9 +174,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "bermuda",
     precoBase: 31.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Bermuda infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "01", precoAVista: 31.50, precoCreditoAVista: 32.50, precoCreditoParcelado: 34.90 },
@@ -193,9 +193,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "bermuda",
     precoBase: 27.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Bermuda leg infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "01", precoAVista: 27.50, precoCreditoAVista: 28.50, precoCreditoParcelado: 30.50 },
@@ -212,9 +212,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "calca",
     precoBase: 42.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Calça infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "01", precoAVista: 42.50, precoCreditoAVista: 44.50, precoCreditoParcelado: 46.50 },
@@ -231,9 +231,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "calca",
     precoBase: 36.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Calça leg infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 36.50, precoCreditoAVista: 38.00, precoCreditoParcelado: 40.50 },
@@ -250,9 +250,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "moletom",
     precoBase: 64.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Blusa de moletom infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "01", precoAVista: 64.50, precoCreditoAVista: 67.50, precoCreditoParcelado: 71.50 },
@@ -269,9 +269,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "jaqueta",
     precoBase: 72.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Jaqueta infantil",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 72.50, precoCreditoAVista: 75.90, precoCreditoParcelado: 80.50 },
@@ -288,9 +288,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "calca",
     precoBase: 40.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Calça Masculina Tabela B",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 40.50, precoCreditoAVista: 42.50, precoCreditoParcelado: 44.50 },
@@ -314,9 +314,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "bermuda",
     precoBase: 30.00,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Bermuda Masculina Tabela B",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 30.00, precoCreditoAVista: 31.50, precoCreditoParcelado: 33.50 },
@@ -340,9 +340,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "outros",
     precoBase: 41.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Short Saia",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 41.50, precoCreditoAVista: 43.00, precoCreditoParcelado: 45.50 },
@@ -361,9 +361,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "bermuda",
     precoBase: 23.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Bermuda Leg Tabela B",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 23.50, precoCreditoAVista: 25.00, precoCreditoParcelado: 26.50 },
@@ -387,9 +387,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 36.00,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 36.00, precoCreditoAVista: 37.90, precoCreditoParcelado: 39.50 },
@@ -413,9 +413,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "camiseta",
     precoBase: 39.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 39.50, precoCreditoAVista: 41.50, precoCreditoParcelado: 43.50 },
@@ -439,9 +439,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "leg",
     precoBase: 36.00,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 36.00, precoCreditoAVista: 37.90, precoCreditoParcelado: 39.50 },
@@ -465,9 +465,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "moletom",
     precoBase: 64.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: true, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 64.50, precoCreditoAVista: 67.50, precoCreditoParcelado: 69.50 },
@@ -491,9 +491,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "calca",
     precoBase: 48.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 48.50, precoCreditoAVista: 50.50, precoCreditoParcelado: 52.50 },
@@ -517,9 +517,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "bermuda",
     precoBase: 36.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Camiseta diversa estampada de algodão",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "02", precoAVista: 36.50, precoCreditoAVista: 38.50, precoCreditoParcelado: 40.50 },
@@ -543,9 +543,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "leg",
     precoBase: 38.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Leg Adulto Tabela B",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "P", precoAVista: 38.50, precoCreditoAVista: 40.50, precoCreditoParcelado: 42.50 },
@@ -560,9 +560,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "bermuda",
     precoBase: 28.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Short Masculino Tabela B",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "P", precoAVista: 28.50, precoCreditoAVista: 30.50, precoCreditoParcelado: 32.50 },
@@ -577,9 +577,9 @@ export const PRODUTOS_SEED: ProdutoInput[] = [
     categoria: "jaqueta",
     precoBase: 85.50,
     status: "ativo",
-    categoriaFiscalId: "023",
-    ncm: "6109.10.00",
-    descricaoFiscal: "Jaqueta Adulto Tabela B",
+    
+    
+    
     personalizacoes: { bordado: false, estampa: false, sublimacao: false },
     variacoesTamanhos: [
       { tamanho: "P", precoAVista: 85.50, precoCreditoAVista: 89.50, precoCreditoParcelado: 93.50 },
