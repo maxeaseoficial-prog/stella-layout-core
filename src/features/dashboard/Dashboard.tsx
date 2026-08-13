@@ -170,7 +170,7 @@ export function Dashboard() {
     ];
 
     const dataGraficoStatus = statusGrupos.map(g => {
-      const qtd = pedidosNoPeriodo.filter(p => g.status.includes(p.statusProducao as any)).length;
+      const qtd = pedidosNoPeriodo.filter(p => (g.status as string[]).includes(p.statusProducao as string)).length;
       return { name: g.label, value: qtd, color: g.color };
     }).filter(g => g.value > 0);
 
@@ -496,7 +496,7 @@ export function Dashboard() {
                       <TableCell className="py-2 text-right text-xs font-semibold">{formatarMoeda(p.total)}</TableCell>
                       <TableCell className="py-2">
                         <Badge variant="outline" className={cn("text-[9px] px-1 py-0 h-4 font-medium", corStatusProducao(p.statusProducao))}>
-                          {LABEL_STATUS_PRODUCAO[p.statusProducao]}
+                          {LABEL_STATUS_PRODUCAO[p.statusProducao as keyof typeof LABEL_STATUS_PRODUCAO]}
                         </Badge>
                       </TableCell>
                       <TableCell className="py-2 text-right">
