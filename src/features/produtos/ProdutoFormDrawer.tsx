@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, Package, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Package, Plus, Trash2, Search, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,22 +24,6 @@ import { cn } from "@/lib/utils";
 import { fileToDataUrl } from "@/features/clientes";
 import { useConfiguracoes } from "@/features/configuracoes";
 
-import { useServerFn } from "@tanstack/react-start";
-import { getCategoriasFiscais, searchNCM, searchCategoriasFiscais } from "@/features/fiscal/ncm.functions";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList
-} from "@/components/ui/command";
-import { Check, ChevronsUpDown, Search, AlertCircle } from "lucide-react";
 import { toast } from "@/lib/toast";
 
 import type {
@@ -64,9 +48,6 @@ interface Props {
 interface FormState {
   nome: string;
   sku: string;
-  categoriaFiscalId: string;
-  ncm: string;
-  descricaoFiscal: string;
   categoria: CategoriaProduto;
   precoStr: string;
   personalizacoes: PersonalizacoesPermitidas;

@@ -522,7 +522,7 @@ export function montarPayloadNfe(
       quantity: it.quantidade,
       unitAmount: it.valorUnitario,
       totalAmount: round2(it.quantidade * it.valorUnitario),
-      ncm: it.ncm,
+      ncm: (it as any).ncm,
     });
     for (const a of it.adicionais ?? []) {
       if (a.pendencia) continue;
@@ -534,7 +534,7 @@ export function montarPayloadNfe(
         quantity: qtd,
         unitAmount: a.valor,
         totalAmount: round2(qtd * a.valor),
-        ncm: it.ncm,
+        ncm: (it as any).ncm,
       });
     }
   }
