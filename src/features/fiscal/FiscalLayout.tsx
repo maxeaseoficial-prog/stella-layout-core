@@ -38,11 +38,11 @@ export function FiscalLayout() {
 
   const filtrados = useMemo(() => {
     // Ordenação padrão: mais recentes primeiro
-    const ordenados = [...pedidos].sort((a, b) => 
+    const ordenados = [...pedidos].sort((a: any, b: any) => 
       new Date(b.criadoEm).getTime() - new Date(a.criadoEm).getTime()
     );
 
-    return ordenados.filter(p => {
+    return ordenados.filter((p: any) => {
       const emitida = !!p.notaFiscalControle?.emitida;
       
       // Filtro de aba
@@ -52,7 +52,7 @@ export function FiscalLayout() {
       // Filtro de busca
       if (busca.trim()) {
         const termo = busca.toLowerCase();
-        const cliente = clientes.find(c => c.id === p.clienteId);
+        const cliente = clientes.find((c: any) => c.id === p.clienteId);
         const nomeCliente = cliente ? getClienteNome(cliente).toLowerCase() : "";
         const numero = p.numero.toLowerCase();
         
@@ -64,8 +64,8 @@ export function FiscalLayout() {
   }, [pedidos, clientes, abaAtiva, busca]);
 
   const stats = useMemo(() => {
-    const pendentes = pedidos.filter(p => !p.notaFiscalControle?.emitida).length;
-    const emitidasMes = pedidos.filter(p => {
+    const pendentes = pedidos.filter((p: any) => !p.notaFiscalControle?.emitida).length;
+    const emitidasMes = pedidos.filter((p: any) => {
       if (!p.notaFiscalControle?.emitida) return false;
       const data = new Date(p.notaFiscalControle.emitidaEm!);
       const agora = new Date();

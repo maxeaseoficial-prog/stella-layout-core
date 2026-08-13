@@ -1,4 +1,4 @@
-import { CheckCircle2, ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet } from "lucide-react";
+import { CheckCircle2, ClipboardList, Download, FileText, ImageIcon, Palette, Printer, Send, Wallet, XCircle } from "lucide-react";
 import { toast } from "@/lib/toast";
 
 import {
@@ -94,11 +94,10 @@ export function PedidoViewDrawer({
   const { clientes } = useClientes();
   const { capacidades, papel } = useAuth();
   const cap = capacidades.pedidos;
-  // A aba fiscal só aparece para o Administrador.
-  const abaFiscal = cap.emitir_nfe;
-  const { alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
+  const { marcarNotaEmitida, alterarStatusProducao, aprovarPedido, finalizarProducao, marcarEntregue, buscarPorId, registrarEnvioOrcamento, registrarOrdemProducao } = usePedidos();
   const { state: config } = useConfiguracoes();
   const [tabAtiva, setTabAtiva] = useState("geral");
+  const [confirmarNfeManual, setConfirmarNfeManual] = useState<boolean | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [gerandoOP, setGerandoOP] = useState(false);
   const [confirmarAprovacao, setConfirmarAprovacao] = useState(false);
@@ -225,9 +224,6 @@ export function PedidoViewDrawer({
                     </TabsTrigger>
 
                     <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
-                    {abaFiscal && (
-                      <TabsTrigger value="nota-fiscal">Nota Fiscal</TabsTrigger>
-                    )}
                     <TabsTrigger value="historico">Histórico</TabsTrigger>
                   </TabsList>
                 </div>
@@ -237,6 +233,43 @@ export function PedidoViewDrawer({
                     <OrcamentosPendentesSection pedido={pedido} />
                   )}
                   <TabsContent value="geral" className="mt-0 space-y-4">
+                    <Bloco titulo="Controle de Nota Fiscal">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {pedido.notaFiscalControle?.emitida ? (
+                            <div className="flex items-center gap-2 text-emerald-600 font-medium">
+                              <CheckCircle2 className="h-5 w-5" />
+                              <span>Nota emitida {pedido.notaFiscalControle.emitidaEm && `em ${formatarDataBR(pedido.notaFiscalControle.emitidaEm)}`}</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-amber-600 font-medium">
+                              <div className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin-slow" />
+                              <span>Pendente de faturamento externo</span>
+                            </div>
+                          )}
+                        </div>
+                        {pedido.notaFiscalControle?.emitida ? (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-muted-foreground hover:text-destructive h-8"
+                            onClick={() => setConfirmarNfeManual(false)}
+                          >
+                            Marcar como não emitida
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-8 gap-2"
+                            onClick={() => setConfirmarNfeManual(true)}
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Marcar como emitida
+                          </Button>
+                        )}
+                      </div>
+                    </Bloco>
+
                     <Bloco titulo="Cliente">
                       {cliente ? (
                         <div className="flex items-center gap-3">
@@ -389,6 +422,26 @@ export function PedidoViewDrawer({
                           </Bloco>
                         ));
                     })()}
+                    </TabsContent>
+                  <TabsContent value="historico" className="mt-0">
+                    <Bloco titulo="Linha do Tempo">
+                      <ul className="space-y-4">
+                        {pedido.historico.map((h) => (
+                          <li key={h.id} className="flex gap-3">
+                            <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+                            <div className="space-y-0.5">
+                              <p className="text-sm font-medium text-foreground">
+                                {h.descricao}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {formatarDataHoraBR(h.data)}
+                                {h.usuario && ` • por ${h.usuario}`}
+                              </p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </Bloco>
                   </TabsContent>
 
 

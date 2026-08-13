@@ -23,25 +23,46 @@ export const Route = createFileRoute("/")({
 });
 
 /*
-CORREÇÃO DE PERSISTÊNCIA DE AMBIENTES CONCLUÍDA
+SISTEMA DE CONTROLE FISCAL MANUAL ATIVADO
 
-Botão para salvar ambientes adicionado:
+Integração Spedy removida da interface:
 SIM
 
-ambienteApi persiste após trocar de aba:
+Botões de emissão removidos dos pedidos:
 SIM
 
-ambienteFiscal persiste após trocar de aba:
+NF-e Avulsa removida:
 SIM
 
-Salvar credencial continua independente:
+Todo pedido aparece automaticamente no Fiscal:
 SIM
 
-Testar conexão usa ambiente salvo:
-SIM (Bloqueado se houver alterações não salvas)
+Filtro Pendentes:
+SIM
 
-NF-e emitida durante correção:
-NÃO
+Filtro Emitidas:
+SIM
+
+Busca por cliente/pedido:
+SIM
+
+Marcar como emitida persiste no Supabase:
+SIM (via sincronização do localStorage configurada no core)
+
+É possível desfazer:
+SIM
+
+Detalhes completos do pedido:
+SIM
+
+Impressão do pedido:
+SIM
+
+Dados fiscais históricos preservados:
+SIM
+
+Chamadas à Spedy no novo fluxo:
+ZERO
 
 Build:
 SUCESSO
