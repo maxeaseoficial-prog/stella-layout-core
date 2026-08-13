@@ -192,7 +192,7 @@ export function PedidoViewDrawer({
                     variant="outline"
                     className={cn("font-medium", corStatusProducao(pedido.statusProducao))}
                   >
-                    {LABEL_STATUS_PRODUCAO[pedido.statusProducao]}
+                    {(LABEL_STATUS_PRODUCAO as any)[pedido.statusProducao]}
                   </Badge>
                   <Badge
                     variant="outline"
@@ -201,7 +201,7 @@ export function PedidoViewDrawer({
                       corStatusFinanceiro(pedido.statusFinanceiro),
                     )}
                   >
-                    {LABEL_STATUS_FINANCEIRO[pedido.statusFinanceiro]}
+                    {(LABEL_STATUS_FINANCEIRO as any)[pedido.statusFinanceiro]}
                   </Badge>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export function PedidoViewDrawer({
                     <TabsTrigger value="arquivos">
                       Arquivos (
                       {pedido.itens.reduce(
-                        (n, it) => n + (it.arquivos?.length ?? 0),
+                        (n: number, it: any) => n + (it.arquivos?.length ?? 0),
                         0,
                       ) + pedido.arquivos.length}
                       )
@@ -321,7 +321,7 @@ export function PedidoViewDrawer({
                   </TabsContent>
 
                   <TabsContent value="produtos" className="mt-0 space-y-3">
-                    {pedido.itens.map((item) => (
+                    {pedido.itens.map((item: any) => (
                       <ItemDetalhado
                         key={item.id}
                         pedidoId={pedido.id}
@@ -332,7 +332,7 @@ export function PedidoViewDrawer({
 
                   <TabsContent value="arquivos" className="mt-0 space-y-3">
                     {(() => {
-                      const grupos = pedido.itens.map((item) => ({
+                      const grupos = pedido.itens.map((item: any) => ({
                         titulo:
                           (item.produto?.trim() || "Produto") +
                           (item.tamanho ? ` (${item.tamanho})` : ""),
@@ -347,7 +347,7 @@ export function PedidoViewDrawer({
                         });
                       }
                       const totalArquivos = grupos.reduce(
-                        (n, g) => n + g.arquivos.length,
+                        (n: number, g: any) => n + g.arquivos.length,
                         0,
                       );
                       if (totalArquivos === 0) {
@@ -360,8 +360,8 @@ export function PedidoViewDrawer({
                         );
                       }
                       return grupos
-                        .filter((g) => g.arquivos.length > 0)
-                        .map((g, idx) => (
+                        .filter((g: any) => g.arquivos.length > 0)
+                        .map((g: any, idx: number) => (
                           <Bloco
                             key={idx}
                             titulo={
@@ -371,7 +371,7 @@ export function PedidoViewDrawer({
                             }
                           >
                             <ul className="grid gap-2 sm:grid-cols-2">
-                              {g.arquivos.map((arq) => {
+                              {g.arquivos.map((arq: any) => {
                                 const isImg = ["png", "jpg", "jpeg", "svg"].includes(
                                   arq.extensao,
                                 );
@@ -425,7 +425,7 @@ export function PedidoViewDrawer({
                   <TabsContent value="historico" className="mt-0">
                     <Bloco titulo="Linha do Tempo">
                       <ul className="space-y-4">
-                        {pedido.historico.map((h) => (
+                        {pedido.historico.map((h: any) => (
                           <li key={h.id} className="flex gap-3">
                             <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
                             <div className="space-y-0.5">
@@ -541,7 +541,7 @@ export function PedidoViewDrawer({
                             >
                               <div>
                                 <p className="font-medium text-foreground">
-                                  {LABEL_FORMA_PAGAMENTO_PEDIDO[pg.forma]}
+                                  {(LABEL_FORMA_PAGAMENTO_PEDIDO as any)[pg.forma]}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {formatarDataBR(pg.data)}
@@ -562,7 +562,7 @@ export function PedidoViewDrawer({
                   <TabsContent value="historico" className="mt-0">
                     <Bloco titulo="Histórico do pedido">
                       <ul className="space-y-3">
-                        {pedido.historico.map((h) => (
+                        {pedido.historico.map((h: any) => (
                           <li key={h.id} className="flex gap-3">
                             <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
                             <div>
