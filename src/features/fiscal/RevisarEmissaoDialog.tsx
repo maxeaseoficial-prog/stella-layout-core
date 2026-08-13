@@ -86,18 +86,22 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
       const clienteLocal = pedido.cliente;
 
       // 2. Persistir no Supabase
+      const { data: session } = await supabase.auth.getSession();
+      const tenantId = session?.session?.user?.user_metadata?.tenant_id;
+
       const { error } = await supabase
         .from("clientes")
         .upsert({
           id: pedido.clienteId,
-          data: clienteLocal,
+          tenant_id: tenantId, // Necessário para RLS e tipos
+          data: clienteLocal as any,
           updated_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
       // 3. Aguardar e reler do servidor (Preflight faz isso)
-      const res = await getFiscalPreflight({ data: { clienteId: pedido.clienteId } });
+      const res = await getFiscalPreflight({ data: { clienteId: pedido.clienteId } }) as any;
       
       // 4. Comparar campos críticos
       const camposCriticos = ['tipo', 'indicadorIe', 'inscricaoEstadual', 'estado', 'cidade', 'cep', 'logradouro', 'numero'];
