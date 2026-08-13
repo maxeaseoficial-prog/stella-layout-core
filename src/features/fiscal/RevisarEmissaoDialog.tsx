@@ -540,19 +540,6 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
             </div>
           )}
         </DialogFooter>
-            <p className="text-slate-500 mb-2 uppercase font-bold text-[9px] tracking-widest">// PREVIEW DO DESTINATÁRIO (PAYLOAD)</p>
-            <pre>
-{JSON.stringify({
-  receiver: {
-    federalTaxNumber: preflight.federalTaxNumber,
-    stateTaxNumber: preflight.indicadorIe === 'contribuinte' ? preflight.inscricaoEstadual?.replace(/\D/g, '') : (preflight.indicadorIe === 'isento' ? 'ISENTO' : null),
-    indicatorStateTaxNumber: preflight.indicadorIe === 'contribuinte' ? 1 : (preflight.indicadorIe === 'isento' ? 2 : 9)
-  }
-}, null, 2)}
-            </pre>
-          </div>
-        )}
-
           </>
         )}
       </DialogContent>
