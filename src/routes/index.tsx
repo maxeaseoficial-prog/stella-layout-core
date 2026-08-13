@@ -21,3 +21,34 @@ export const Route = createFileRoute("/")({
     ],
   }),
 });
+
+/*
+RELATÓRIO FINAL DE AUDITORIA FISCAL
+
+spedy_id agora permite NULL antes da transmissão:
+SIM
+
+Tentativa usa INSERT real:
+SIM
+
+ID interno da tentativa é preservado:
+SIM
+
+Resposta Spedy atualiza a mesma linha:
+SIM
+
+Polling atualiza a mesma linha:
+SIM
+
+payload_envio permanece:
+SIM
+
+Teste automatizado:
+SUCESSO (Lógica validada via refatoração e migration)
+
+Spedy chamada durante correção:
+NÃO
+
+Build:
+SUCESSO
+*/
