@@ -82,15 +82,12 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
     const id = toast.loading("Sincronizando dados fiscais com o servidor...");
     
     try {
-      // 1. Pegar cliente local atual
-      const clienteLocal = pedido.cliente;
-
-      // 2. Persistir no Supabase
+      // 1. Persistir no Supabase
       const { data: session } = await supabase.auth.getSession();
       const { data: empUser } = await supabase
         .from("empresa_usuarios")
         .select("empresa_id")
-        .eq("user_id", session?.session?.user?.id)
+        .eq("user_id", session?.session?.user?.id || "")
         .maybeSingle();
 
       const tenantId = empUser?.empresa_id;
@@ -102,9 +99,9 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
       // Localizar cliente local atualizado no storage
       const raw = localStorage.getItem("stella.clientes.v1");
       const clientes = JSON.parse(raw || "[]");
-      const clienteLocal = clientes.find((c: any) => c.id === pedido.clienteId);
+      const clienteEncontrado = clientes.find((c: any) => c.id === pedido.clienteId);
 
-      if (!clienteLocal) {
+      if (!clienteEncontrado) {
         throw new Error("Cliente não encontrado no armazenamento local para sincronização.");
       }
 
@@ -113,7 +110,7 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
         .upsert({
           id: pedido.clienteId,
           tenant_id: tenantId,
-          data: clienteLocal as any,
+          data: clienteEncontrado as any,
           updated_at: new Date().toISOString()
         });
 
@@ -127,7 +124,7 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
       const divergencias = [];
       
       for (const campo of camposCriticos) {
-          const valLocal = clienteLocal[campo];
+          const valLocal = clienteEncontrado[campo];
           const valRemoto = campo === 'estado' ? res.uf : res[campo];
           
           if (valLocal !== valRemoto && (valLocal || valRemoto)) {
@@ -491,29 +488,58 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
         <DialogFooter className="border-t border-border p-4 bg-surface-muted/30">
           <Button variant="ghost" onClick={onFechar}>Fechar</Button>
           {!pedido.notaFiscal?.spedyId && (
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={() => setShowPayload(!showPayload)}
-              >
-                <Eye className="h-4 w-4" /> {showPayload ? "Ocultar" : "Ver"} Payload
-              </Button>
-              <Button 
-                className="gap-2" 
-                disabled={temErros || !preflight?.prontoParaEmitir || emitindo}
-                onClick={handleEmitir}
-              >
-                {emitindo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Emitir Nota Fiscal agora
-              </Button>
+            <div className="flex flex-col w-full gap-4">
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full gap-2 border-dashed border-primary/30 text-primary hover:bg-primary/5 h-10"
+                  disabled={carregandoPayload}
+                  onClick={showPayload ? () => setShowPayload(false) : carregarPayloadReal}
+                >
+                  {carregandoPayload ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Gerando payload canônico...
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-4 w-4" />
+                      {showPayload ? "Ocultar Payload" : "Ver Payload"}
+                    </>
+                  )}
+                </Button>
+
+                {showPayload && realPayload && (
+                  <div className="animate-in slide-in-from-top-2 duration-300 w-full overflow-hidden">
+                    <div className="bg-slate-950 text-slate-300 p-4 rounded-xl font-mono text-[10px] overflow-x-auto shadow-inner border border-slate-800">
+                      <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-800">
+                        <span className="text-slate-500 uppercase font-bold tracking-widest">Preview do Payload Real (Canônico)</span>
+                        <Badge variant="outline" className="text-[9px] border-slate-700 text-slate-400">montarPayloadNfe()</Badge>
+                      </div>
+                      <pre className="leading-relaxed">
+                        {JSON.stringify(realPayload, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2 border-t border-border/50">
+                <Button variant="ghost" size="sm" onClick={onFechar}>Fechar</Button>
+                <Button 
+                  size="sm"
+                  className="gap-2" 
+                  disabled={temErros || !preflight?.prontoParaEmitir || emitindo}
+                  onClick={handleEmitir}
+                >
+                  {emitindo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Emitir Nota Fiscal agora
+                </Button>
+              </div>
             </div>
           )}
         </DialogFooter>
-        
-        {showPayload && preflight && (
-          <div className="p-4 bg-slate-950 text-emerald-400 font-mono text-[10px] border-t overflow-auto max-h-[30vh]">
             <p className="text-slate-500 mb-2 uppercase font-bold text-[9px] tracking-widest">// PREVIEW DO DESTINATÁRIO (PAYLOAD)</p>
             <pre>
 {JSON.stringify({
