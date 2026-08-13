@@ -17,3 +17,4 @@ export { ResumoFinanceiro } from "./ResumoFinanceiro";
 export { ItensPedidoTable } from "./ItensPedidoTable";
 export { ClienteSelector } from "./ClienteSelector";
 export { imprimirPedido } from "./imprimirPedido";
+export { DetalhesPedidoFiscal } from "./DetalhesPedidoFiscal";
