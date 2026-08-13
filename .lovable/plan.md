@@ -1,34 +1,33 @@
-# Plano de Diagnóstico e Blindagem da NF-e (Rejeição 232)
+# Plano de Correção: Unificação de Chave API Spedy
 
-O objetivo deste plano é identificar por que a Inscrição Estadual (IE) está sendo omitida no XML enviado à SEFAZ, apesar de estar presente no preview da Stella. Seguiremos um protocolo rigoroso de validação de contrato e telemetria.
+O sistema foi recentemente alterado para suportar duas chaves API (Sandbox e Produção). No entanto, a conta operacional da Spedy utiliza uma única credencial, sendo o ambiente controlado pelo `environmentType` no payload. Esta alteração quebrou o cadastro e a persistência da chave.
 
-## 1. Mapeamento de Contrato Spedy
-Validar se os campos usados no `montarPayloadNfe` (src/lib/fiscal.server.ts) correspondem ao OpenAPI v1 da Spedy.
-- **Hipótese:** A Spedy pode ter alterado `stateTaxNumber` para outro nome ou exigir uma estrutura diferente dentro de `receiver`.
-- **Ação:** Consultar `docs.spedy.com.br` (via subagente de pesquisa) para confirmar os nomes exatos.
+## Alterações Propostas
 
-## 2. Telemetria de Emissão (Payload Real)
-Implementar log de diagnóstico no servidor imediatamente antes do `fetch` na Spedy.
-- **Arquivo:** `src/lib/fiscal.server.ts`
-- **Alteração:** No `spedyFetch`, capturar o `body` serializado (sem segredos) e gerar um hash SHA-256 para comparação com o Preview.
+### 1. Banco de Dados e Backend (Server-side)
+- Restaurar `chave_api` como a coluna canônica na tabela `segredos_fiscais`.
+- Corrigir `salvarSegredosFiscaisServer` para realizar o upsert diretamente na coluna `chave_api`.
+- Garantir que erros de banco de dados sejam logados com detalhes no servidor para diagnóstico, retornando mensagens seguras ao frontend.
+- Atualizar `carregarSegredosFiscaisServer` para retornar apenas o status e os últimos 4 dígitos da chave única.
+- Ajustar `apiKeyParaAmbiente` para utilizar sempre a `chave_api` cadastrada, independentemente do ambiente selecionado (Sandbox/Produção).
 
-## 3. Validação de Schema (Zod)
-Criar um schema rigoroso para o destinatário Spedy no backend para evitar o envio de propriedades ignoradas ou malformadas.
-- **Arquivo:** `src/features/fiscal/utils/preflight.server.ts`
-- **Ação:** Adicionar `SpedyReceiverSchema` baseado na documentação oficial.
+### 2. Interface (Frontend)
+- Simplificar o formulário em `ConfiguracoesFiscaisForm.tsx` para exibir apenas um campo: "Chave da API Spedy".
+- Remover a distinção visual entre chaves de Sandbox e Produção no gerenciamento de segredos.
+- Manter a seleção de "Ambiente Fiscal NF-e" (Homologação/Produção), pois ela ainda controla o comportamento da emissão na SEFAZ.
+- Melhorar o feedback de erro ao salvar, exibindo mensagens mais úteis baseadas no retorno do servidor.
 
-## 4. Inspeção de Histórico
-Recuperar os dados da última nota rejeitada (232) no banco de dados para analisar o `payload_envio` persistido.
-- **Ação:** Criar uma função de diagnóstico em `src/lib/debug.functions.ts`.
+### 3. Funções de Servidor (RPC)
+- Atualizar `carregarSegredosFiscais`, `salvarSegredoFiscal` e `removerSegredoFiscal` em `fiscal.functions.ts` para trabalharem com o modelo de chave única.
 
 ## Detalhes Técnicos
-- **Diagnóstico de Payload:** `const bodyHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)));`
-- **Segurança:** O log de diagnóstico no console do servidor (`[Fiscal Server] API_REQUEST_PAYLOAD`) deve omitir `X-Api-Key` mas incluir a estrutura completa do `receiver`.
-- **Ambiente:** Testes obrigatórios em `sandbox` antes de qualquer nova tentativa em `produção`.
+- **Tabela:** `public.segredos_fiscais`
+- **Coluna Principal:** `chave_api` (TEXT NOT NULL)
+- **Segurança:** A chave completa nunca deve ser enviada ao cliente.
+- **Transição:** Caso existam dados em `chave_api_sandbox` ou `chave_api_producao`, eles serão preservados durante a migração interna se necessário, mas a interface focará na `chave_api`.
 
----
-
-CORREÇÃO CRÍTICA DE AMBIENTES FISCAIS — DESCOBRIMOS UMA DIVERGÊNCIA ENTRE STELLA E SPEDY
-[Detailed rules 1-12 regarding environment separation, API keys, and validation]
-RELATÓRIO FINAL
-[Checklist and requirements]
+## Diagnóstico Inicial
+- `chave_api` presente: SIM (verificado via query)
+- `chave_api_producao` presente: SIM
+- `chave_api_sandbox` presente: NÃO
+- Causa do sumiço: A interface passou a buscar colunas específicas que podiam estar vazias ou desalinhadas com o registro legado `NOT NULL`.
