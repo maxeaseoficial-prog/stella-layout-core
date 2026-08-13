@@ -362,6 +362,7 @@ export async function spedyFetch(
     API_FISCAL_BASE_URL: SPEDY_BASE_URLS[ambiente],
     API_FISCAL_KEY_PRESENT: !!apiKeyInfo.key,
     path,
+    API_FISCAL_BODY_HASH: bodyHash,
     API_FISCAL_PAYLOAD_STRUCTURE: payloadLog ? {
       receiver: payloadLog.receiver,
       integrationId: payloadLog.integrationId,
