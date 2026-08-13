@@ -561,9 +561,18 @@ export function montarPayloadNfe(
         receiver.stateTaxNumber = "ISENTO";
         receiver.indicatorStateTaxNumber = 2;
       } else {
-        receiver.stateTaxNumber = ""; 
+        receiver.stateTaxNumber = undefined; // Campos opcionais omitidos do JSON
         receiver.indicatorStateTaxNumber = 9;
       }
+
+      // Validação de Schema (Zod) antes de retornar
+      import("@/features/fiscal/utils/preflight.server").then(({ SpedyReceiverSchema }) => {
+        const validation = SpedyReceiverSchema.safeParse(receiver);
+        if (!validation.success) {
+          console.error("[Fiscal Server] SCHEMA_VALIDATION_FAILED:", validation.error.format());
+        }
+      });
+
     }
   }
 
