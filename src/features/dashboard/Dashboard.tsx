@@ -11,8 +11,9 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
-import { usePedidos, getClienteNome, corStatusProducao, corStatusFinanceiro, formatarDataBR, formatarMoeda } from "@/features/pedidos";
+import { usePedidos, corStatusProducao, corStatusFinanceiro, formatarDataBR, formatarMoeda } from "@/features/pedidos";
 import { useClientes } from "@/features/clientes";
+import { getClienteNome } from "@/features/clientes/types";
 import { StatusProducaoValues, LABEL_STATUS_PRODUCAO, LABEL_STATUS_FINANCEIRO, FORMAS_PAGAMENTO_PEDIDO, LABEL_FORMA_PAGAMENTO_PEDIDO } from "@/features/pedidos/types";
 import {
   Select,
@@ -31,11 +32,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { cn } from "@/lib/utils";
 import {
   Area,
   AreaChart,
@@ -132,7 +129,7 @@ export function Dashboard() {
     });
     const totalRecebido = pagamentosNoPeriodo.reduce((sum, pag) => sum + pag.valor, 0);
     
-    const aReceber = pedidosValidos.reduce((sum, p) => sum + (p.total - p.totalPago), 0);
+    const aReceber = pedidosValidos.reduce((sum, p) => sum + (p.total - (p.totalPago || 0)), 0);
 
     // Dados Período Anterior (para trend)
     const pedidosAnterior = filtrarPorIntervalo(pedidos, inicioAnterior, fimAnterior);
@@ -173,7 +170,7 @@ export function Dashboard() {
     ];
 
     const dataGraficoStatus = statusGrupos.map(g => {
-      const qtd = pedidosNoPeriodo.filter(p => g.status.includes(p.statusProducao)).length;
+      const qtd = pedidosNoPeriodo.filter(p => g.status.includes(p.statusProducao as any)).length;
       return { name: g.label, value: qtd, color: g.color };
     }).filter(g => g.value > 0);
 
@@ -189,7 +186,7 @@ export function Dashboard() {
       .slice(0, 5);
 
     const pendentes = pedidos.filter(p => 
-      ![StatusProducaoValues.FINALIZADO, StatusProducaoValues.ENTREGUE, StatusProducaoValues.CANCELADO].includes(p.statusProducao)
+      ![StatusProducaoValues.FINALIZADO, StatusProducaoValues.ENTREGUE, StatusProducaoValues.CANCELADO].includes(p.statusProducao as any)
     ).length;
 
     const emProducao = pedidos.filter(p => 
@@ -338,7 +335,7 @@ export function Dashboard() {
                   <Tooltip 
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
-                        const data = payload[0].payload;
+                        const data = payload[0].payload as any;
                         return (
                           <div className="rounded-lg border border-border bg-background p-3 shadow-xl">
                             <p className="text-xs font-medium text-muted-foreground mb-1">{data.fullDate}</p>
@@ -397,7 +394,7 @@ export function Dashboard() {
                         const percent = ((data.value as number) / total * 100).toFixed(1);
                         return (
                           <div className="rounded-lg border border-border bg-background p-2 shadow-lg">
-                            <p className="text-xs font-bold" style={{ color: data.payload.color }}>{data.name}</p>
+                            <p className="text-xs font-bold" style={{ color: (data.payload as any).color }}>{data.name}</p>
                             <p className="text-xs font-medium">{data.value} pedidos ({percent}%)</p>
                           </div>
                         );
