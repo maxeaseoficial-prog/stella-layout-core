@@ -387,6 +387,10 @@ const MAPA_PAGAMENTO_SPEDY: Record<FormaPagamentoPedido, string> = {
   boleto: "billetBank",
 };
 
+export function getMapaPagamentoSpedy(forma: FormaPagamentoPedido): string {
+  return MAPA_PAGAMENTO_SPEDY[forma] || "cash";
+}
+
 function montarImpostos(t: TributacaoPadrao) {
   return (base: number) => {
     if (t.regime === "simplesNacional") {
