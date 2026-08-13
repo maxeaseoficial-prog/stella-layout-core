@@ -6,6 +6,7 @@ import {
   Landmark,
   Loader2,
   Plug,
+  ShieldCheck,
   XCircle,
 } from "lucide-react";
 
@@ -34,6 +35,7 @@ import {
   type TributacaoPadrao,
 } from "@/features/fiscal";
 import { testarConexaoFiscal } from "@/lib/fiscal.functions";
+import { executarTesteSandboxReal, consultarResultadoSandbox } from "@/lib/fiscal-sandbox-test.functions";
 import { useConfiguracoes } from "../useConfiguracoes";
 import { SectionCard } from "../SectionCard";
 
@@ -60,6 +62,8 @@ export function FiscalTab() {
   const [form, setForm] = useState<FiscalConfig>(config);
   const [dirty, setDirty] = useState(false);
   const [testando, setTestando] = useState(false);
+  const [testandoSandbox, setTestandoSandbox] = useState(false);
+  const [resultadoSandbox, setResultadoSandbox] = useState<{ spedyId: string; status: string } | null>(null);
 
   useEffect(() => {
     setForm(config);
@@ -147,6 +151,47 @@ export function FiscalTab() {
       setTestando(false);
     }
   }
+
+  async function handleTesteSandboxReal() {
+    if (form.ambienteApi !== "sandbox") {
+      toast.error("O ambiente deve estar configurado como Sandbox para este teste.");
+      return;
+    }
+    setTestandoSandbox(true);
+    setResultadoSandbox(null);
+    try {
+      const res = await executarTesteSandboxReal();
+      if (res.ok) {
+        toast.success("Payload enviado! Aguardando processamento assíncrono...");
+        setResultadoSandbox({ spedyId: res.spedyId, status: res.statusInicial });
+        
+        // Polling simples para o status final
+        let tentativas = 0;
+        const interval = setInterval(async () => {
+          tentativas++;
+          const statusRes = await consultarResultadoSandbox({ spedyId: res.spedyId });
+          if (statusRes.ok) {
+            const status = statusRes.nota.status;
+            setResultadoSandbox({ spedyId: res.spedyId, status });
+            
+            if (status === "authorized" || status === "rejected") {
+              clearInterval(interval);
+              if (status === "authorized") toast.success("NF-e Sandbox AUTORIZADA com sucesso!");
+              else toast.error(`NF-e Sandbox REJEITADA: ${statusRes.nota.processingDetail?.message}`);
+            }
+          }
+          if (tentativas > 10) clearInterval(interval);
+        }, 5000);
+      } else {
+        toast.error(res.mensagem);
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao executar teste sandbox.");
+    } finally {
+      setTestandoSandbox(false);
+    }
+  }
+
 
   if (carregando) {
     return (
@@ -378,7 +423,54 @@ export function FiscalTab() {
             ambiente.
           </p>
         </div>
+
+        <Separator className="my-6" />
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <h4 className="text-sm font-semibold">Auditoria Final Sandbox (Rejeição 232)</h4>
+          </div>
+          
+          <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 text-xs text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/20 dark:text-amber-200">
+            <p className="font-medium mb-2">Protocolo de Homologação:</p>
+            <ul className="list-disc list-inside space-y-1 opacity-80">
+              <li>Validação de schemas cruzados Zod (Contribuinte, Isento, Não Contribuinte).</li>
+              <li>Chamada real para o endpoint de sandbox da Spedy.</li>
+              <li>Monitoramento do status assíncrono até o processamento final pela SEFAZ.</li>
+            </ul>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={handleTesteSandboxReal}
+              disabled={testandoSandbox || form.ambienteApi !== "sandbox"}
+              className="gap-2"
+            >
+              {testandoSandbox ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plug className="h-4 w-4" />
+              )}
+              Executar Teste Sandbox Real
+            </Button>
+            
+            {resultadoSandbox && (
+              <div className="text-xs font-mono bg-muted p-2 rounded border">
+                ID: {resultadoSandbox.spedyId} | STATUS: <span className={
+                  resultadoSandbox.status === "authorized" ? "text-success font-bold" : 
+                  resultadoSandbox.status === "rejected" ? "text-destructive font-bold" : 
+                  "text-amber-600"
+                }>{resultadoSandbox.status.toUpperCase()}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </SectionCard>
+
 
       <SectionCard
         title="Tributação padrão dos itens"
