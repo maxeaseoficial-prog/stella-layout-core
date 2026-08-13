@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   AlertCircle, 
   CheckCircle2, 
@@ -10,7 +10,10 @@ import {
   Loader2,
   X,
   ExternalLink,
-  Download
+  Download,
+  Database,
+  Search,
+  Eye
 } from "lucide-react";
 import { 
   Dialog, 
@@ -28,6 +31,7 @@ import { toast } from "@/lib/toast";
 import { usePedidos } from "@/features/pedidos/usePedidos";
 import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
 import { emitirNfePedido } from "@/lib/fiscal.functions";
+import { getFiscalPreflight } from "@/lib/fiscal-preflight.functions";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { NotaFiscalSection } from "./NotaFiscalSection";
 import { SPEDY_BASE_URLS } from "./spedy";
@@ -42,7 +46,30 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
   const { config } = useFiscalConfig();
   const [emitindo, setEmitindo] = useState(false);
   const [notaSucesso, setNotaSucesso] = useState<any>(null);
+  const [preflight, setPreflight] = useState<any>(null);
+  const [carregandoPreflight, setCarregandoPreflight] = useState(false);
+  const [showPayload, setShowPayload] = useState(false);
   const { salvarNotaFiscal } = usePedidos();
+
+  useEffect(() => {
+    if (pedido?.clienteId) {
+      carregarPreflight();
+    }
+  }, [pedido?.clienteId]);
+
+  async function carregarPreflight() {
+    setCarregandoPreflight(true);
+    try {
+      const res = await getFiscalPreflight({ data: { clienteId: pedido.clienteId } });
+      setPreflight(res);
+    } catch (e) {
+      console.error("Erro ao carregar preflight:", e);
+      toast.error("Não foi possível validar os dados fiscais no servidor.");
+    } finally {
+      setCarregandoPreflight(false);
+    }
+  }
+
 
   const validacoes = useMemo(() => {
     if (!pedido) return [];
