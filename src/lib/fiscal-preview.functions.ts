@@ -24,7 +24,9 @@ export const previewNfePedido = createServerFn({ method: "POST" })
     
     const payload = montarPayloadNfe(pedido, cliente, config);
 
+    // Converte para JSON plano para evitar erros de serialização do TanStack
     return {
-      payload
+      payload: JSON.parse(JSON.stringify(payload))
     };
   });
+
