@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 export function FiscalLayout() {
   const [abaAtiva, setAbaAtiva] = useState("pendentes");
   const [busca, setBusca] = useState("");
-  const { pedidos, marcarNotaEmitida } = usePedidos();
+  const { pedidos, marcarNotaEmitida } = usePedidos() as any;
   const { clientes } = useClientes();
   const [pedidoSelecionado, setPedidoSelecionado] = useState<any | null>(null);
 
