@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ImagePlus, Package, Plus, Trash2, Search, AlertCircle } from "lucide-react";
+import { ImagePlus, Package, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -105,7 +105,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
   const { categoriasPorEscopo } = useConfiguracoes();
   const categoriasProduto = categoriasPorEscopo("produto");
   const [form, setForm] = useState<FormState>(() => estadoInicial(produto));
-  // Estados fiscais removidos
+  // Manutenção de dados fiscais removida
 
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);

@@ -125,7 +125,7 @@ export function useProdutos() {
   // Seed automático apenas se realmente estiver vazio após deduplicação
   useEffect(() => {
     if (hidratado && produtos.length === 0) {
-      const novasSementes = PRODUTOS_SEED.map(seed => ({
+      const novasSementes = (PRODUTOS_SEED as any[]).map(seed => ({
         ...seed,
         id: novoId(),
         criadoEm: new Date().toISOString(),
@@ -149,7 +149,7 @@ export function useProdutos() {
 
     const agora = new Date().toISOString();
     const novo: Produto = {
-      ...entrada,
+      ...(entrada as any),
       id: novoId(),
       criadoEm: agora,
       atualizadoEm: agora,
@@ -173,7 +173,7 @@ export function useProdutos() {
     setProdutos(
       snapshots.map((p) =>
         p.id === id
-          ? { ...entrada, id: p.id, criadoEm: p.criadoEm, atualizadoEm: new Date().toISOString() }
+          ? { ...(entrada as any), id: p.id, criadoEm: p.criadoEm, atualizadoEm: new Date().toISOString() }
           : p,
       ),
     );
