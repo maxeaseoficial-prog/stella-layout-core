@@ -235,9 +235,9 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
           context.supabase,
           nota,
           pedidoId ? "pedido" : "avulsa",
-          null,
-          null,
-          null,
+          undefined, // Não sobrescrever payload_envio
+          undefined, // Não sobrescrever resumo_destinatario
+          undefined, // Não sobrescrever cliente_id
           pedidoId
         );
       } catch (e) {
