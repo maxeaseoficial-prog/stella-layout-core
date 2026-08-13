@@ -70,11 +70,7 @@ export function deduplicarProdutosPorSku(produtos: Produto[]): Produto[] {
     
     // Regra de preservação determinística
     return [...items].sort((a, b) => {
-      // 1. Preferir o que tem categoria fiscal
-      if (a.categoriaFiscalId && !b.categoriaFiscalId) return -1;
-      if (!a.categoriaFiscalId && b.categoriaFiscalId) return 1;
-      
-      // 2. Preferir o mais antigo (criadoEm)
+      // 1. Preferir o mais antigo (criadoEm)
       const dateA = new Date(a.criadoEm || 0).getTime();
       const dateB = new Date(b.criadoEm || 0).getTime();
       if (dateA !== dateB) return dateA - dateB;

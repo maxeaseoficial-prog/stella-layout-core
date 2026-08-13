@@ -89,33 +89,25 @@ export function usePedidos() {
   const criar = useCallback((entrada: PedidoInput, entregaImediata?: { paga: boolean; forma?: FormaPagamentoPedido }): Pedido => {
     const agora = new Date().toISOString();
     
-    // Anexa o NCM e descrição fiscal atual do produto aos itens do pedido (snapshot)
-    const itensComNcm = entrada.itens.map(it => {
-      if (it.ncm) return it;
-      const p = carregarProdutos().find(prod => prod.id === it.produtoId);
-      return { 
-        ...it, 
-        ncm: p?.ncm,
-        descricaoFiscal: (p as any)?.descricaoFiscal 
-      };
-    });
+    // Snapshot dos itens
+    const itensComSnapshot = entrada.itens.map(it => ({ ...it }));
 
-    const subtotal = calcularSubtotal(itensComNcm);
+    const subtotal = calcularSubtotal(itensComSnapshot);
     const total = calcularTotal(subtotal, entrada.desconto, entrada.frete);
     const statusProducao =
-      entrada.statusProducao ?? statusProducaoInicial(itensComNcm);
+      entrada.statusProducao ?? statusProducaoInicial(itensComSnapshot);
     const novo: Pedido = {
       id: novoId(),
       numero: gerarNumeroPedido(),
       clienteId: entrada.clienteId,
-      itens: itensComNcm,
+      itens: itensComSnapshot,
       arquivos: entrada.arquivos,
       subtotal,
       desconto: entrada.desconto,
       frete: entrada.frete,
       total,
       totalPago: entregaImediata?.paga ? total : 0,
-      statusProducao: entregaImediata ? "entregue" : (entrada.statusProducao ?? statusProducaoInicial(itensComNcm)),
+      statusProducao: entregaImediata ? "entregue" : (entrada.statusProducao ?? statusProducaoInicial(itensComSnapshot)),
       statusFinanceiro: entregaImediata 
         ? (entregaImediata.paga ? "pago" : "aguardando_pagamento")
         : (entrada.statusFinanceiro ?? "aguardando_pagamento"),
@@ -172,18 +164,10 @@ export function usePedidos() {
       atual.map((p) => {
         if (p.id !== id) return p;
 
-        // Atualiza/Preserva NCM e descrição fiscal nos itens
-        const itensComNcm = entrada.itens.map(it => {
-          if (it.ncm) return it;
-          const prod = carregarProdutos().find(cp => cp.id === it.produtoId);
-          return { 
-            ...it, 
-            ncm: prod?.ncm,
-            descricaoFiscal: (prod as any)?.descricaoFiscal
-          };
-        });
+        // Snapshot dos itens
+        const itensComSnapshot = entrada.itens.map(it => ({ ...it }));
 
-        const subtotal = calcularSubtotal(itensComNcm);
+        const subtotal = calcularSubtotal(itensComSnapshot);
         const total = calcularTotal(subtotal, entrada.desconto, entrada.frete);
         const statusFinanceiro = statusFinanceiroCalculado(
           total,
@@ -207,7 +191,7 @@ export function usePedidos() {
         const atualizado: Pedido = {
           ...p,
           clienteId: entrada.clienteId,
-          itens: itensComNcm,
+          itens: itensComSnapshot,
           arquivos: entrada.arquivos,
           subtotal,
           desconto: entrada.desconto,
