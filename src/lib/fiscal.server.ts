@@ -200,9 +200,9 @@ export async function persistirNfeNoBanco(
 
 export async function carregarSegredosFiscaisServer(
   supabase: Supabase,
-): Promise<{ sandbox: string | null; producao: string | null }> {
+): Promise<{ configurada: boolean; parcial: string | null }> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { sandbox: null, producao: null };
+  if (!user) return { configurada: false, parcial: null };
 
   const { data: empUser } = await supabase
     .from("empresa_usuarios")
@@ -210,23 +210,24 @@ export async function carregarSegredosFiscaisServer(
     .eq("user_id", user.id)
     .single();
   
-  if (!empUser) return { sandbox: null, producao: null };
+  if (!empUser) return { configurada: false, parcial: null };
 
   const { data } = await supabase
     .from("segredos_fiscais")
-    .select("chave_api_sandbox, chave_api_producao")
+    .select("chave_api")
     .eq("tenant_id", empUser.empresa_id)
     .maybeSingle();
   
+  const chave = data?.chave_api;
   return {
-    sandbox: data?.chave_api_sandbox ?? null,
-    producao: data?.chave_api_producao ?? null,
+    configurada: !!chave,
+    parcial: chave ? `••••••••${chave.slice(-4)}` : null,
   };
 }
 
 export async function salvarSegredosFiscaisServer(
   supabase: Supabase,
-  chaves: { sandbox?: string; producao?: string },
+  chave: string,
 ) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado.");
@@ -239,18 +240,23 @@ export async function salvarSegredosFiscaisServer(
   
   if (!empUser) throw new Error("Tenant não encontrado.");
 
-  const update: any = {
-    tenant_id: empUser.empresa_id,
-    updated_at: new Date().toISOString(),
-  };
-  if (chaves.sandbox !== undefined) update.chave_api_sandbox = chaves.sandbox;
-  if (chaves.producao !== undefined) update.chave_api_producao = chaves.producao;
-
   const { error } = await supabase
     .from("segredos_fiscais")
-    .upsert(update, { onConflict: "tenant_id" });
+    .upsert({
+      tenant_id: empUser.empresa_id,
+      chave_api: chave,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "tenant_id" });
 
-  if (error) throw new Error("Falha ao salvar segredos fiscais.");
+  if (error) {
+    console.error("[Fiscal Server] Erro ao salvar segredo fiscal:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    });
+    throw new Error(`Falha ao salvar credencial: ${error.message}`);
+  }
 }
 
 export async function removerSegredosFiscaisServer(supabase: Supabase) {
@@ -278,10 +284,24 @@ export async function apiKeyParaAmbiente(
   config: FiscalConfig,
   ambiente: AmbienteApiSpedy,
 ): Promise<{ key: string; source: string }> {
-  const chaves = await carregarSegredosFiscaisServer(supabase);
-  const chaveDb = ambiente === "sandbox" ? chaves.sandbox : chaves.producao;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: empUser } = await supabase
+      .from("empresa_usuarios")
+      .select("empresa_id")
+      .eq("user_id", user.id)
+      .single();
 
-  if (chaveDb) return { key: chaveDb, source: `DATABASE_${ambiente.toUpperCase()}` };
+    if (empUser) {
+      const { data } = await supabase
+        .from("segredos_fiscais")
+        .select("chave_api")
+        .eq("tenant_id", empUser.empresa_id)
+        .maybeSingle();
+      
+      if (data?.chave_api) return { key: data.chave_api, source: "DATABASE_CHAVE_API" };
+    }
+  }
 
   const sandboxEnv = process.env["SPEDY_API_KEY_SANDBOX"]?.trim();
   const producaoEnv = process.env["SPEDY_API_KEY_PRODUCAO"]?.trim();
