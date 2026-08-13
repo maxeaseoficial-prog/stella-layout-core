@@ -1,70 +1,32 @@
-# Plano de Simplificação Fiscal e Remoção de Integração Spedy
+# Plano de Melhoria do Dashboard Administrativo
 
-O objetivo é transformar o Stella ERP em um sistema com controle manual de emissão de notas fiscais, removendo a integração automática com a API Spedy e simplificando a interface para o usuário.
+Transformar o dashboard atual em um painel gerencial robusto com dados reais, filtros temporais e gráficos dinâmicos, mantendo a identidade visual da Stella.
 
-## 1. Alterações no Modelo de Dados (Frontend)
+## 1. Filtro Global de Período
+- Adicionar componente de filtro no topo do dashboard.
+- Opções: Hoje, Últimos 7/30 dias, Este mês (padrão), Mês anterior, Este ano e Personalizado (Data Inicial/Final).
+- O estado do filtro será mantido durante a sessão (em memória).
 
-Atualizar o tipo `Pedido` para incluir o controle manual de emissão:
+## 2. Indicadores Financeiros (Cards)
+- **Faturamento:** Soma de `pedido.total` para pedidos com status de venda válida (aprovados, em produção, finalizados, entregues). Exclui orçamentos pendentes e cancelados.
+- **Recebido:** Soma de `pagamento.valor` de todos os pagamentos realizados dentro do período filtrado.
+- **A Receber:** Diferença entre o faturamento total e o total pago para as vendas válidas do período.
+- **Ticket Médio:** Faturamento dividido pela quantidade de pedidos de venda.
+- **Comparação:** Mostrar variação percentual (%) em relação ao período anterior de mesma duração.
 
-```typescript
-// src/features/pedidos/types.ts
-export interface Pedido {
-  // ... campos existentes
-  notaFiscalControle?: {
-    emitida: boolean;
-    emitidaEm?: string; // ISO timestamp
-  };
-}
-```
+## 3. Gráficos Reais
+- **Faturamento no Período:** Gráfico de área mostrando a evolução das vendas ao longo do tempo (agrupado por hora/dia/mês conforme o período).
+- **Status dos Pedidos:** Gráfico de rosca (donut) com agrupamentos simplificados (Orçamento, Aprovação, Produção, Finalizado, Entregue, Cancelado).
+- **Recebimentos por Forma:** Gráfico de barras ou rosca mostrando a distribuição dos valores recebidos por Pix, Dinheiro, Cartão, etc.
 
-## 2. Refatoração do Módulo Fiscal (`src/features/fiscal/`)
+## 4. Pedidos Recentes
+- Listagem dos últimos 5 a 8 pedidos do período com dados reais: Número, Cliente, Data, Valor e Status.
+- Link direto para os detalhes do pedido.
 
-Transformar a aba Fiscal em uma central de controle manual:
+## Detalhes Técnicos
+- **Fonte de Dados:** `usePedidos` e `useClientes`.
+- **Cálculos:** Centralizados em `useMemo` dentro do componente `Dashboard.tsx` para performance.
+- **Bibliotecas:** `recharts` (via `src/components/ui/chart.tsx`) e `date-fns` para manipulação de datas.
+- **Empty State:** UI elegante para períodos sem dados ("Ainda não há dados neste período").
+- **Fiscal:** Nenhuma dependência de NF-e ou dados da Spedy.
 
-- **FiscalLayout.tsx**: 
-    - Remover botão "Emitir NF-e avulsa".
-    - Simplificar as abas para: [Todos], [Pendentes], [Emitidas].
-    - Remover abas: "NF-e Avulsas", "Categorias Fiscais", "Configurações Fiscais".
-- **FiscalDashboard.tsx**:
-    - Adaptar os cards de estatísticas para refletir apenas o status manual.
-    - Remover métricas da Spedy (Rejeitadas, Erros de Config).
-- **PedidosPendentesFiscal.tsx** (e novas listas):
-    - Listar todos os pedidos com status `!notaFiscalControle.emitida`.
-    - Adicionar botão "Marcar nota como emitida".
-    - Adicionar busca por cliente e número do pedido.
-    - Ao clicar no pedido, abrir o `PedidoViewDrawer` para conferência.
-- **Remover componentes obsoletos**:
-    - `ConfiguracoesFiscaisForm.tsx`
-    - `CategoriasFiscaisManager.tsx`
-    - `NfeAvulsaDrawer.tsx`
-    - `RevisarEmissaoDialog.tsx`
-    - `PayloadPreviewDialog.tsx`
-    - `NotasAvulsasFiscal.tsx`
-
-## 3. Alterações no Módulo de Pedidos (`src/features/pedidos/`)
-
-Remover vestígios da integração fiscal da interface de pedidos:
-
-- **PedidoViewDrawer.tsx**:
-    - Remover a aba "Nota Fiscal" e o componente `NotaFiscalSection`.
-    - Adicionar seção simples com status manual: "Nota Fiscal: [Pendente / Emitida em DD/MM]".
-    - Adicionar botão "Marcar como emitida" / "Marcar como não emitida" (com confirmação).
-    - Adicionar botão "Imprimir Pedido" (já existe, mas garantir que atenda aos requisitos de consulta).
-- **PedidoFormDrawer.tsx**:
-    - Remover qualquer menção a NCM ou aviso fiscal durante a criação/finalização.
-- **usePedidos.ts**:
-    - Implementar a função `marcarNotaEmitida(id: string, emitida: boolean)`.
-
-## 4. Limpeza de Código e Segurança
-
-- Manter as `server functions` e arquivos `*.server.ts` relacionados à Spedy intactos no sistema (conforme regra 9), mas remover todos os pontos de entrada na UI.
-- Garantir que nenhuma chamada para a Spedy ocorra no fluxo de vida normal do usuário.
-
-## 5. Relatório Final de Testes
-
-Serão validados os seguintes pontos:
-1. Criação de pedido -> aparece no Fiscal/Pendentes.
-2. Marcar como emitida -> move para Fiscal/Emitidas e persiste após reload.
-3. Desfazer marcação -> volta para Pendentes.
-4. Busca e filtros operacionais.
-5. Ausência total de campos "Spedy", "API Key", "NCM" na UI.
