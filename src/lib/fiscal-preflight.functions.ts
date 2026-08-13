@@ -1,8 +1,12 @@
+
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAuthMiddleware } from "@/lib/auth-middleware";
-import { carregarClienteServer, assertAdminFiscal } from "@/lib/fiscal.server";
-import { getClienteNome } from "@/features/clientes/types";
+import { 
+  carregarClienteServer, 
+  assertAdminFiscal 
+} from "@/lib/fiscal.server";
+import { validarDestinatarioNfe } from "@/features/fiscal/utils/preflight.server";
 
 export const getFiscalPreflight = createServerFn({ method: "GET" })
   .middleware([supabaseAuthMiddleware])
@@ -12,45 +16,20 @@ export const getFiscalPreflight = createServerFn({ method: "GET" })
     
     const cliente = await carregarClienteServer(context.supabase, data.clienteId);
     
-    if (!cliente) {
-      return {
-        ok: false,
-        prontoParaEmitir: false,
-        erros: ["Cliente não encontrado no servidor."]
-      };
-    }
-
-    const erros: string[] = [];
-    const isEmpresa = cliente.tipo === "empresa";
-    const cnpj = isEmpresa ? (cliente as any).cnpj : null;
-    const indicadorIe = isEmpresa ? (cliente as any).indicadorIe : "nao_contribuinte";
-    const ie = isEmpresa ? (cliente as any).inscricaoEstadual : null;
-    const ieNumerica = (ie || "").replace(/\D/g, "");
-
-    if (isEmpresa && !cnpj) erros.push("CNPJ não informado no cadastro.");
+    const validation = validarDestinatarioNfe(cliente);
     
-    if (isEmpresa && !indicadorIe) {
-      erros.push("Indicador de Inscrição Estadual não definido. Atualize o cadastro.");
-    }
-
-    if (indicadorIe === "contribuinte" && !ieNumerica) {
-      erros.push("Inscrição Estadual obrigatória para contribuinte.");
-    }
-
-    if (!cliente.cidade || !cliente.estado) {
-      erros.push("Endereço (Cidade/UF) incompleto.");
+    if (!validation.ok) {
+        return {
+            ok: false,
+            prontoParaEmitir: false,
+            erros: validation.erros
+        };
     }
 
     return {
       ok: true,
-      clienteEncontrado: true,
-      nome: getClienteNome(cliente),
-      tipo: cliente.tipo,
-      federalTaxNumber: isEmpresa ? cnpj : (cliente as any).cpf,
-      indicadorIe,
-      inscricaoEstadual: ie,
-      uf: cliente.estado,
-      prontoParaEmitir: erros.length === 0,
-      erros
+      ...validation.cliente,
+      prontoParaEmitir: validation.prontoParaEmitir,
+      erros: validation.erros
     };
   });

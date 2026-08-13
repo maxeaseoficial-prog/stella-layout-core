@@ -24,6 +24,7 @@ import {
   validarConfigFiscal,
   validarPedidoParaNfe,
 } from "./fiscal.server";
+import { validarDestinatarioNfe } from "@/features/fiscal/utils/preflight.server";
 
 
 function mensagemDe(e: unknown, fallback: string): string {
@@ -86,22 +87,28 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     // 3. Garantia de Sincronização e Releitura Canônica
     const cliente = await carregarClienteServer(context.supabase, pedido.clienteId);
-
     
-    console.log("[Fiscal] Payload Destinatário (Pedido):", JSON.stringify({
-      id: cliente?.id,
-      nome: cliente ? getClienteNome(cliente) : "Não encontrado",
-      tipo: cliente?.tipo,
-      cnpjPresente: !!cliente?.tipo && cliente.tipo === 'empresa' && !!cliente.cnpj,
-      iePresente: !!cliente?.tipo && cliente.tipo === 'empresa' && !!cliente.inscricaoEstadual,
-      ieDigitos: cliente?.tipo === 'empresa' ? cliente.inscricaoEstadual?.length ?? 0 : 0,
-      indicadorIe: cliente?.tipo === 'empresa' ? (cliente as any).indicadorIe : 'N/A',
-      cidade: cliente?.cidade,
-      estado: cliente?.estado
-    }, null, 2));
+    // Validação server-side compartilhada e síncrona imediatamente antes do processamento
+    const validation = validarDestinatarioNfe(cliente);
+    if (!validation.prontoParaEmitir) {
+      return { 
+        ok: false as const, 
+        mensagem: `Dados fiscais do destinatário inconsistentes no servidor: ${validation.erros.join(", ")}` 
+      };
+    }
 
+    console.log("[Fiscal] Payload Destinatário Validado:", JSON.stringify(validation.cliente, null, 2));
 
     const payload = montarPayloadNfe(pedido, cliente, config);
+    
+    // Validação extra do payload montado
+    const receiver = (payload.receiver as any);
+    if (!receiver || !receiver.federalTaxNumber) {
+        return { ok: false as const, mensagem: "Falha crítica na montagem do payload: destinatário inválido." };
+    }
+    if (receiver.indicatorStateTaxNumber === 1 && (!receiver.stateTaxNumber || receiver.stateTaxNumber === "ISENTO")) {
+        return { ok: false as const, mensagem: "Falha crítica: Contribuinte ICMS sem Inscrição Estadual no payload." };
+    }
     const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
     
     try {

@@ -32,6 +32,8 @@ import { usePedidos } from "@/features/pedidos/usePedidos";
 import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
 import { emitirNfePedido } from "@/lib/fiscal.functions";
 import { getFiscalPreflight } from "@/lib/fiscal-preflight.functions";
+import { previewNfePedido } from "@/lib/fiscal-preview.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { NotaFiscalSection } from "./NotaFiscalSection";
 import { SPEDY_BASE_URLS } from "./spedy";
@@ -49,6 +51,9 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
   const [preflight, setPreflight] = useState<any>(null);
   const [carregandoPreflight, setCarregandoPreflight] = useState(false);
   const [showPayload, setShowPayload] = useState(false);
+  const [realPayload, setRealPayload] = useState<any>(null);
+  const [carregandoPayload, setCarregandoPayload] = useState(false);
+  const [sincronizando, setSincronizando] = useState(false);
   const { salvarNotaFiscal } = usePedidos();
 
   useEffect(() => {
@@ -67,6 +72,76 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
       toast.error("Não foi possível validar os dados fiscais no servidor.");
     } finally {
       setCarregandoPreflight(false);
+    }
+  }
+
+  async function sincronizarFiscal() {
+    if (!pedido?.clienteId || !pedido?.cliente) return;
+    
+    setSincronizando(true);
+    const id = toast.loading("Sincronizando dados fiscais com o servidor...");
+    
+    try {
+      // 1. Pegar cliente local atual
+      const clienteLocal = pedido.cliente;
+
+      // 2. Persistir no Supabase
+      const { data: session } = await supabase.auth.getSession();
+      const tenantId = session?.session?.user?.user_metadata?.tenant_id;
+
+      const { error } = await supabase
+        .from("clientes")
+        .upsert({
+          id: pedido.clienteId,
+          tenant_id: tenantId, // Necessário para RLS e tipos
+          data: clienteLocal as any,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      // 3. Aguardar e reler do servidor (Preflight faz isso)
+      const res = await getFiscalPreflight({ data: { clienteId: pedido.clienteId } }) as any;
+      
+      // 4. Comparar campos críticos
+      const camposCriticos = ['tipo', 'indicadorIe', 'inscricaoEstadual', 'estado', 'cidade', 'cep', 'logradouro', 'numero'];
+      const divergencias = [];
+      
+      for (const campo of camposCriticos) {
+          const valLocal = clienteLocal[campo];
+          const valRemoto = res[campo === 'uf' ? 'estado' : campo]; // mapeamento do preflight
+          
+          if (valLocal !== valRemoto && (valLocal || valRemoto)) {
+              divergencias.push(campo);
+          }
+      }
+
+      setPreflight(res);
+
+      if (divergencias.length > 0) {
+        toast.error(`Sincronização concluída com avisos. Campos ainda divergentes: ${divergencias.join(", ")}`, { id });
+      } else {
+        toast.success("Dados fiscais sincronizados e validados com sucesso!", { id });
+      }
+    } catch (e) {
+      console.error("Erro na sincronização fiscal:", e);
+      toast.error("Falha ao sincronizar dados fiscais.", { id });
+    } finally {
+      setSincronizando(false);
+    }
+  }
+
+  async function carregarPayloadReal() {
+    setCarregandoPayload(true);
+    try {
+      const res = await previewNfePedido({ data: { pedidoId: pedido.id } });
+      setRealPayload(res.payload);
+      setShowPayload(true);
+    } catch (e) {
+      console.error("Erro ao carregar payload:", e);
+      toast.error("Não foi possível gerar a prévia do payload real.");
+    } finally {
+      setCarregandoPayload(false);
     }
   }
 
@@ -254,10 +329,22 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
                       <p className="font-bold">{preflight.uf?.toUpperCase() || "???"}</p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">Sincronização</p>
-                      <p className="text-emerald-600 font-medium flex items-center gap-1">
-                        Sincronizado <CheckCircle2 className="h-3 w-3" />
-                      </p>
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">Base de Dados</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-blue-600 font-medium flex items-center gap-1">
+                          Remoto (Supabase) <CheckCircle2 className="h-3 w-3" />
+                        </p>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-5 w-5 text-primary" 
+                          title="Sincronizar agora"
+                          disabled={sincronizando}
+                          onClick={sincronizarFiscal}
+                        >
+                          <Database className={`h-3 w-3 ${sincronizando ? 'animate-pulse' : ''}`} />
+                        </Button>
+                      </div>
                     </div>
 
                     {preflight.erros.length > 0 && (
