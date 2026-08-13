@@ -24,7 +24,7 @@ import {
   validarConfigFiscal,
   validarPedidoParaNfe,
 } from "./fiscal.server";
-import { validarDestinatarioNfe } from "@/features/fiscal/utils/preflight.server";
+import { validarDestinatarioNfe, SpedyReceiverSchema } from "@/features/fiscal/utils/preflight.server";
 
 
 function mensagemDe(e: unknown, fallback: string): string {
@@ -101,14 +101,23 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
 
     const payload = montarPayloadNfe(pedido, cliente, config);
     
-    // Validação extra do payload montado
-    const receiver = (payload.receiver as any);
-    if (!receiver || !receiver.federalTaxNumber) {
-        return { ok: false as const, mensagem: "Falha crítica na montagem do payload: destinatário inválido." };
+    // 4. Validação Síncrona Bloqueante do Payload Final (Receiver)
+    const validationSpedy = SpedyReceiverSchema.safeParse(payload.receiver);
+    
+    if (!validationSpedy.success) {
+      const errorPaths = validationSpedy.error.issues.map(i => `${i.path.join(".")}: ${i.message}`).join("; ");
+      return { 
+        ok: false as const, 
+        mensagem: `Payload do destinatário incompatível com o contrato Spedy: ${errorPaths}` 
+      };
     }
-    if (receiver.indicatorStateTaxNumber === 1 && (!receiver.stateTaxNumber || receiver.stateTaxNumber === "ISENTO")) {
-        return { ok: false as const, mensagem: "Falha crítica: Contribuinte ICMS sem Inscrição Estadual no payload." };
+
+    // Validação extra de coerência (Negócio)
+    const receiver = payload.receiver as any;
+    if (receiver.indicatorStateTaxNumber === 1 && (!receiver.stateTaxNumber || receiver.stateTaxNumber.toUpperCase() === "ISENTO")) {
+        return { ok: false as const, mensagem: "Validação Bloqueante: Contribuinte ICMS (Indicador 1) deve possuir Inscrição Estadual válida." };
     }
+
     const apiKeyInfo = await apiKeyParaAmbiente(context.supabase, config, config.ambienteApi);
     
     try {

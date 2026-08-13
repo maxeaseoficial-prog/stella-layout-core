@@ -10,7 +10,12 @@ export const SpedyReceiverSchema = z.object({
   name: z.string().max(60),
   federalTaxNumber: z.string(), // CPF ou CNPJ (apenas dígitos)
   stateTaxNumber: z.string().optional(), // IE
-  indicatorStateTaxNumber: z.number().int().min(1).max(9).optional(), // 1, 2, 9
+  indicatorStateTaxNumber: z.union([
+    z.literal(1), // Contribuinte ICMS
+    z.literal(2), // Contribuinte isento
+    z.literal(9)  // Não contribuinte
+  ]),
+
   email: z.string().email().optional(),
   address: z.object({
     street: z.string().max(60),
