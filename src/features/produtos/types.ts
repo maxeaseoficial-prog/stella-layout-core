@@ -43,9 +43,6 @@ export interface Produto {
   id: string;
   nome: string;
   sku?: string;
-  categoriaFiscalId?: string;
-  ncm?: string;
-  descricaoFiscal?: string;
   categoria: CategoriaProduto;
   precoBase: number;
   variacoesTamanhos?: VariacaoTamanho[];
