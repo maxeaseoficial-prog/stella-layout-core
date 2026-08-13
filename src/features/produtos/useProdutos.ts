@@ -88,24 +88,37 @@ export function useProdutos() {
   const produtos = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const hidratado = isBrowser();
 
-  // Deduplicação automática segura e backup
+  // Limpeza de campos fiscais e deduplicação automática
   useEffect(() => {
     if (!hidratado) return;
 
     const atuais = getSnapshot();
-    const limpos = deduplicarProdutosPorSku(atuais);
+    
+    // 1. Limpeza de campos removidos (normatização de dados antigos)
+    let houveMudanca = false;
+    const limposCampos = atuais.map(p => {
+      if ('categoriaFiscalId' in p || 'ncm' in p || 'descricaoFiscal' in p) {
+        houveMudanca = true;
+        const { categoriaFiscalId, ncm, descricaoFiscal, ...pLimpo } = p as any;
+        return pLimpo as Produto;
+      }
+      return p;
+    });
 
-    if (limpos.length !== atuais.length) {
-      console.log(`[Deduplicação] Detectados ${atuais.length} itens, limpando para ${limpos.length}...`);
+    // 2. Deduplicação por SKU
+    const limposDedupe = deduplicarProdutosPorSku(limposCampos);
+    if (limposDedupe.length !== limposCampos.length) houveMudanca = true;
+
+    if (houveMudanca) {
+      console.log(`[Manutenção] Limpando dados fiscais e duplicados...`);
       
-      // Criar backup real apenas se não existir um
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw && !localStorage.getItem(BACKUP_KEY)) {
         localStorage.setItem(BACKUP_KEY, raw);
-        console.log(`[Deduplicação] Backup de ${atuais.length} itens criado com sucesso.`);
+        console.log(`[Manutenção] Backup criado com sucesso.`);
       }
 
-      setProdutos(limpos);
+      setProdutos(limposDedupe);
     }
   }, [hidratado]);
 
@@ -210,7 +223,7 @@ export function useProdutos() {
     const skusExistentes = new Set(existentes.map(p => normalizarSku(p.sku)));
     
     // Filtra do seed apenas os SKUs que realmente não existem
-    const apenasNovos = PRODUTOS_SEED
+    const apenasNovos = (PRODUTOS_SEED as any[])
       .filter(seed => !skusExistentes.has(normalizarSku(seed.sku)))
       .map((seed) => ({
         ...seed,
