@@ -131,8 +131,9 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
         processingDetail: { message: "Iniciando transmissão para Spedy..." }
       };
 
+      let idInterno: string | null = null;
       try {
-        await persistirNfeNoBanco(
+        idInterno = await persistirNfeNoBanco(
           context.supabase,
           tentativaNota,
           "pedido",
@@ -141,16 +142,31 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
           cliente?.id,
           pedido.id
         );
+        console.log("[Fiscal Functions] Tentativa salva com ID interno:", idInterno);
       } catch (tentativaError) {
         console.error("[Fiscal Functions] Falha ao salvar tentativa pré-transmissão:", tentativaError);
       }
 
-      const res = await spedyFetch(
-        apiKeyInfo,
-        config.ambienteApi,
-        "/product-invoices",
-        { method: "POST", body: JSON.stringify(payload) },
-      );
+      let res;
+      try {
+        res = await spedyFetch(
+          apiKeyInfo,
+          config.ambienteApi,
+          "/product-invoices",
+          { method: "POST", body: JSON.stringify(payload) },
+        );
+      } catch (spedyError: any) {
+        // Se a Spedy falhar, atualizamos a tentativa com o erro
+        if (idInterno) {
+          const erroNota = {
+            ...tentativaNota,
+            status: "error",
+            processingDetail: { message: spedyError.message || "Erro na transmissão para Spedy" }
+          };
+          await persistirNfeNoBanco(context.supabase, erroNota, "pedido", undefined, undefined, undefined, pedido.id, idInterno);
+        }
+        throw spedyError;
+      }
       
       const nota = notaFiscalDeResposta(res, config.ambienteApi, pedido.id.slice(0, 36));
       
@@ -159,19 +175,20 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
           context.supabase,
           nota,
           "pedido",
-          payload,
-          cliente,
+          undefined, // Não sobrescrever payload
+          undefined, // Não sobrescrever resumo
           cliente?.id,
-          pedido.id
+          pedido.id,
+          idInterno
         );
       } catch (persistError) {
         console.error("[Fiscal Functions] FISCAL_REMOTE_CREATED_LOCAL_PERSIST_FAILED:", {
           spedyId: nota.spedyId,
           integrationId: nota.integrationId,
           status: nota.status,
-          userId: context.userId
+          userId: context.userId,
+          idInterno
         });
-        // Não jogamos o erro para o usuário não achar que falhou a emissão (que deu certo na Spedy)
       }
 
       return {
@@ -238,7 +255,8 @@ export const consultarNfePedido = createServerFn({ method: "POST" })
           undefined, // Não sobrescrever payload_envio
           undefined, // Não sobrescrever resumo_destinatario
           undefined, // Não sobrescrever cliente_id
-          pedidoId
+          pedidoId,
+          null // Não temos ID interno aqui, usa upsert por spedy_id
         );
       } catch (e) {
         console.error("[Fiscal Functions] Sync error during consultation:", e);

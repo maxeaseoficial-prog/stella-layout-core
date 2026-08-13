@@ -100,7 +100,7 @@ export async function carregarClienteServer(
   return (data?.data as unknown as Cliente | undefined) ?? null;
 }
 
-/** Salva os dados da NF-e no banco de dados persistente. */
+/** Salva ou atualiza os dados da NF-e no banco de dados persistente. */
 export async function persistirNfeNoBanco(
   supabase: Supabase,
   nota: NotaFiscalPedido,
@@ -109,8 +109,8 @@ export async function persistirNfeNoBanco(
   resumoDestinatario?: any,
   clienteId?: string | null,
   pedidoId?: string | null,
+  idInterno?: string | null,
 ) {
-  // Use the provided supabase client (already authenticated in middleware)
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("AUTH_STAGE_PERSISTENCE_FAILED: Usuário não autenticado no servidor.");
 
@@ -125,60 +125,64 @@ export async function persistirNfeNoBanco(
   const record: any = {
     tenant_id: empUser.empresa_id,
     tipo_emissao: tipo,
-    spedy_id: nota.spedyId,
+    spedy_id: nota.spedyId || null,
     ambiente: nota.ambiente,
     status: nota.status,
-    numero: nota.numero,
-    serie: nota.serie,
-    chave_acesso: nota.chaveAcesso,
-    protocolo: nota.protocolo,
-    valor_total: nota.valor,
-    data_emissao: nota.emitidaEm,
-    data_autorizacao: nota.autorizadaEm,
-    external_id: nota.integrationId,
-    mensagem_sefaz: nota.processingDetail?.message,
+    numero: nota.numero || null,
+    serie: nota.serie || null,
+    chave_acesso: nota.chaveAcesso || null,
+    protocolo: nota.protocolo || null,
+    valor_total: nota.valor || null,
+    data_emissao: nota.emitidaEm || null,
+    data_autorizacao: nota.autorizadaEm || null,
+    external_id: nota.integrationId || null,
+    mensagem_sefaz: nota.processingDetail?.message || null,
     updated_at: new Date().toISOString()
   };
 
   if (clienteId !== undefined && clienteId !== null) record.cliente_id = clienteId;
   if (pedidoId !== undefined && pedidoId !== null) record.pedido_id = pedidoId;
-  if (payloadEnvio !== undefined && payloadEnvio !== null) record.payload_envio = payloadEnvio;
-  if (resumoDestinatario !== undefined && resumoDestinatario !== null) record.resumo_destinatario = resumoDestinatario;
+  
+  // Apenas salva payload e resumo se fornecidos (preserva os existentes no update)
+  if (payloadEnvio) record.payload_envio = payloadEnvio;
+  if (resumoDestinatario) record.resumo_destinatario = resumoDestinatario;
 
-  // Se não houver spedy_id, tentamos localizar pelo external_id (integrationId) para salvar a tentativa
-  if (!record.spedy_id) {
-    if (record.external_id) {
-      const { error } = await supabase
-        .from("notas_fiscais")
-        .upsert(record, { onConflict: "tenant_id,external_id" });
-      
-      if (error) {
-        console.error("[Fiscal Server] FISCAL_ATTEMPT_PERSISTENCE_ERROR:", error);
-      }
-    }
-    return;
+  let error;
+  
+  // Fluxo 1: Temos ID interno (update direto)
+  if (idInterno) {
+    const { error: updateError } = await supabase
+      .from("notas_fiscais")
+      .update(record)
+      .eq("id", idInterno);
+    error = updateError;
+  } 
+  // Fluxo 2: Upsert por spedy_id (transmissão já concluída ou consulta)
+  else if (record.spedy_id) {
+    const { error: upsertError } = await supabase
+      .from("notas_fiscais")
+      .upsert(record, { onConflict: "tenant_id,spedy_id" });
+    error = upsertError;
   }
-
-  const { error } = await supabase
-    .from("notas_fiscais")
-    .upsert(record, { onConflict: "tenant_id,spedy_id" });
+  // Fluxo 3: Insert inicial (tentativa)
+  else {
+    const { data: inserted, error: insertError } = await supabase
+      .from("notas_fiscais")
+      .insert(record)
+      .select("id")
+      .single();
+    
+    error = insertError;
+    if (inserted) return inserted.id;
+  }
 
   if (error) {
-    console.error("[Fiscal Server] FISCAL_PERSISTENCE_ERROR:", {
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      table: "notas_fiscais",
-      operation: "upsert",
-      tenant_id: record.tenant_id,
-      spedy_id: record.spedy_id
-    });
-    throw new Error("Falha ao salvar os dados da NF-e no banco.");
+    console.error("[Fiscal Server] FISCAL_PERSISTENCE_ERROR:", error);
+    throw new Error(`Falha ao salvar NF-e: ${error.message}`);
   }
 
-  // Se for pedido, também sincroniza com a tabela de pedidos para retrocompatibilidade
-  if (tipo === "pedido" && pedidoId) {
+  // Sincroniza pedido
+  if (tipo === "pedido" && pedidoId && nota.spedyId) {
     const { data: pData } = await supabase.from("pedidos").select("data").eq("id", pedidoId).single();
     if (pData) {
       const p = pData.data as any;
@@ -186,6 +190,8 @@ export async function persistirNfeNoBanco(
       await supabase.from("pedidos").update({ data: p }).eq("id", pedidoId);
     }
   }
+
+  return idInterno || null;
 }
 
 // ---------------------------------------------------------------------------
