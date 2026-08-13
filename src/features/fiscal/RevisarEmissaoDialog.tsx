@@ -87,13 +87,32 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
 
       // 2. Persistir no Supabase
       const { data: session } = await supabase.auth.getSession();
-      const tenantId = session?.session?.user?.user_metadata?.tenant_id;
+      const { data: empUser } = await supabase
+        .from("empresa_usuarios")
+        .select("empresa_id")
+        .eq("user_id", session?.session?.user?.id)
+        .maybeSingle();
+
+      const tenantId = empUser?.empresa_id;
+
+      if (!tenantId) {
+        throw new Error("Não foi possível determinar o ID da empresa para sincronização.");
+      }
+
+      // Localizar cliente local atualizado no storage
+      const raw = localStorage.getItem("stella.clientes.v1");
+      const clientes = JSON.parse(raw || "[]");
+      const clienteLocal = clientes.find((c: any) => c.id === pedido.clienteId);
+
+      if (!clienteLocal) {
+        throw new Error("Cliente não encontrado no armazenamento local para sincronização.");
+      }
 
       const { error } = await supabase
         .from("clientes")
         .upsert({
           id: pedido.clienteId,
-          tenant_id: tenantId, // Necessário para RLS e tipos
+          tenant_id: tenantId,
           data: clienteLocal as any,
           updated_at: new Date().toISOString()
         });
@@ -109,7 +128,7 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
       
       for (const campo of camposCriticos) {
           const valLocal = clienteLocal[campo];
-          const valRemoto = res[campo === 'uf' ? 'estado' : campo]; // mapeamento do preflight
+          const valRemoto = campo === 'estado' ? res.uf : res[campo];
           
           if (valLocal !== valRemoto && (valLocal || valRemoto)) {
               divergencias.push(campo);
