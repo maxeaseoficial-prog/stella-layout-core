@@ -19,6 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  startOfMonth,
+  subMonths,
+  subDays,
+  isWithinInterval,
+  parseISO,
+} from "date-fns";
 
 export function Dashboard() {
   const { pedidos } = usePedidos();
@@ -26,7 +33,33 @@ export function Dashboard() {
   const [periodo, setPeriodo] = useState("este_mes");
 
   const stats = useMemo(() => {
-    // Helper básico de faturamento: pedidos comerciais aprovados (não cancelados)
+    const agora = new Date();
+    let inicio: Date;
+    let fim: Date = agora;
+
+    switch (periodo) {
+      case "hoje":
+        inicio = new Date(agora.setHours(0, 0, 0, 0));
+        break;
+      case "7_dias":
+        inicio = subDays(agora, 7);
+        break;
+      case "30_dias":
+        inicio = subDays(agora, 30);
+        break;
+      case "mes_anterior":
+        inicio = startOfMonth(subMonths(agora, 1));
+        fim = subDays(startOfMonth(agora), 1);
+        break;
+      case "este_ano":
+        inicio = new Date(agora.getFullYear(), 0, 1);
+        break;
+      case "este_mes":
+      default:
+        inicio = startOfMonth(agora);
+        break;
+    }
+
     const ehVendaValida = (p: any) =>
       ![
         "em_orcamento",
@@ -34,7 +67,11 @@ export function Dashboard() {
         "cancelado",
       ].includes(p.statusProducao);
 
-    const pedidosValidos = pedidos.filter(ehVendaValida);
+    const pedidosNoPeriodo = pedidos.filter((p) =>
+      isWithinInterval(parseISO(p.criadoEm), { start: inicio, end: fim })
+    );
+
+    const pedidosValidos = pedidosNoPeriodo.filter(ehVendaValida);
     
     const faturamento = pedidosValidos.reduce((sum, p) => sum + p.total, 0);
     const totalPago = pedidosValidos.reduce((sum, p) => sum + p.totalPago, 0);
@@ -60,13 +97,13 @@ export function Dashboard() {
       faturamento,
       totalRecebido: totalPago,
       aReceber,
-      totalPedidos: pedidos.length,
+      totalPedidos: pedidosNoPeriodo.length,
       totalClientes: clientes.length,
       pendentes,
       emProducao,
       ticketMedio: pedidosValidos.length > 0 ? faturamento / pedidosValidos.length : 0
     };
-  }, [pedidos, clientes]);
+  }, [pedidos, clientes, periodo]);
 
   return (
     <div className="space-y-6">
