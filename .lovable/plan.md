@@ -1,48 +1,27 @@
-# Plano de Correção NF-e: Rejeição 232 (IE não informada)
+# Plano de Diagnóstico e Blindagem da NF-e (Rejeição 232)
 
-Este plano resolve a rejeição da SEFAZ na emissão de NF-e para empresas contribuintes, garantindo que a Inscrição Estadual (IE) seja tratada de forma segura e síncrona, eliminando o fallback automático para "ISENTO" e inconsistências de sincronização entre o cadastro local e o servidor.
+O objetivo deste plano é identificar por que a Inscrição Estadual (IE) está sendo omitida no XML enviado à SEFAZ, apesar de estar presente no preview da Stella. Seguiremos um protocolo rigoroso de validação de contrato e telemetria.
 
-## Mudanças sugeridas
+## 1. Mapeamento de Contrato Spedy
+Validar se os campos usados no `montarPayloadNfe` (src/lib/fiscal.server.ts) correspondem ao OpenAPI v1 da Spedy.
+- **Hipótese:** A Spedy pode ter alterado `stateTaxNumber` para outro nome ou exigir uma estrutura diferente dentro de `receiver`.
+- **Ação:** Consultar `docs.spedy.com.br` (via subagente de pesquisa) para confirmar os nomes exatos.
 
-### 1. Modelo de Dados e Tipos
-- Adicionar o campo `indicadorIe` ao tipo `ClienteEmpresa` em `src/features/clientes/types.ts`.
-- Valores possíveis: `contribuinte` (ICMS), `isento`, `nao_contribuinte`.
-- Atualizar a interface `NfeAvulsa` e `NfeAvulsaItem` se necessário para paridade.
+## 2. Telemetria de Emissão (Payload Real)
+Implementar log de diagnóstico no servidor imediatamente antes do `fetch` na Spedy.
+- **Arquivo:** `src/lib/fiscal.server.ts`
+- **Alteração:** No `spedyFetch`, capturar o `body` serializado (sem segredos) e gerar um hash SHA-256 para comparação com o Preview.
 
-### 2. Cadastro de Clientes (`ClienteFormDrawer.tsx`)
-- Implementar o novo campo "Indicador de Inscrição Estadual" para empresas.
-- Tornar o campo `inscricaoEstadual` **obrigatório** quando o indicador for `contribuinte`.
-- Melhorar a busca automática de IE via CNPJ para considerar a UF e evitar preenchimentos silenciosos de IEs múltiplas ou inativas.
+## 3. Validação de Schema (Zod)
+Criar um schema rigoroso para o destinatário Spedy no backend para evitar o envio de propriedades ignoradas ou malformadas.
+- **Arquivo:** `src/features/fiscal/utils/preflight.server.ts`
+- **Ação:** Adicionar `SpedyReceiverSchema` baseado na documentação oficial.
 
-### 3. Lógica de Sincronização e Sincronicidade Fiscal
-- Criar em `src/lib/fiscal.functions.ts` e `src/lib/fiscal-avulsa.functions.ts` uma garantia de persistência.
-- Antes da emissão, realizar um `upsert` síncrono do cliente e aguardar a confirmação do banco de dados para evitar "condição de corrida" entre o cache local e o servidor Spedy.
-- Refatorar o carregamento do cliente no servidor para garantir que os dados canônicos sejam validados imediatamente antes da montagem do payload.
+## 4. Inspeção de Histórico
+Recuperar os dados da última nota rejeitada (232) no banco de dados para analisar o `payload_envio` persistido.
+- **Ação:** Criar uma função de diagnóstico em `src/lib/debug.functions.ts`.
 
-### 4. Montagem de Payload (`fiscal.server.ts`)
-- Remover o fallback `|| "ISENTO"` em `montarPayloadNfe` e `montarPayloadNfeAvulsa`.
-- Implementar lógica baseada no `indicadorIe`:
-    - `contribuinte`: Enviar `stateTaxNumber` obrigatório (se vazio, lança erro antes de transmitir).
-    - `isento`: Enviar `stateTaxNumber: "ISENTO"`.
-    - `nao_contribuinte`: Tratar conforme contrato Spedy (geralmente omitindo ou enviando vazio/isento dependendo da UF, validado pelo servidor).
-
-### 5. Interface de Revisão Fiscal (`NfeAvulsaDrawer.tsx`)
-- Adicionar bloco "DADOS FISCAIS DO DESTINATÁRIO" na revisão.
-- Exibir Razão Social, CNPJ, Indicador IE e IE real que será transmitida.
-- Bloquear o botão "Emitir" caso existam inconsistências (ex: marcado como contribuinte mas IE ausente).
-- Integrar o `PayloadPreviewDialog.tsx` para permitir conferência manual do JSON de produção.
-
-### 6. Diagnóstico e Logs
-- Melhorar os logs em `fiscal.functions.ts` para incluir diagnóstico de IE (presença, tamanho e indicador) sem expor o valor completo.
-- Adicionar relatório de diagnóstico para a NF-e 221 rejeitada (leitura do `payload_envio` persistido).
-
-## Detalhes técnicos
-- Alteração nos schemas Zod das server functions para incluir o novo campo de indicador.
-- Migração de dados (opcional): se o banco já tiver clientes, o indicador pode ser inferido inicialmente (IE presente = contribuinte, IE vazia = nao_contribuinte) mas o usuário deverá validar no primeiro uso.
-- Uso de `Promise.all` ou encadeamento síncrono em `handleEmitir` para garantir `salvarCliente -> emitir`.
-
-## Riscos e Mitigações
-- **Risco:** Clientes antigos sem o campo `indicadorIe`.
-- **Mitigação:** Implementar fallback seguro no código: se não houver indicador, assume `contribuinte` se houver IE, ou `nao_contribuinte` se estiver vazio, forçando o usuário a revisar na tela de emissão.
-- **Risco:** Novas rejeições por regras de UF específicas.
-- **Mitigação:** Validação rigorosa no preflight comparando UF do emitente e destinatário.
+## Detalhes Técnicos
+- **Diagnóstico de Payload:** `const bodyHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)));`
+- **Segurança:** O log de diagnóstico no console do servidor (`[Fiscal Server] API_REQUEST_PAYLOAD`) deve omitir `X-Api-Key` mas incluir a estrutura completa do `receiver`.
+- **Ambiente:** Testes obrigatórios em `sandbox` antes de qualquer nova tentativa em `produção`.
