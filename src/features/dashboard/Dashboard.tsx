@@ -1,28 +1,43 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Package,
   Users,
-  TrendingUp,
-  TrendingDown,
   ShoppingBag,
   Clock,
-  CheckCircle2,
-  AlertTriangle,
 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { usePedidos } from "@/features/pedidos";
 import { useClientes } from "@/features/clientes";
 import { StatusProducaoValues } from "@/features/pedidos/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function Dashboard() {
   const { pedidos } = usePedidos();
   const { clientes } = useClientes();
+  const [periodo, setPeriodo] = useState("este_mes");
 
   const stats = useMemo(() => {
-    const totalPedidos = pedidos.length;
-    const totalClientes = clientes.length;
+    // Helper básico de faturamento: pedidos comerciais aprovados (não cancelados)
+    const ehVendaValida = (p: any) =>
+      ![
+        "em_orcamento",
+        "aguardando_aprovacao",
+        "cancelado",
+      ].includes(p.statusProducao);
+
+    const pedidosValidos = pedidos.filter(ehVendaValida);
     
+    const faturamento = pedidosValidos.reduce((sum, p) => sum + p.total, 0);
+    const totalPago = pedidosValidos.reduce((sum, p) => sum + p.totalPago, 0);
+    const aReceber = Math.max(0, faturamento - totalPago);
+
     const pendentes = pedidos.filter(p => 
       p.statusProducao !== StatusProducaoValues.FINALIZADO && 
       p.statusProducao !== StatusProducaoValues.ENTREGUE &&
@@ -40,54 +55,94 @@ export function Dashboard() {
     ).length;
 
     return {
-      totalPedidos,
-      totalClientes,
+      faturamento,
+      totalRecebido: totalPago,
+      aReceber,
+      totalPedidos: pedidos.length,
+      totalClientes: clientes.length,
       pendentes,
-      emProducao
+      emProducao,
+      ticketMedio: pedidosValidos.length > 0 ? faturamento / pedidosValidos.length : 0
     };
   }, [pedidos, clientes]);
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Painel Geral"
-        description="Visão consolidada do sistema Stella Espaço dos Uniformes."
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <PageHeader
+          title="Dashboard Administrativo"
+          description="Visão consolidada do sistema Stella Espaço dos Uniformes."
+        />
+        <Select value={periodo} onValueChange={setPeriodo}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Período" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="hoje">Hoje</SelectItem>
+            <SelectItem value="7_dias">Últimos 7 dias</SelectItem>
+            <SelectItem value="30_dias">Últimos 30 dias</SelectItem>
+            <SelectItem value="este_mes">Este mês</SelectItem>
+            <SelectItem value="mes_anterior">Mês anterior</SelectItem>
+            <SelectItem value="este_ano">Este ano</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Faturamento"
+          value={stats.faturamento.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          icon={ShoppingBag}
+        />
+        <StatCard
+          label="Recebido"
+          value={stats.totalRecebido.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          icon={TrendingUp}
+        />
+        <StatCard
+          label="A Receber"
+          value={stats.aReceber.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          icon={Clock}
+        />
         <StatCard
           label="Total de Pedidos"
           value={String(stats.totalPedidos)}
           icon={ShoppingBag}
         />
+      </div>
+      
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total de Clientes"
-          value={String(stats.totalClientes)}
-          icon={Users}
+          label="Ticket Médio"
+          value={stats.ticketMedio.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          icon={TrendingDown}
         />
         <StatCard
           label="Pedidos Pendentes"
           value={String(stats.pendentes)}
           icon={Clock}
-          hint="Aguardando ação"
         />
         <StatCard
           label="Em Produção"
           value={String(stats.emProducao)}
           icon={Package}
-          hint="Na oficina/matriz"
+        />
+        <StatCard
+          label="Clientes"
+          value={String(stats.totalClientes)}
+          icon={Users}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-border bg-surface p-6">
-          <h3 className="text-lg font-semibold mb-4">Atividade Recente</h3>
-          <p className="text-sm text-muted-foreground">Em breve: gráfico de movimentações.</p>
+        <section className="rounded-xl border border-border bg-surface p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">Faturamento no período</h3>
+          <p className="text-sm text-muted-foreground">Em breve: gráfico de área.</p>
         </section>
         
-        <section className="rounded-xl border border-border bg-surface p-6">
+        <section className="rounded-xl border border-border bg-surface p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4">Status de Pedidos</h3>
-          <p className="text-sm text-muted-foreground">Em breve: distribuição por etapa.</p>
+          <p className="text-sm text-muted-foreground">Em breve: gráfico de distribuição.</p>
         </section>
       </div>
     </div>
