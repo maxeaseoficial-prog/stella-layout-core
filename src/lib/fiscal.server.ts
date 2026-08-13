@@ -334,13 +334,26 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  const apiKeyFingerprint = apiKeyInfo.key ? `sha256:present...` : 'none';
   
+  let payloadLog: any = null;
+  if (init?.body) {
+    try {
+      const parsed = JSON.parse(init.body as string);
+      payloadLog = { ...parsed };
+      // Omitir campos que podem ser sensíveis se necessário, mas aqui queremos ver a estrutura do receiver
+    } catch (e) {}
+  }
+
   console.log("[Fiscal Server] API_FISCAL_DIAGNOSTICS:", {
     API_FISCAL_ENVIRONMENT: ambiente,
     API_FISCAL_BASE_URL: SPEDY_BASE_URLS[ambiente],
     API_FISCAL_KEY_PRESENT: !!apiKeyInfo.key,
-    path
+    path,
+    API_FISCAL_PAYLOAD_STRUCTURE: payloadLog ? {
+      receiver: payloadLog.receiver,
+      integrationId: payloadLog.integrationId,
+      itemsCount: payloadLog.items?.length
+    } : null
   });
 
   const response = await fetch(url, {
