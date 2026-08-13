@@ -63,10 +63,7 @@ export interface ItemPedido {
    * As opções são gerenciadas em Configurações → Categorias (escopo "tamanho").
    */
   tamanho?: string;
-  /** Snapshot do NCM do produto para fins fiscais. */
-  ncm?: string;
-  /** Descrição oficial do NCM vinculada ao produto. */
-  descricaoFiscal?: string;
+  /* Campos fiscais removidos (NCM/Descrição). */
   quantidade: number;
   valorUnitario: number;
   personalizacoes: Personalizacao[];
