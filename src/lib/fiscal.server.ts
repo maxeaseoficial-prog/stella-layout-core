@@ -349,13 +349,6 @@ export async function spedyFetch(
     } catch (e) {}
   }
 
-  if (init?.body) {
-    try {
-      const parsed = JSON.parse(init.body as string);
-      payloadLog = { ...parsed };
-      // Omitir campos que podem ser sensíveis se necessário, mas aqui queremos ver a estrutura do receiver
-    } catch (e) {}
-  }
 
   console.log("[Fiscal Server] API_FISCAL_DIAGNOSTICS:", {
     API_FISCAL_ENVIRONMENT: ambiente,
