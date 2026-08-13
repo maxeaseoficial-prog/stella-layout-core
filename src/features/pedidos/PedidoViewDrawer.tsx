@@ -452,7 +452,7 @@ export function PedidoViewDrawer({
                         </p>
                       ) : (
                         <ul className="divide-y divide-border">
-                          {pedido.itens.map((it) => {
+                          {pedido.itens.map((it: any) => {
                             const adicionais = it.adicionais ?? [];
                             return (
                               <li key={it.id} className="space-y-1 py-2 text-sm">
@@ -474,7 +474,7 @@ export function PedidoViewDrawer({
                                     {formatarMoeda(it.valorUnitario)}
                                   </span>
                                 </div>
-                                {adicionais.map((a) => (
+                                {adicionais.map((a: any) => (
                                   <div
                                     key={a.id}
                                     className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground"
@@ -534,7 +534,7 @@ export function PedidoViewDrawer({
                         </p>
                       ) : (
                         <ul className="divide-y divide-border">
-                          {pedido.pagamentos.map((pg) => (
+                          {pedido.pagamentos.map((pg: any) => (
                             <li
                               key={pg.id}
                               className="flex items-center justify-between py-2 text-sm"
