@@ -521,29 +521,35 @@ export function montarPayloadNfe(
   const receiver: Record<string, unknown> = {
     name: cliente ? getClienteNome(cliente) : "Consumidor Final",
   };
-  const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : cliente?.cpf);
+  const doc = apenasDigitos(cliente?.tipo === "empresa" ? cliente.cnpj : (cliente as any)?.cpf);
   if (doc) {
     receiver.federalTaxNumber = doc;
-    // Adiciona Inscrição Estadual (SEFAZ exige para PJ, "ISENTO" se não tiver)
-    // Adiciona Inscrição Estadual com validação de indicador
     if (cliente?.tipo === "empresa") {
-      const indicador = cliente.indicadorIe || (cliente.inscricaoEstadual ? "contribuinte" : "nao_contribuinte");
+      const indicador = (cliente as any).indicadorIe;
+      // 1. Não permitir inferência (Legacy fix)
+      if (!indicador) {
+        throw new Error(`Classificação de Inscrição Estadual do destinatário "${getClienteNome(cliente)}" não definida. Atualize o cadastro do cliente antes de emitir.`);
+      }
+      
       const ie = apenasDigitos(cliente.inscricaoEstadual);
       
+      // 2. Bloqueio prévio no servidor para contribuintes sem IE
       if (indicador === "contribuinte") {
         if (!ie) {
           throw new Error(`O destinatário "${getClienteNome(cliente)}" está marcado como Contribuinte ICMS, mas não possui Inscrição Estadual informada.`);
         }
         receiver.stateTaxNumber = ie;
+        receiver.indicatorStateTaxNumber = 1;
       } else if (indicador === "isento") {
         receiver.stateTaxNumber = "ISENTO";
+        receiver.indicatorStateTaxNumber = 2;
       } else {
-        // Não contribuinte
         receiver.stateTaxNumber = ""; 
+        receiver.indicatorStateTaxNumber = 9;
       }
     }
-
   }
+
   if (cliente?.cidade && cliente?.estado) {
     receiver.address = {
       street: cliente.logradouro || "",

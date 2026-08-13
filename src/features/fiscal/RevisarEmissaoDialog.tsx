@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   AlertCircle, 
   CheckCircle2, 
@@ -10,7 +10,10 @@ import {
   Loader2,
   X,
   ExternalLink,
-  Download
+  Download,
+  Database,
+  Search,
+  Eye
 } from "lucide-react";
 import { 
   Dialog, 
@@ -28,6 +31,7 @@ import { toast } from "@/lib/toast";
 import { usePedidos } from "@/features/pedidos/usePedidos";
 import { formatarMoeda, totalItensPedido } from "@/features/pedidos/utils";
 import { emitirNfePedido } from "@/lib/fiscal.functions";
+import { getFiscalPreflight } from "@/lib/fiscal-preflight.functions";
 import { useFiscalConfig } from "./useFiscalConfig";
 import { NotaFiscalSection } from "./NotaFiscalSection";
 import { SPEDY_BASE_URLS } from "./spedy";
@@ -42,7 +46,30 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
   const { config } = useFiscalConfig();
   const [emitindo, setEmitindo] = useState(false);
   const [notaSucesso, setNotaSucesso] = useState<any>(null);
+  const [preflight, setPreflight] = useState<any>(null);
+  const [carregandoPreflight, setCarregandoPreflight] = useState(false);
+  const [showPayload, setShowPayload] = useState(false);
   const { salvarNotaFiscal } = usePedidos();
+
+  useEffect(() => {
+    if (pedido?.clienteId) {
+      carregarPreflight();
+    }
+  }, [pedido?.clienteId]);
+
+  async function carregarPreflight() {
+    setCarregandoPreflight(true);
+    try {
+      const res = await getFiscalPreflight({ data: { clienteId: pedido.clienteId } });
+      setPreflight(res);
+    } catch (e) {
+      console.error("Erro ao carregar preflight:", e);
+      toast.error("Não foi possível validar os dados fiscais no servidor.");
+    } finally {
+      setCarregandoPreflight(false);
+    }
+  }
+
 
   const validacoes = useMemo(() => {
     if (!pedido) return [];
@@ -178,12 +205,87 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
 
         <ScrollArea className="max-h-[60vh] px-6">
           <div className="space-y-6 pb-6">
-            {/* Seção de Alertas */}
+            {/* Preflight do Servidor (Obrigatório) */}
+            <div className="rounded-xl border border-border bg-surface-muted/30 overflow-hidden shadow-sm">
+              <div className="px-4 py-3 bg-surface border-b flex items-center justify-between">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <Database className="h-3 w-3" /> Dados Fiscais do Destinatário (Canônico)
+                </h4>
+                {carregandoPreflight ? (
+                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                ) : (
+                  <Badge variant={preflight?.prontoParaEmitir ? "secondary" : "destructive"} className="text-[9px] px-1 h-4">
+                    {preflight?.prontoParaEmitir ? "Validado" : "Inconsistente"}
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="p-4 space-y-4">
+                {carregandoPreflight ? (
+                  <div className="flex flex-col items-center justify-center py-4 gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <p className="text-[10px] text-muted-foreground">Consultando base remota...</p>
+                  </div>
+                ) : preflight ? (
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">Razão Social / Nome</p>
+                      <p className="font-medium truncate">{preflight.nome || "Não identificado"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">CNPJ/CPF</p>
+                      <p className="font-mono">{preflight.federalTaxNumber || "Vazio"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">Situação IE</p>
+                      <p className="capitalize font-medium">
+                        {preflight.indicadorIe === 'contribuinte' ? 'Contribuinte ICMS' : 
+                         preflight.indicadorIe === 'isento' ? 'Isento' : 
+                         preflight.indicadorIe === 'nao_contribuinte' ? 'Não Contribuinte' : 
+                         <span className="text-red-500 flex items-center gap-1 font-bold">Não Definido <AlertCircle className="h-3 w-3" /></span>}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">Inscrição Estadual</p>
+                      <p className="font-mono">{preflight.inscricaoEstadual || (preflight.indicadorIe === 'isento' ? 'ISENTO' : 'N/A')}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">UF / Destino</p>
+                      <p className="font-bold">{preflight.uf?.toUpperCase() || "???"}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] uppercase text-muted-foreground font-semibold">Sincronização</p>
+                      <p className="text-emerald-600 font-medium flex items-center gap-1">
+                        Sincronizado <CheckCircle2 className="h-3 w-3" />
+                      </p>
+                    </div>
+
+                    {preflight.erros.length > 0 && (
+                      <div className="col-span-2 mt-2 p-3 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-lg">
+                        <div className="flex items-center gap-2 text-red-700 dark:text-red-400 mb-1">
+                          <AlertCircle className="h-3.5 w-3.5" />
+                          <span className="text-[10px] font-bold uppercase">Erros de Validação</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {preflight.erros.map((err: string, idx: number) => (
+                            <li key={idx} className="text-[10px] text-red-600 dark:text-red-300">• {err}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center italic py-4">Erro ao carregar validação do servidor.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Alertas de Itens (UI Local) */}
             {temErros && (
               <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                 <div className="flex items-center gap-2 text-red-800 mb-2">
                   <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm font-bold">Pendências impeditivas</span>
+                  <span className="text-sm font-bold">Inconsistências nos Itens</span>
                 </div>
                 <ul className="space-y-1">
                   {validacoes.map((e, i) => (
@@ -196,26 +298,18 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
               </div>
             )}
 
-            {!temErros && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span className="text-sm font-medium">Todos os dados básicos foram validados.</span>
-                </div>
-              </div>
-            )}
-
             {/* Resumo do Pedido */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 px-1">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Valor Total</p>
                 <p className="text-lg font-bold">{formatarMoeda(pedido.total)}</p>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 text-right">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Qtde de Itens</p>
                 <p className="text-lg font-bold">{totalItensPedido(pedido)} produtos</p>
               </div>
             </div>
+
 
             <Separator />
 
@@ -291,16 +385,42 @@ export function RevisarEmissaoDialog({ pedido, onFechar }: Props) {
         <DialogFooter className="border-t border-border p-4 bg-surface-muted/30">
           <Button variant="ghost" onClick={onFechar}>Fechar</Button>
           {!pedido.notaFiscal?.spedyId && (
-            <Button 
-              className="gap-2" 
-              disabled={temErros || emitindo}
-              onClick={handleEmitir}
-            >
-              {emitindo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Emitir Nota Fiscal agora
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => setShowPayload(!showPayload)}
+              >
+                <Eye className="h-4 w-4" /> {showPayload ? "Ocultar" : "Ver"} Payload
+              </Button>
+              <Button 
+                className="gap-2" 
+                disabled={temErros || !preflight?.prontoParaEmitir || emitindo}
+                onClick={handleEmitir}
+              >
+                {emitindo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                Emitir Nota Fiscal agora
+              </Button>
+            </div>
           )}
         </DialogFooter>
+        
+        {showPayload && preflight && (
+          <div className="p-4 bg-slate-950 text-emerald-400 font-mono text-[10px] border-t overflow-auto max-h-[30vh]">
+            <p className="text-slate-500 mb-2 uppercase font-bold text-[9px] tracking-widest">// PREVIEW DO DESTINATÁRIO (PAYLOAD)</p>
+            <pre>
+{JSON.stringify({
+  receiver: {
+    federalTaxNumber: preflight.federalTaxNumber,
+    stateTaxNumber: preflight.indicadorIe === 'contribuinte' ? preflight.inscricaoEstadual?.replace(/\D/g, '') : (preflight.indicadorIe === 'isento' ? 'ISENTO' : null),
+    indicatorStateTaxNumber: preflight.indicadorIe === 'contribuinte' ? 1 : (preflight.indicadorIe === 'isento' ? 2 : 9)
+  }
+}, null, 2)}
+            </pre>
+          </div>
+        )}
+
           </>
         )}
       </DialogContent>

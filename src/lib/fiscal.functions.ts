@@ -84,7 +84,9 @@ export const emitirNfePedido = createServerFn({ method: "POST" })
     const erroPedido = validarPedidoParaNfe(pedido);
     if (erroPedido) return { ok: false as const, mensagem: erroPedido };
 
+    // 3. Garantia de Sincronização e Releitura Canônica
     const cliente = await carregarClienteServer(context.supabase, pedido.clienteId);
+
     
     console.log("[Fiscal] Payload Destinatário (Pedido):", JSON.stringify({
       id: cliente?.id,

@@ -111,7 +111,7 @@ function estadoInicial(cliente?: Cliente | null): FormState {
     nomeEmpresa: cliente.tipo === "empresa" ? cliente.nomeEmpresa : "",
     responsavel: cliente.tipo === "empresa" ? cliente.responsavel : "",
     cnpj: cliente.tipo === "empresa" ? cliente.cnpj ?? "" : "",
-    indicadorIe: cliente.tipo === "empresa" ? (cliente.indicadorIe ?? (cliente.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")) : "contribuinte",
+    indicadorIe: cliente.tipo === "empresa" ? ((cliente as any).indicadorIe ?? (cliente.inscricaoEstadual ? "contribuinte" : "nao_contribuinte")) : "contribuinte",
     inscricaoEstadual:
       cliente.tipo === "empresa" ? cliente.inscricaoEstadual ?? "" : "",
 
