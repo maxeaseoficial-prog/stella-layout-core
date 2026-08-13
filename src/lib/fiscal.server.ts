@@ -512,7 +512,17 @@ export function montarPayloadNfe(
     nao_contribuinte: 9,
   };
 
-  const indicator = indicatorMap[(cliente as any)?.indicadorIe] ?? 9;
+  const indicadorIe = (cliente as any)?.indicadorIe;
+  if (
+    indicadorIe !== "contribuinte" &&
+    indicadorIe !== "isento" &&
+    indicadorIe !== "nao_contribuinte"
+  ) {
+    throw new Error(
+      "Indicador de Inscrição Estadual do destinatário não definido ou inválido no cadastro."
+    );
+  }
+  const indicator = indicatorMap[indicadorIe];
   const ieValida = indicator === 1 ? apenasDigitos((cliente as any)?.inscricaoEstadual) : undefined;
 
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
@@ -616,7 +626,17 @@ export function montarPayloadNfeAvulsa(
     isento: 2,
     nao_contribuinte: 9,
   };
-  const indicator = indicatorMap[avulsa.destinatario.indicadorIe] ?? 9;
+  const indicadorIeAvulsa = avulsa.destinatario.indicadorIe;
+  if (
+    indicadorIeAvulsa !== "contribuinte" &&
+    indicadorIeAvulsa !== "isento" &&
+    indicadorIeAvulsa !== "nao_contribuinte"
+  ) {
+    throw new Error(
+      "Indicador de Inscrição Estadual do destinatário não definido ou inválido na NF-e Avulsa."
+    );
+  }
+  const indicator = indicatorMap[indicadorIeAvulsa];
 
   return {
     isFinalCustomer: true,

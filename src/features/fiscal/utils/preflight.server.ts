@@ -28,6 +28,41 @@ export const SpedyReceiverSchema = z.object({
       state: z.string().length(2)
     })
   }).optional()
+}).superRefine((data, ctx) => {
+  // Regras Cruzadas (Derivadas do Contrato OpenAPI Spedy v1)
+  
+  // 1. Contribuinte (indicator 1) -> IE Obrigatória
+  if (data.indicatorStateTaxNumber === 1) {
+    if (!data.stateTaxNumber || data.stateTaxNumber.replace(/\D/g, "").length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Inscrição Estadual é obrigatória para contribuintes (indicador 1).",
+        path: ["stateTaxNumber"]
+      });
+    }
+  }
+
+  // 2. Isento (indicator 2) -> A Spedy exige "ISENTO" literal no stateTaxNumber
+  if (data.indicatorStateTaxNumber === 2) {
+    if (data.stateTaxNumber !== "ISENTO") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Para indicador 'Isento' (2), o campo IE deve conter exatamente o texto 'ISENTO'.",
+        path: ["stateTaxNumber"]
+      });
+    }
+  }
+
+  // 3. Não Contribuinte (indicator 9) -> IE deve ser nula/omitida
+  if (data.indicatorStateTaxNumber === 9) {
+    if (data.stateTaxNumber && data.stateTaxNumber.length > 0 && data.stateTaxNumber !== "ISENTO") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Não contribuintes (indicador 9) não devem possuir Inscrição Estadual.",
+        path: ["stateTaxNumber"]
+      });
+    }
+  }
 });
 
 
