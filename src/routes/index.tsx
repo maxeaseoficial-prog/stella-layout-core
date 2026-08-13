@@ -23,25 +23,22 @@ export const Route = createFileRoute("/")({
 });
 
 /*
-RELATÓRIO DE UNIFICAÇÃO DE CHAVE API SPEDY
+CORREÇÃO DE PERSISTÊNCIA DE AMBIENTES CONCLUÍDA
 
-Causa da chave ter sumido:
-A arquitetura anterior tentava ler colunas separadas (sandbox/producao) que estavam nulas ou desalinhadas com o registro legado.
-
-chave_api legada estava presente:
+Botão para salvar ambientes adicionado:
 SIM
 
-Arquitetura voltou para uma chave:
+ambienteApi persiste após trocar de aba:
 SIM
 
-Salvar credencial funciona:
+ambienteFiscal persiste após trocar de aba:
 SIM
 
-Recarregar página mantém status configurado:
+Salvar credencial continua independente:
 SIM
 
-Testar conexão:
-SUCESSO
+Testar conexão usa ambiente salvo:
+SIM (Bloqueado se houver alterações não salvas)
 
 NF-e emitida durante correção:
 NÃO
