@@ -53,6 +53,15 @@ export function ConfiguracoesFiscaisForm() {
     parcial: string | null 
   } | null>(null);
   const [dialogRemover, setDialogRemover] = useState(false);
+  const [temAlteracoesAmbiente, setTemAlteracoesAmbiente] = useState(false);
+
+  // Monitora mudanças nos ambientes para exibir aviso de "não salvo"
+  useEffect(() => {
+    if (!carregando) {
+      const mudou = form.ambienteApi !== config.ambienteApi || form.ambienteFiscal !== config.ambienteFiscal;
+      setTemAlteracoesAmbiente(mudou);
+    }
+  }, [form.ambienteApi, form.ambienteFiscal, config.ambienteApi, config.ambienteFiscal, carregando]);
 
   // Carrega status das chaves
   async function carregarStatus() {
@@ -78,6 +87,7 @@ export function ConfiguracoesFiscaisForm() {
   async function handleSalvar() {
     try {
       await salvar(form);
+      setTemAlteracoesAmbiente(false);
       toast.success("Configurações fiscais salvas com sucesso.");
     } catch (error) {
       toast.error("Erro ao salvar configurações.");
@@ -176,33 +186,57 @@ export function ConfiguracoesFiscaisForm() {
           <CardDescription>Configure as credenciais utilizadas para comunicação com o serviço Spedy.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-2">
-            <Label>Ambiente Fiscal NF-e</Label>
-            <Select value={form.ambienteFiscal} onValueChange={v => setForm({...form, ambienteFiscal: v as any})}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="homologacao">Homologação (Sem valor fiscal)</SelectItem>
-                <SelectItem value="producao">Produção (Com valor fiscal)</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-[10px] text-muted-foreground">
-              Define se a nota terá validade jurídica (Produção) ou apenas para testes (Homologação).
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="grid gap-2 flex-1 mr-4">
+              <Label>Ambiente Fiscal NF-e</Label>
+              <Select value={form.ambienteFiscal} onValueChange={v => setForm({...form, ambienteFiscal: v as any})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="homologacao">Homologação (Sem valor fiscal)</SelectItem>
+                  <SelectItem value="producao">Produção (Com valor fiscal)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2 flex-1">
+              <Label>Ambiente da API (Spedy)</Label>
+              <Select value={form.ambienteApi} onValueChange={v => setForm({...form, ambienteApi: v as any})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="producao">Produção (Live)</SelectItem>
+                  <SelectItem value="sandbox">Sandbox (Desenvolvimento)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label>Ambiente da API (Spedy)</Label>
-            <Select value={form.ambienteApi} onValueChange={v => setForm({...form, ambienteApi: v as any})}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="producao">Produção (Live)</SelectItem>
-                <SelectItem value="sandbox">Sandbox (Desenvolvimento)</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center justify-between gap-4 py-2 border-y border-border/50">
+            <div className="flex flex-col">
+              <span className="text-xs font-medium">Configurações de Ambiente</span>
+              {temAlteracoesAmbiente ? (
+                <span className="text-[10px] text-amber-600 flex items-center gap-1 font-semibold animate-pulse">
+                  <AlertTriangle className="h-3 w-3" /> Alterações não salvas
+                </span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Ambientes sincronizados
+                </span>
+              )}
+            </div>
+            <Button 
+              size="sm" 
+              variant={temAlteracoesAmbiente ? "default" : "outline"}
+              className="h-8 gap-2" 
+              onClick={handleSalvar}
+              disabled={carregando}
+            >
+              <Save className="h-3.5 w-3.5" />
+              Salvar ambientes
+            </Button>
           </div>
           
           <div className="grid gap-2">
@@ -253,7 +287,7 @@ export function ConfiguracoesFiscaisForm() {
                 variant="outline" 
                 className="flex-1 gap-2" 
                 onClick={handleTestar} 
-                disabled={testando || !statusChave?.configurada}
+                disabled={testando || !statusChave?.configurada || temAlteracoesAmbiente}
               >
                 <RefreshCw className={cn("h-4 w-4", testando && "animate-spin")} />
                 Testar conexão
