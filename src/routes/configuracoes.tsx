@@ -25,7 +25,6 @@ import { UsuariosTab } from "@/features/configuracoes/tabs/UsuariosTab";
 import { AparenciaTab } from "@/features/configuracoes/tabs/AparenciaTab";
 import { SobreTab } from "@/features/configuracoes/tabs/SobreTab";
 import { PerfilTab } from "@/features/configuracoes/tabs/PerfilTab";
-import { FiscalTab } from "@/features/configuracoes/tabs/FiscalTab";
 import { useAuth } from "@/features/auth/useAuth";
 
 export const Route = createFileRoute("/configuracoes")({
@@ -38,7 +37,6 @@ const TABS_ADMIN = [
   { value: "numeracao", label: "Numeração", icon: Hash, render: () => <NumeracaoTab /> },
   { value: "categorias", label: "Categorias", icon: Tag, render: () => <CategoriasTab /> },
   { value: "pagamentos", label: "Pagamentos", icon: CreditCard, render: () => <PagamentosTab /> },
-  { value: "fiscal", label: "Fiscal", icon: FileText, render: () => <FiscalTab /> },
   { value: "backup", label: "Backup", icon: Database, render: () => <BackupTab /> },
   { value: "usuarios", label: "Usuários", icon: ShieldCheck, render: () => <UsuariosTab /> },
   { value: "aparencia", label: "Aparência", icon: Palette, render: () => <AparenciaTab /> },

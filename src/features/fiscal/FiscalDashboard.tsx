@@ -76,7 +76,7 @@ export function FiscalDashboard({ onNavegar }: Props) {
     const rejeitadasPedidos = pedidosMes.filter(p => p.notaFiscal?.status === 'rejected');
     const rejeitadasAvulsas = avulsasMes.filter(n => n.notaFiscal?.status === 'rejected');
     
-    const errosConfig = aguardando.filter(p => p.itens.some(it => !it.ncm)).length;
+    const errosConfig = 0; // Configuração fiscal de produtos removida.
 
     return {
       aguardando: aguardando.length,

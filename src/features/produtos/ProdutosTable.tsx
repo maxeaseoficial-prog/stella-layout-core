@@ -78,9 +78,7 @@ export function ProdutosTable({ produtos, onEditar, onExcluir, onRemover }: Prop
                     <Badge variant="outline" className="border-border bg-surface-muted/60 w-fit">
                       {labelCategoriaProduto(p.categoria)}
                     </Badge>
-                    {p.ncm && (
-                      <span className="text-[9px] text-muted-foreground px-1">NCM: {p.ncm}</span>
-                    )}
+                    {/* NCM removido da visualização */}
                   </div>
                 </TableCell>
                 <TableCell className="tabular-nums">{formatarMoeda(p.precoBase)}</TableCell>

@@ -24,22 +24,6 @@ import { cn } from "@/lib/utils";
 import { fileToDataUrl } from "@/features/clientes";
 import { useConfiguracoes } from "@/features/configuracoes";
 
-import { useServerFn } from "@tanstack/react-start";
-import { getCategoriasFiscais, searchNCM, searchCategoriasFiscais } from "@/features/fiscal/ncm.functions";
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList
-} from "@/components/ui/command";
-import { Check, ChevronsUpDown, Search, AlertCircle } from "lucide-react";
 import { toast } from "@/lib/toast";
 
 import type {
@@ -64,9 +48,6 @@ interface Props {
 interface FormState {
   nome: string;
   sku: string;
-  categoriaFiscalId: string;
-  ncm: string;
-  descricaoFiscal: string;
   categoria: CategoriaProduto;
   precoStr: string;
   personalizacoes: PersonalizacoesPermitidas;
@@ -82,9 +63,6 @@ function estadoInicial(produto?: Produto | null): FormState {
     return {
       nome: "",
       sku: "",
-      ncm: "",
-      categoriaFiscalId: "",
-      descricaoFiscal: "",
       categoria: "",
       precoStr: "",
       personalizacoes: { ...PERSONALIZACOES_VAZIAS },
@@ -98,9 +76,6 @@ function estadoInicial(produto?: Produto | null): FormState {
   return {
     nome: produto.nome,
     sku: produto.sku ?? "",
-    categoriaFiscalId: (produto as any).categoriaFiscalId ?? "",
-    ncm: produto.ncm ?? "",
-    descricaoFiscal: (produto as any).descricaoFiscal ?? "",
     categoria: produto.categoria,
     precoStr: produto.precoBase > 0 ? produto.precoBase.toFixed(2).replace(".", ",") : "",
     personalizacoes: { ...produto.personalizacoes },
@@ -130,19 +105,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
   const { categoriasPorEscopo } = useConfiguracoes();
   const categoriasProduto = categoriasPorEscopo("produto");
   const [form, setForm] = useState<FormState>(() => estadoInicial(produto));
-  const [categoriasFiscais, setCategoriasFiscais] = useState<any[]>([]);
-  const [openFiscal, setOpenFiscal] = useState(false);
-  const [buscaFiscal, setBuscaFiscal] = useState("");
-  
-  const searchFiscais = useServerFn(searchCategoriasFiscais);
-
-  useEffect(() => {
-    if (aberto) {
-      void searchFiscais({ data: { query: buscaFiscal || " " } })
-        .then(setCategoriasFiscais)
-        .catch(() => {});
-    }
-  }, [aberto, buscaFiscal]);
+  // Manutenção de dados fiscais removida
 
   const [erros, setErros] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
@@ -172,7 +135,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
     const novosErros: Record<string, string> = {};
     if (!form.nome.trim()) novosErros.nome = "Informe o nome do produto.";
     if (!form.categoria) novosErros.categoria = "Selecione a categoria.";
-    if (!form.categoriaFiscalId) novosErros.categoriaFiscalId = "Selecione a classificação fiscal.";
+    // Validação fiscal removida
     
     setErros(novosErros);
     if (Object.keys(novosErros).length > 0) {
@@ -184,9 +147,6 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
     const dados: ProdutoInput = {
       nome: form.nome.trim(),
       sku: form.sku.trim() || undefined,
-      ncm: form.ncm.trim() || undefined,
-      categoriaFiscalId: form.categoriaFiscalId || undefined,
-      descricaoFiscal: form.descricaoFiscal || undefined,
       categoria: form.categoria,
       precoBase: parsePreco(form.precoStr),
       variacoesTamanhos: form.variacoesTamanhos.length > 0 ? form.variacoesTamanhos : undefined,
@@ -278,85 +238,7 @@ export function ProdutoFormDrawer({ aberto, onFechar, produto, onSalvar }: Props
                   placeholder="Opcional"
                 />
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>Classificação Fiscal *</Label>
-                <Popover open={openFiscal} onOpenChange={setOpenFiscal}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={openFiscal}
-                      className="w-full justify-between font-normal"
-                    >
-                      {form.categoriaFiscalId
-                        ? categoriasFiscais.find((c) => c.id === form.categoriaFiscalId)?.nome_amigavel
-                        : "Selecionar classificação..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-[--radix-popover-trigger-width] p-0" 
-                    align="start"
-                    onWheel={(e) => e.stopPropagation()}
-                  >
-                    <Command shouldFilter={false}>
-                      <CommandInput 
-                        placeholder="Pesquisar camiseta, moletom..." 
-                        value={buscaFiscal}
-                        onValueChange={setBuscaFiscal}
-                      />
-                      <CommandList className="max-h-[350px] overflow-y-auto overflow-x-hidden scrollbar-thin overscroll-contain">
-                        <CommandEmpty>Nenhuma classificação encontrada.</CommandEmpty>
-                        <CommandGroup>
-                          {categoriasFiscais.map((cat) => (
-                            <CommandItem
-                              key={cat.id}
-                              value={cat.nome_amigavel}
-                              onSelect={() => {
-                                setForm(s => ({
-                                  ...s,
-                                  categoriaFiscalId: cat.id,
-                                  ncm: cat.ncm,
-                                  descricaoFiscal: cat.descricao_oficial || ""
-                                }));
-                                setOpenFiscal(false);
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  form.categoriaFiscalId === cat.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              <div className="flex flex-col">
-                                <span className="font-semibold">{cat.nome_amigavel}</span>
-                                <div className="flex gap-2 text-[10px] text-muted-foreground">
-                                  <span>Código: {cat.codigo || "-"}</span>
-                                  <span>•</span>
-                                  <span>NCM: {cat.ncm}</span>
-                                </div>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {form.categoriaFiscalId && (
-                  <div className="text-[10px] text-muted-foreground px-1 space-y-0.5">
-                    <p>
-                      Código: <span className="font-mono bg-muted px-1 rounded">{categoriasFiscais.find(c => c.id === form.categoriaFiscalId)?.codigo || "-"}</span>
-                      <span className="mx-1">•</span>
-                      NCM: <code className="bg-muted px-1 rounded">{form.ncm}</code>
-                    </p>
-                    {form.descricaoFiscal && (
-                      <p className="italic">Desc: {form.descricaoFiscal}</p>
-                    )}
-                  </div>
-                )}
-                {erros.categoriaFiscalId && <p className="text-xs text-destructive">{erros.categoriaFiscalId}</p>}
-              </div>
+              {/* Classificação Fiscal removida */}
               <div className="space-y-1.5">
                 <Label>Categoria *</Label>
                 <Select

@@ -256,11 +256,9 @@ export function PedidoFormDrawer({ aberto, onFechar, pedido, onSalvar }: Props) 
       return;
     }
 
-    // Captura NCM snapshot
+    // Snapshot dos itens
     const itensComSnapshot = form.itens.map(it => {
-      if (it.ncm) return it;
-      const p = carregarProdutos().find(prod => prod.id === it.produtoId);
-      return { ...it, ncm: p?.ncm };
+      return { ...it };
     });
 
     const dados: PedidoInput = {
