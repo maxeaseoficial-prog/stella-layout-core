@@ -334,8 +334,21 @@ export async function spedyFetch(
   init?: RequestInit,
 ): Promise<any> {
   const url = `${SPEDY_BASE_URLS[ambiente]}${path}`;
-  
+
   let payloadLog: any = null;
+  let bodyHash = "n/a";
+  if (init?.body) {
+    try {
+      const bodyStr = init.body as string;
+      const parsed = JSON.parse(bodyStr);
+      payloadLog = { ...parsed };
+      
+      // Gerar hash simples para comparação de integridade (SHA-256 no worker pode precisar de import crypto)
+      // Usaremos um log da estrutura para o hash visual
+      bodyHash = `len:${bodyStr.length}`;
+    } catch (e) {}
+  }
+
   if (init?.body) {
     try {
       const parsed = JSON.parse(init.body as string);
