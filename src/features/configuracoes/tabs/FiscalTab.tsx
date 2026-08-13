@@ -169,10 +169,11 @@ export function FiscalTab() {
         let tentativas = 0;
         const interval = setInterval(async () => {
           tentativas++;
-          const statusRes = await consultarResultadoSandbox({ spedyId: res.spedyId });
+          const statusRes = await consultarResultadoSandbox({ data: { spedyId: res.spedyId } });
           if (statusRes.ok) {
             const status = statusRes.nota.status;
             setResultadoSandbox({ spedyId: res.spedyId, status });
+
             
             if (status === "authorized" || status === "rejected") {
               clearInterval(interval);
