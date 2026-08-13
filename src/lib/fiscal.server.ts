@@ -183,9 +183,11 @@ export async function persistirNfeNoBanco(
 // Config / validações
 // ---------------------------------------------------------------------------
 
-export async function carregarSegredoFiscalServer(supabase: Supabase): Promise<string | null> {
+export async function carregarSegredosFiscaisServer(
+  supabase: Supabase,
+): Promise<{ sandbox: string | null; producao: string | null }> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) return { sandbox: null, producao: null };
 
   const { data: empUser } = await supabase
     .from("empresa_usuarios")
@@ -193,18 +195,24 @@ export async function carregarSegredoFiscalServer(supabase: Supabase): Promise<s
     .eq("user_id", user.id)
     .single();
   
-  if (!empUser) return null;
+  if (!empUser) return { sandbox: null, producao: null };
 
   const { data } = await supabase
     .from("segredos_fiscais")
-    .select("chave_api")
+    .select("chave_api_sandbox, chave_api_producao")
     .eq("tenant_id", empUser.empresa_id)
     .maybeSingle();
   
-  return data?.chave_api ?? null;
+  return {
+    sandbox: data?.chave_api_sandbox ?? null,
+    producao: data?.chave_api_producao ?? null,
+  };
 }
 
-export async function salvarSegredoFiscalServer(supabase: Supabase, chave: string) {
+export async function salvarSegredosFiscaisServer(
+  supabase: Supabase,
+  chaves: { sandbox?: string; producao?: string },
+) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado.");
 
@@ -216,17 +224,21 @@ export async function salvarSegredoFiscalServer(supabase: Supabase, chave: strin
   
   if (!empUser) throw new Error("Tenant não encontrado.");
 
+  const update: any = {
+    tenant_id: empUser.empresa_id,
+    updated_at: new Date().toISOString(),
+  };
+  if (chaves.sandbox !== undefined) update.chave_api_sandbox = chaves.sandbox;
+  if (chaves.producao !== undefined) update.chave_api_producao = chaves.producao;
+
   const { error } = await supabase
     .from("segredos_fiscais")
-    .upsert(
-      { tenant_id: empUser.empresa_id, chave_api: chave, updated_at: new Date().toISOString() },
-      { onConflict: "tenant_id" }
-    );
+    .upsert(update, { onConflict: "tenant_id" });
 
-  if (error) throw new Error("Falha ao salvar segredo fiscal.");
+  if (error) throw new Error("Falha ao salvar segredos fiscais.");
 }
 
-export async function removerSegredoFiscalServer(supabase: Supabase) {
+export async function removerSegredosFiscaisServer(supabase: Supabase) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Usuário não autenticado.");
 
@@ -243,7 +255,7 @@ export async function removerSegredoFiscalServer(supabase: Supabase) {
     .delete()
     .eq("tenant_id", empUser.empresa_id);
 
-  if (error) throw new Error("Falha ao remover segredo fiscal.");
+  if (error) throw new Error("Falha ao remover segredos fiscais.");
 }
 
 export async function apiKeyParaAmbiente(
@@ -251,11 +263,11 @@ export async function apiKeyParaAmbiente(
   config: FiscalConfig,
   ambiente: AmbienteApiSpedy,
 ): Promise<{ key: string; source: string }> {
-  // A chave agora é única e vem da tabela de segredos
-  const chaveDb = await carregarSegredoFiscalServer(supabase);
-  if (chaveDb) return { key: chaveDb, source: "DATABASE" };
+  const chaves = await carregarSegredosFiscaisServer(supabase);
+  const chaveDb = ambiente === "sandbox" ? chaves.sandbox : chaves.producao;
 
-  // Fallback para ENV (legado/suporte)
+  if (chaveDb) return { key: chaveDb, source: `DATABASE_${ambiente.toUpperCase()}` };
+
   const sandboxEnv = process.env["SPEDY_API_KEY_SANDBOX"]?.trim();
   const producaoEnv = process.env["SPEDY_API_KEY_PRODUCAO"]?.trim();
 
@@ -560,6 +572,7 @@ export function montarPayloadNfe(
     destination,
     presenceType: "presence",
     operationNature: "Venda de Mercadoria",
+    environmentType: config.ambienteFiscal === "producao" ? "production" : "homologation",
     integrationId: pedido.id.slice(0, 36),
     receiver: {
       name: getClienteNome(cliente || ({} as Cliente)).slice(0, 60),
@@ -648,6 +661,7 @@ export function montarPayloadNfeAvulsa(
     destination,
     presenceType: "presence",
     operationNature: "Venda de Mercadoria",
+    environmentType: config.ambienteFiscal === "producao" ? "production" : "homologation",
     integrationId: avulsa.id.slice(0, 36),
     receiver: {
       name: avulsa.destinatario.nome,
