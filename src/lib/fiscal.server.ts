@@ -507,6 +507,57 @@ export function montarPayloadNfe(
     });
   }
 
+  const indicatorMap: Record<string, number> = {
+    contribuinte: 1,
+    isento: 2,
+    nao_contribuinte: 9,
+  };
+
+  const indicator = indicatorMap[(cliente as any)?.indicadorIe] ?? 9;
+  const ieValida = indicator === 1 ? apenasDigitos((cliente as any)?.inscricaoEstadual) : undefined;
+
+  return {
+    integrationId: pedido.id.slice(0, 36),
+    receiver: {
+      name: getClienteNome(cliente || ({} as Cliente)).slice(0, 60),
+      federalTaxNumber: apenasDigitos((cliente as any)?.cnpj || (cliente as any)?.cpf),
+      stateTaxNumber: ieValida,
+      indicatorStateTaxNumber: indicator,
+      email: cliente?.email,
+      address: {
+        street: (cliente?.logradouro || "").slice(0, 60),
+        number: (cliente?.numero || "").slice(0, 60),
+        district: (cliente?.bairro || "").slice(0, 60),
+        complement: (cliente?.complemento || "").slice(0, 60),
+        postalCode: apenasDigitos(cliente?.cep).slice(0, 8),
+        city: {
+          name: (cliente?.cidade || "").slice(0, 60),
+          state: (cliente?.estado || "").slice(0, 2).toUpperCase(),
+        },
+      },
+    },
+    items: ajustados.map((i) => ({
+      code: i.code,
+      description: i.description,
+      quantity: i.quantity,
+      unitAmount: i.unitAmount,
+      totalAmount: i.totalAmount,
+      ncm: i.ncm || t.ncm,
+      cfop: cfop,
+      taxes: montarImpostos(t)(i.totalAmount),
+    })),
+    totalAmount: totalPedido,
+    payments: pedido.pagamentos.map((p) => ({
+      method: getMapaPagamentoSpedy(p.forma),
+      amount: p.valor,
+    })),
+  };
+}
+
+      return { ...i, totalAmount: total, unitAmount: round6(total / i.quantity) };
+    });
+  }
+
   const ncmPadrao = apenasDigitos(config.tributacao.ncm);
   const taxes = montarImpostos(t);
 
