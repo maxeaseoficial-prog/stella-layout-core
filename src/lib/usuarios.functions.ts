@@ -76,13 +76,21 @@ export const criarUsuarioSistema = createServerFn({ method: "POST" })
 export const resolverEmailDeLogin = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ identificador: z.string() }).parse(d))
   .handler(async ({ data }) => {
-    const { buscarEmailPorUsername } = await import("./usuarios.server");
-    
-    if (data.identificador.includes("@")) {
-      return { email: data.identificador.toLowerCase() };
+    const identificador = data.identificador.trim().toLowerCase();
+
+    if (identificador.includes("@")) {
+      return { email: identificador };
     }
 
-    const email = await buscarEmailPorUsername(data.identificador);
+    const emailsFixos: Record<string, string> = {
+      administrador: "administrador@gmail.com",
+      operadormatriz: "matriz@stella.com.br",
+    };
+    const emailFixo = emailsFixos[identificador];
+    if (emailFixo) return { email: emailFixo };
+
+    const { buscarEmailPorUsername } = await import("./usuarios.server");
+    const email = await buscarEmailPorUsername(identificador);
     // Retorna null se não encontrar, conforme solicitado (regra 9)
     return { email: email || null };
   });

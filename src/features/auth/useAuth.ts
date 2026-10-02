@@ -11,7 +11,7 @@ import { capacidadesDe, ROTAS_PERMITIDAS } from "./permissions";
  * `CONTA_TESTE`) para não obrigar refatorações em consumidores.
  *
  * Regras:
- *  - Login por e-mail OU pelo apelido cadastrado (ex.: "matriz" →
+ *  - Login por e-mail OU pelo apelido cadastrado (ex.: "operadormatriz" →
  *    matriz@stella.com.br). O mapeamento é fixo para os usuários
  *    semeados; contas criadas via Configurações → Usuários usam
  *    o e-mail direto.

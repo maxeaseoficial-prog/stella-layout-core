@@ -16,17 +16,17 @@ export const bootstrapUsuariosStella = createServerFn({ method: "POST" }).handle
     const seeds = [
       {
         email: "administrador@gmail.com",
-        password: "adm123",
+        password: "adm123@",
         papel: "administrador" as const,
         nome: "Administrador",
         usuario: "administrador",
       },
       {
         email: "matriz@stella.com.br",
-        password: "matriz123",
+        password: "matriz123@",
         papel: "operador_matriz" as const,
         nome: "Operador Matriz",
-        usuario: "matriz",
+        usuario: "operadormatriz",
       },
     ];
 
