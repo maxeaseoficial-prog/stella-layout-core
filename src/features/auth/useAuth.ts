@@ -223,13 +223,43 @@ export async function login(
   });
 
   if (error || !data.user) {
+    const erroMensagem = error?.message || "USER_NOT_FOUND";
+    const erroCodigo = (error as any)?.code || null;
+    const erroStatus = (error as any)?.status || null;
+    const erroNormalizado = erroMensagem.toLowerCase();
+
     console.error("STELLA_LOGIN_DIAGNOSTIC", {
       etapa: "auth_attempt",
       identificadorTipo: identificador.includes("@") ? "email" : "username",
       emailResolvido: !!email,
       authSuccess: false,
-      erroCodigo: error?.message || "USER_NOT_FOUND"
+      erroMensagem,
+      erroCodigo,
+      erroStatus,
     });
+
+    if (
+      erroNormalizado.includes("invalid api key") ||
+      erroNormalizado.includes("api key") ||
+      erroCodigo === "invalid_api_key"
+    ) {
+      return {
+        ok: false,
+        erro: "Erro de configuração do acesso: chave pública do Supabase inválida.",
+      };
+    }
+
+    if (
+      erroNormalizado.includes("failed to fetch") ||
+      erroNormalizado.includes("network") ||
+      erroNormalizado.includes("fetch")
+    ) {
+      return {
+        ok: false,
+        erro: "Não foi possível conectar ao servidor de autenticação.",
+      };
+    }
+
     return { ok: false, erro: "Usuário ou senha incorretos." };
   }
 
